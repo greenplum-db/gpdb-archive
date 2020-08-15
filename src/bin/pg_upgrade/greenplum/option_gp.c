@@ -26,7 +26,7 @@ initialize_greenplum_user_options(void)
 }
 
 bool
-process_greenplum_option(greenplumOption option, char *option_value)
+process_greenplum_option(greenplumOption option)
 {
 	switch (option)
 	{
