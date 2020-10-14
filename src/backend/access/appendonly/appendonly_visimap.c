@@ -898,7 +898,7 @@ void AppendOnlyVisimap_Init_forUniqueCheck(
 	GetAppendOnlyEntryAuxOids(aoRel,
 							  NULL, NULL, &visimaprelid);
 	if (!OidIsValid(visimaprelid))
-		elog(ERROR, "Could not find block directory for relation: %u", aoRel->rd_id);
+		elog(ERROR, "Could not find visimap for relation: %u", aoRel->rd_id);
 
 	ereportif(Debug_appendonly_print_visimap, LOG,
 			  (errmsg("Append-only visimap init for unique checks"),
@@ -924,6 +924,58 @@ AppendOnlyVisimap_Finish_forUniquenessChecks(
 
 	ereportif(Debug_appendonly_print_visimap, LOG,
 			  (errmsg("Append-only visimap finish for unique checks"),
+				  errdetail("(visimaprel = %u, visimapidxrel = %u)",
+							visimapStore->visimapRelation->rd_id,
+							visimapStore->visimapRelation->rd_id)));
+
+	AppendOnlyVisimapStore_Finish(&visiMap->visimapStore, AccessShareLock);
+	AppendOnlyVisimapEntry_Finish(&visiMap->visimapEntry);
+
+	MemoryContextDelete(visiMap->memoryContext);
+	visiMap->memoryContext = NULL;
+}
+
+/*
+ * AppendOnlyVisimap_Init_forIndexOnlyScan
+ *
+ * Initializes the visimap to determine if tuples were deleted as a part of
+ * index-only scan.
+ * 
+ * Note: the input snapshot should be an MVCC snapshot.
+ */
+void AppendOnlyVisimap_Init_forIndexOnlyScan(
+	AppendOnlyVisimap *visiMap,
+	Relation aoRel,
+	Snapshot snapshot)
+{
+	Oid visimaprelid;
+
+	GetAppendOnlyEntryAuxOids(aoRel,
+							  NULL, NULL, &visimaprelid);
+	if (!OidIsValid(visimaprelid))
+		elog(ERROR, "Could not find visimap for relation: %u", aoRel->rd_id);
+
+	ereportif(Debug_appendonly_print_visimap, LOG,
+			  (errmsg("Append-only visimap init for index-only scan"),
+				  errdetail("(aoRel = %u, visimaprel = %u)",
+							aoRel->rd_id, visimaprelid)));
+
+	Assert(IsMVCCSnapshot(snapshot));
+
+	AppendOnlyVisimap_Init(visiMap,
+						   visimaprelid,
+						   AccessShareLock,
+						   snapshot /* appendOnlyMetaDataSnapshot */);
+}
+
+void
+AppendOnlyVisimap_Finish_forIndexOnlyScan(
+	AppendOnlyVisimap *visiMap)
+{
+	AppendOnlyVisimapStore *visimapStore = &visiMap->visimapStore;
+
+	ereportif(Debug_appendonly_print_visimap, LOG,
+			  (errmsg("Append-only visimap finish for index-only scan"),
 				  errdetail("(visimaprel = %u, visimapidxrel = %u)",
 							visimapStore->visimapRelation->rd_id,
 							visimapStore->visimapRelation->rd_id)));

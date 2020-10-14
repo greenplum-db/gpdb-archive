@@ -741,6 +741,13 @@ aoco_index_fetch_end(IndexFetchTableData *scan)
 		aocoscan->aocofetch = NULL;
 	}
 
+	if (aocoscan->indexonlydesc)
+	{
+		aocs_index_only_finish(aocoscan->indexonlydesc);
+		pfree(aocoscan->indexonlydesc);
+		aocoscan->indexonlydesc = NULL;
+	}
+
 	if (aocoscan->proj)
 	{
 		pfree(aocoscan->proj);
@@ -921,6 +928,33 @@ aoco_index_unique_check(Relation rel,
 				(!TransactionIdIsValid(snapshot->xmin) && !TransactionIdIsValid(snapshot->xmax)));
 
 	return visible;
+}
+
+static bool
+aocs_index_fetch_tuple_visible(struct IndexFetchTableData *scan,
+							   ItemPointer tid,
+							   Snapshot snapshot)
+{
+	IndexFetchAOCOData *aocoscan = (IndexFetchAOCOData *) scan;
+
+	if (!aocoscan->indexonlydesc)
+	{
+		Snapshot	appendOnlyMetaDataSnapshot = snapshot;
+
+		if (appendOnlyMetaDataSnapshot == SnapshotAny)
+		{
+			/*
+			 * the append-only meta data should never be fetched with
+			 * SnapshotAny as bogus results are returned.
+			 */
+			appendOnlyMetaDataSnapshot = GetTransactionSnapshot();
+		}
+
+		aocoscan->indexonlydesc = aocs_index_only_init(aocoscan->xs_base.rel,
+											  		   appendOnlyMetaDataSnapshot);
+	}
+
+	return aocs_index_only_check(aocoscan->indexonlydesc, (AOTupleId *) tid, snapshot);
 }
 
 static void
@@ -2039,15 +2073,22 @@ aoco_relation_needs_toast_table(Relation rel)
  */
 static void
 aoco_estimate_rel_size(Relation rel, int32 *attr_widths,
-                             BlockNumber *pages, double *tuples,
-                             double *allvisfrac)
+					   BlockNumber *pages, double *tuples,
+					   double *allvisfrac)
 {
 	FileSegTotals  *fileSegTotals;
 	Snapshot		snapshot;
 
 	*pages = 1;
 	*tuples = 1;
-	*allvisfrac = 0;
+
+	/*
+	 * Indirectly, allvisfrac is the fraction of pages for which we don't need
+	 * to scan the full table during an index only scan.
+	 * For AO/CO tables, we never have to scan the underlying table. This is
+	 * why we set this to 1.
+	 */
+	*allvisfrac = 1;
 
 	if (Gp_role == GP_ROLE_DISPATCH)
 		return;
@@ -2249,6 +2290,7 @@ static const TableAmRoutine ao_column_methods = {
 	.index_fetch_reset = aoco_index_fetch_reset,
 	.index_fetch_end = aoco_index_fetch_end,
 	.index_fetch_tuple = aoco_index_fetch_tuple,
+	.index_fetch_tuple_visible = aocs_index_fetch_tuple_visible,
 	.index_unique_check = aoco_index_unique_check,
 
 	.dml_init = aoco_dml_init,

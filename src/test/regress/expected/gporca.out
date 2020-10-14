@@ -13212,28 +13212,24 @@ set optimizer_enable_nljoin=off;
 -- end_ignore
 -- Make sure we don't allow a regular (btree) index scan or index join for an AO table
 -- We disabled hash join, and bitmap index joins, NLJs, so this should leave ORCA no other choices
--- expect a sequential scan, not an index scan, from these two queries
+-- other than an index-only scan or sequential scan.
 explain (costs off) select * from t_ao_btree where a = 3 and b = 3;
                    QUERY PLAN                    
 -------------------------------------------------
  Gather Motion 1:1  (slice1; segments: 1)
-   ->  Bitmap Heap Scan on t_ao_btree
-         Recheck Cond: ((a = 3) AND (b = 3))
-         ->  Bitmap Index Scan on t_ao_btree_ix
-               Index Cond: ((a = 3) AND (b = 3))
+   ->  Index Only Scan using t_ao_btree_ix on t_ao_btree
+         Index Cond: ((a = 3) AND (b = 3))
  Optimizer: Postgres query optimizer
-(6 rows)
+(4 rows)
 
 explain (costs off) select * from tpart_ao_btree where a = 3 and b = 3;
                            QUERY PLAN                            
 -----------------------------------------------------------------
  Gather Motion 1:1  (slice1; segments: 1)
-   ->  Bitmap Heap Scan on tpart_ao_btree_1_prt_1
-         Recheck Cond: ((a = 3) AND (b = 3))
-         ->  Bitmap Index Scan on tpart_ao_btree_1_prt_1_a_b_idx
-               Index Cond: ((a = 3) AND (b = 3))
+   ->  Index Only Scan using tpart_ao_btree_1_prt_1_a_b_idx on tpart_ao_btree_1_prt_1
+         Index Cond: ((a = 3) AND (b = 3))
  Optimizer: Postgres query optimizer
-(6 rows)
+(4 rows)
 
 -- expect a fallback for all four of these queries
 select * from tpart_dim d join t_ao_btree f on d.a=f.a where d.b=1;

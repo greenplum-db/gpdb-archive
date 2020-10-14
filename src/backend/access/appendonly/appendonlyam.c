@@ -2311,6 +2311,53 @@ appendonly_fetch_finish(AppendOnlyFetchDesc aoFetchDesc)
 	pfree(aoFetchDesc->title);
 }
 
+AppendOnlyIndexOnlyDesc
+appendonly_index_only_init(Relation relation, Snapshot snapshot)
+{
+	AppendOnlyIndexOnlyDesc indexonlydesc = (AppendOnlyIndexOnlyDesc) palloc0(sizeof(AppendOnlyIndexOnlyDescData));
+
+	/* initialize the block directory */
+	indexonlydesc->blockDirectory = palloc0(sizeof(AppendOnlyBlockDirectory));
+	AppendOnlyBlockDirectory_Init_forIndexOnlyScan(indexonlydesc->blockDirectory,
+												   relation,
+												   1,
+												   snapshot);
+
+	/* initialize the visimap */
+	indexonlydesc->visimap = palloc0(sizeof(AppendOnlyVisimap));
+	AppendOnlyVisimap_Init_forIndexOnlyScan(indexonlydesc->visimap,
+											relation,
+											snapshot);
+	return indexonlydesc;
+}
+
+bool
+appendonly_index_only_check(AppendOnlyIndexOnlyDesc indexonlydesc, AOTupleId *aotid, Snapshot snapshot)
+{
+	if (!AppendOnlyBlockDirectory_CoversTuple(indexonlydesc->blockDirectory, aotid))
+		return false;
+
+	/* check SnapshotAny for the case when gp_select_invisible is on */
+	if (snapshot != SnapshotAny && !AppendOnlyVisimap_IsVisible(indexonlydesc->visimap, aotid))
+		return false;
+	
+	return true;
+}
+
+void
+appendonly_index_only_finish(AppendOnlyIndexOnlyDesc indexonlydesc)
+{
+	/* clean up the block directory */
+	AppendOnlyBlockDirectory_End_forIndexOnlyScan(indexonlydesc->blockDirectory);
+	pfree(indexonlydesc->blockDirectory);
+	indexonlydesc->blockDirectory = NULL;
+
+	/* clean up the visimap */
+	AppendOnlyVisimap_Finish_forIndexOnlyScan(indexonlydesc->visimap);
+	pfree(indexonlydesc->visimap);
+	indexonlydesc->visimap = NULL;
+}
+
 /*
  * appendonly_delete_init
  *

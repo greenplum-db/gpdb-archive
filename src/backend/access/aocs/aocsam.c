@@ -1602,7 +1602,52 @@ aocs_fetch_finish(AOCSFetchDesc aocsFetchDesc)
 	AppendOnlyVisimap_Finish(&aocsFetchDesc->visibilityMap, AccessShareLock);
 }
 
+AOCSIndexOnlyDesc
+aocs_index_only_init(Relation relation, Snapshot snapshot)
+{
+	AOCSIndexOnlyDesc indexonlydesc = (AOCSIndexOnlyDesc) palloc0(sizeof(AppendOnlyIndexOnlyDescData));
 
+	/* initialize the block directory */
+	indexonlydesc->blockDirectory = palloc0(sizeof(AppendOnlyBlockDirectory));
+	AppendOnlyBlockDirectory_Init_forIndexOnlyScan(indexonlydesc->blockDirectory,
+												   relation,
+												   relation->rd_att->natts, /* numColGroups */
+												   snapshot);
+
+	/* initialize the visimap */
+	indexonlydesc->visimap = palloc0(sizeof(AppendOnlyVisimap));
+	AppendOnlyVisimap_Init_forIndexOnlyScan(indexonlydesc->visimap,
+											relation,
+											snapshot);
+	return indexonlydesc;										
+}
+
+bool
+aocs_index_only_check(AOCSIndexOnlyDesc indexonlydesc, AOTupleId *aotid, Snapshot snapshot)
+{
+	if (!AppendOnlyBlockDirectory_CoversTuple(indexonlydesc->blockDirectory, aotid))
+		return false;
+
+	/* check SnapshotAny for the case when gp_select_invisible is on */
+	if (snapshot != SnapshotAny && !AppendOnlyVisimap_IsVisible(indexonlydesc->visimap, aotid))
+		return false;
+	
+	return true;
+}
+
+void
+aocs_index_only_finish(AOCSIndexOnlyDesc indexonlydesc)
+{
+	/* clean up the block directory */
+	AppendOnlyBlockDirectory_End_forIndexOnlyScan(indexonlydesc->blockDirectory);
+	pfree(indexonlydesc->blockDirectory);
+	indexonlydesc->blockDirectory = NULL;
+
+	/* clean up the visimap */
+	AppendOnlyVisimap_Finish_forIndexOnlyScan(indexonlydesc->visimap);
+	pfree(indexonlydesc->visimap);
+	indexonlydesc->visimap = NULL;
+}
 
 /*
  * appendonly_delete_init

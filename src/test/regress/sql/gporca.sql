@@ -2943,7 +2943,7 @@ set optimizer_enable_nljoin=off;
 
 -- Make sure we don't allow a regular (btree) index scan or index join for an AO table
 -- We disabled hash join, and bitmap index joins, NLJs, so this should leave ORCA no other choices
--- expect a sequential scan, not an index scan, from these two queries
+-- other than an index-only scan or sequential scan.
 explain (costs off) select * from t_ao_btree where a = 3 and b = 3;
 explain (costs off) select * from tpart_ao_btree where a = 3 and b = 3;
 -- expect a fallback for all four of these queries

@@ -528,6 +528,13 @@ appendonly_index_fetch_end(IndexFetchTableData *scan)
 		aoscan->aofetch = NULL;
 	}
 
+	if (aoscan->indexonlydesc)
+	{
+		appendonly_index_only_finish(aoscan->indexonlydesc);
+		pfree(aoscan->indexonlydesc);
+		aoscan->indexonlydesc = NULL;
+	}
+
 	pfree(aoscan);
 }
 
@@ -690,6 +697,32 @@ appendonly_index_unique_check(Relation rel,
 	return visible;
 }
 
+static bool
+appendonly_index_fetch_tuple_visible(struct IndexFetchTableData *scan,
+									 ItemPointer tid,
+									 Snapshot snapshot)
+{
+	IndexFetchAppendOnlyData *aoscan = (IndexFetchAppendOnlyData *) scan;
+
+	if (!aoscan->indexonlydesc)
+	{
+		Snapshot	appendOnlyMetaDataSnapshot = snapshot;
+
+		if (appendOnlyMetaDataSnapshot == SnapshotAny)
+		{
+			/*
+			 * the append-only meta data should never be fetched with
+			 * SnapshotAny as bogus results are returned.
+			 */
+			appendOnlyMetaDataSnapshot = GetTransactionSnapshot();
+		}
+
+		aoscan->indexonlydesc = appendonly_index_only_init(aoscan->xs_base.rel,
+														   appendOnlyMetaDataSnapshot);
+	}
+
+	return appendonly_index_only_check(aoscan->indexonlydesc, (AOTupleId *) tid, snapshot);
+}
 
 /* ------------------------------------------------------------------------
  * Callbacks for non-modifying operations on individual tuples for
@@ -1844,15 +1877,22 @@ appendonly_relation_needs_toast_table(Relation rel)
  */
 static void
 appendonly_estimate_rel_size(Relation rel, int32 *attr_widths,
-						 BlockNumber *pages, double *tuples,
-						 double *allvisfrac)
+							 BlockNumber *pages, double *tuples,
+							 double *allvisfrac)
 {
 	FileSegTotals  *fileSegTotals;
 	Snapshot		snapshot;
 
 	*pages = 1;
 	*tuples = 1;
-	*allvisfrac = 0;
+
+	/*
+	 * Indirectly, allvisfrac is the fraction of pages for which we don't need
+	 * to scan the full table during an index only scan.
+	 * For AO/CO tables, we never have to scan the underlying table. This is
+	 * why we set this to 1.
+	 */
+	*allvisfrac = 1;
 
 	if (Gp_role == GP_ROLE_DISPATCH)
 		return;
@@ -2038,6 +2078,7 @@ static const TableAmRoutine ao_row_methods = {
 	.index_fetch_reset = appendonly_index_fetch_reset,
 	.index_fetch_end = appendonly_index_fetch_end,
 	.index_fetch_tuple = appendonly_index_fetch_tuple,
+	.index_fetch_tuple_visible = appendonly_index_fetch_tuple_visible,
 	.index_unique_check = appendonly_index_unique_check,
 
 	.dml_init = appendonly_dml_init,
