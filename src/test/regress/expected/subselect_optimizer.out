@@ -1007,6 +1007,45 @@ where (exists(select 1 from tenk1 k where k.unique1 = t.unique2) or ten < 0)
     10
 (1 row)
 
+-- It's possible for the same EXISTS to get resolved both ways
+create temp table exists_tbl (c1 int, c2 int, c3 int) partition by list (c1);
+create temp table exists_tbl_null partition of exists_tbl for values in (null);
+create temp table exists_tbl_def partition of exists_tbl default;
+insert into exists_tbl select x, x/2, x+1 from generate_series(0,1000) x;
+analyze exists_tbl;
+explain (costs off)
+select count(*) from exists_tbl t1
+  where (exists(select 1 from exists_tbl t2 where t1.c1 = t2.c2) or c3 < 0);
+                                              QUERY PLAN                                               
+-------------------------------------------------------------------------------------------------------
+ Finalize Aggregate
+   ->  Gather Motion 3:1  (slice1; segments: 3)
+         ->  Partial Aggregate
+               ->  Result
+                     Filter: ((COALESCE((count()), '0'::bigint) > '0'::bigint) OR (exists_tbl.c3 < 0))
+                     ->  Hash Left Join
+                           Hash Cond: (exists_tbl.c1 = exists_tbl_1.c2)
+                           ->  Dynamic Seq Scan on exists_tbl
+                                 Number of partitions to scan: 2 (out of 2)
+                           ->  Hash
+                                 ->  Finalize HashAggregate
+                                       Group Key: exists_tbl_1.c2
+                                       ->  Redistribute Motion 3:3  (slice2; segments: 3)
+                                             Hash Key: exists_tbl_1.c2
+                                             ->  Streaming Partial HashAggregate
+                                                   Group Key: exists_tbl_1.c2
+                                                   ->  Dynamic Seq Scan on exists_tbl exists_tbl_1
+                                                         Number of partitions to scan: 2 (out of 2)
+ Optimizer: Pivotal Optimizer (GPORCA)
+(19 rows)
+
+select count(*) from exists_tbl t1
+  where (exists(select 1 from exists_tbl t2 where t1.c1 = t2.c2) or c3 < 0);
+ count 
+-------
+   501
+(1 row)
+
 --
 -- Test case for planner bug with nested EXISTS handling
 --
