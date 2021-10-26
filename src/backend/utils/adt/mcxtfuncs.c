@@ -162,10 +162,10 @@ pg_get_backend_memory_contexts(PG_FUNCTION_ARGS)
  * pg_log_backend_memory_contexts
  *		Signal a backend process to log its memory contexts.
  *
- * Only superusers are allowed to signal to log the memory contexts
- * because allowing any users to issue this request at an unbounded
- * rate would cause lots of log messages and which can lead to
- * denial of service.
+ * By default, only superusers are allowed to signal to log the memory
+ * contexts because allowing any users to issue this request at an unbounded
+ * rate would cause lots of log messages and which can lead to denial of
+ * service. Additional roles can be permitted with GRANT.
  *
  * On receipt of this signal, a backend sets the flag in the signal
  * handler, which causes the next CHECK_FOR_INTERRUPTS() to log the
@@ -175,7 +175,9 @@ Datum
 pg_log_backend_memory_contexts(PG_FUNCTION_ARGS)
 {
 	int			pid = PG_GETARG_INT32(0);
-	PGPROC	   *proc = BackendPidGetProc(pid);
+	PGPROC	   *proc;
+
+	proc = BackendPidGetProc(pid);
 
 	/*
 	 * BackendPidGetProc returns NULL if the pid isn't valid; but by the time
@@ -196,12 +198,6 @@ pg_log_backend_memory_contexts(PG_FUNCTION_ARGS)
 				(errmsg("PID %d is not a PostgreSQL server process", pid)));
 		PG_RETURN_BOOL(false);
 	}
-
-	/* Only allow superusers to log memory contexts. */
-	if (!superuser())
-		ereport(ERROR,
-				(errcode(ERRCODE_INSUFFICIENT_PRIVILEGE),
-				 errmsg("must be a superuser to log memory contexts")));
 
 	if (SendProcSignal(pid, PROCSIG_LOG_MEMORY_CONTEXT, proc->backendId) < 0)
 	{
