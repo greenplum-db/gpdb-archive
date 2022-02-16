@@ -386,31 +386,25 @@ if [ "${BLDWRAP_POSTGRES_CONF_ADDONS}" != "__none__" ]  && \
     [ -f ${CLUSTER_CONFIG_POSTGRES_ADDONS} ] && chmod a+w ${CLUSTER_CONFIG_POSTGRES_ADDONS}
 
     echo ${BLDWRAP_POSTGRES_CONF_ADDONS} | sed -e 's/\[//g' -e 's/\]//g' | tr "," "\n" | sed -e 's/^\"//g' -e 's/\"$//g' >> ${CLUSTER_CONFIG_POSTGRES_ADDONS}
-
-    echo ""
-    echo "======================================================================"
-    echo "CLUSTER_CONFIG_POSTGRES_ADDONS: ${CLUSTER_CONFIG_POSTGRES_ADDONS}"
-    echo "----------------------------------------------------------------------"
-    cat ${CLUSTER_CONFIG_POSTGRES_ADDONS}
-    echo "======================================================================"
-    echo ""
 fi
 
-if [ -f "${CLUSTER_CONFIG_POSTGRES_ADDONS}" ]; then
-    echo "=========================================================================================="
-    echo "executing:"
-    echo "  $GPPATH/gpinitsystem -a -c $CLUSTER_CONFIG -l $DATADIRS/gpAdminLogs -p ${CLUSTER_CONFIG_POSTGRES_ADDONS} ${STANDBY_INIT_OPTS} \"$@\""
-    echo "=========================================================================================="
-    echo ""
-    $GPPATH/gpinitsystem -a -c $CLUSTER_CONFIG -l $DATADIRS/gpAdminLogs -p ${CLUSTER_CONFIG_POSTGRES_ADDONS} ${STANDBY_INIT_OPTS} "$@"
-else
-    echo "=========================================================================================="
-    echo "executing:"
-    echo "  $GPPATH/gpinitsystem -a -c $CLUSTER_CONFIG -l $DATADIRS/gpAdminLogs ${STANDBY_INIT_OPTS} \"$@\""
-    echo "=========================================================================================="
-    echo ""
-    $GPPATH/gpinitsystem -a -c $CLUSTER_CONFIG -l $DATADIRS/gpAdminLogs ${STANDBY_INIT_OPTS} "$@"
-fi
+# Add fsync-off for all gpdemo deployments
+grep -q 'fsync=off' ${CLUSTER_CONFIG_POSTGRES_ADDONS} && echo "fsync=off already exists in ${CLUSTER_CONFIG_POSTGRES_ADDONS}." || echo "fsync=off" >> ${CLUSTER_CONFIG_POSTGRES_ADDONS}
+
+echo ""
+echo "======================================================================"
+echo "CLUSTER_CONFIG_POSTGRES_ADDONS: ${CLUSTER_CONFIG_POSTGRES_ADDONS}"
+echo "----------------------------------------------------------------------"
+cat ${CLUSTER_CONFIG_POSTGRES_ADDONS}
+echo "======================================================================"
+echo ""
+
+echo "=========================================================================================="
+echo "executing:"
+echo "  $GPPATH/gpinitsystem -a -c $CLUSTER_CONFIG -l $DATADIRS/gpAdminLogs -p ${CLUSTER_CONFIG_POSTGRES_ADDONS} ${STANDBY_INIT_OPTS} \"$@\""
+echo "=========================================================================================="
+echo ""
+$GPPATH/gpinitsystem -a -c $CLUSTER_CONFIG -l $DATADIRS/gpAdminLogs -p ${CLUSTER_CONFIG_POSTGRES_ADDONS} ${STANDBY_INIT_OPTS} "$@"
 RETURN=$?
 
 echo "========================================"
