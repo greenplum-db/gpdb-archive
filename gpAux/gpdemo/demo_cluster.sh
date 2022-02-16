@@ -29,10 +29,18 @@ STANDBYDIR=$DATADIRS/standby
 COORDINATOR_DEMO_PORT=${DEMO_PORT_BASE}
 STANDBY_DEMO_PORT=`expr ${DEMO_PORT_BASE} + 1`
 DEMO_PORT_BASE=`expr ${DEMO_PORT_BASE} + 2`
-for (( i=0; i<`expr 2 \* $NUM_PRIMARY_MIRROR_PAIRS`; i++ )); do
-  PORT_NUM=`expr $DEMO_PORT_BASE + $i`
-  DEMO_SEG_PORTS_LIST="$DEMO_SEG_PORTS_LIST $PORT_NUM"
-done
+if [ "${WITH_MIRRORS}" == "true" ]; then
+    for (( i=0; i<`expr 2 \* $NUM_PRIMARY_MIRROR_PAIRS`; i++ )); do
+        PORT_NUM=`expr $DEMO_PORT_BASE + $i`
+        DEMO_SEG_PORTS_LIST="$DEMO_SEG_PORTS_LIST $PORT_NUM"
+    done
+elif [ "${WITH_MIRRORS}" == "false" ]; then
+    for (( i=0; i<${NUM_PRIMARY_MIRROR_PAIRS}; i++ )); do
+        PORT_NUM=`expr $DEMO_PORT_BASE + $i`
+        DEMO_SEG_PORTS_LIST="$DEMO_SEG_PORTS_LIST $PORT_NUM"
+    done
+fi
+
 DEMO_SEG_PORTS_LIST=${DEMO_SEG_PORTS_LIST#* }
 
 # ======================================================================
@@ -188,9 +196,22 @@ cat <<-EOF
 
 	----------------------------------------------------------------------
 
-	  This is a demo of the Greenplum Database system.  We will create
-	  a cluster installation with coordinator and `expr 2 \* ${NUM_PRIMARY_MIRROR_PAIRS}` segment instances
+EOF
+
+if [ "${WITH_MIRRORS}" == "true" ]; then
+cat <<-EOF
+	  This is a MIRRORED demo of the Greenplum Database system.  We will
+	  create a cluster installation with coordinator and `expr 2 \* ${NUM_PRIMARY_MIRROR_PAIRS}` segment instances
 	  (${NUM_PRIMARY_MIRROR_PAIRS} primary & ${NUM_PRIMARY_MIRROR_PAIRS} mirror).
+EOF
+elif [ "${WITH_MIRRORS}" == "false" ]; then
+cat <<-EOF
+	  This is a MIRRORLESS demo of the Greenplum Database system.  We will create
+	  a cluster installation with coordinator and ${NUM_PRIMARY_MIRROR_PAIRS} segment instances.
+EOF
+fi
+
+cat <<-EOF
 
 	    GPHOME ................... : ${GPHOME}
 	    COORDINATOR_DATA_DIRECTORY : ${QDDIR}/${SEG_PREFIX}-1
