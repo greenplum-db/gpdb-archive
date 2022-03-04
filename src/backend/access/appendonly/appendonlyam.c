@@ -2604,10 +2604,11 @@ appendonly_insert_init(Relation rel, int segno)
 	 * This GUC must have the same value on write and read.
 	 */
 /* 	aoInsertDesc->useNoToast = aoentry->notoast; */
+
 	/*
-	 * GPDB_12_MERGE_FIXME: we should simply never use toast for AO, variable
-	 * length blocks of AO should be able to accommodate variable length
-	 * datums.
+	 * Although variable length blocks of AO should be able to accommodate variable length
+	 * datums, we still need to keep TOAST for AO_ROW to benefit to performance when query
+	 * in-line data.
 	 */
 	aoInsertDesc->useNoToast = !(rel->rd_tableam->relation_needs_toast_table(rel));
 
