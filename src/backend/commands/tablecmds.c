@@ -5982,7 +5982,7 @@ ATAocsWriteNewColumns(AlteredTableInfo *tab)
 	/* Try to recycle any old segfiles first. */
 	AppendOptimizedRecycleDeadSegments(rel);
 
-	segInfos = GetAllAOCSFileSegInfo(rel, snapshot, &nseg);
+	segInfos = GetAllAOCSFileSegInfo(rel, snapshot, &nseg, NULL);
 	basepath = relpathbackend(rel->rd_node, rel->rd_backend, MAIN_FORKNUM);
 	if (nseg > 0)
 	{
