@@ -2323,10 +2323,7 @@ vacuum_rel(Oid relid, RangeVar *relation, VacuumParams *params,
 			LockRelation(onerel, ShareLock);
 	}
 
-	if (is_appendoptimized)
-		/* entrance of vacuuming Append-Optimized table */
-		ao_vacuum_rel(onerel, params, vac_strategy);
-	else if ((params->options & VACOPT_FULL))
+	if (!is_appendoptimized && (params->options & VACOPT_FULL))
 	{
 		int			cluster_options = 0;
 
@@ -2340,7 +2337,7 @@ vacuum_rel(Oid relid, RangeVar *relation, VacuumParams *params,
 		/* VACUUM FULL is now a variant of CLUSTER; see cluster.c */
 		cluster_rel(relid, InvalidOid, cluster_options, true);
 	}
-	else
+	else /* Heap vacuum or AO/CO vacuum in specific phase */
 		table_relation_vacuum(onerel, params, vac_strategy);
 
 	/* Roll back any GUC changes executed by index functions */
@@ -2359,10 +2356,13 @@ vacuum_rel(Oid relid, RangeVar *relation, VacuumParams *params,
 	PopActiveSnapshot();
 	CommitTransactionCommand();
 
+	/* entrance of Append-Optimized table vacuum */
 	if (is_appendoptimized && ao_vacuum_phase == 0)
 	{
-		int orig_options = params->options;	
+		int orig_options = params->options;
+
 		/* orchestrate the AO vacuum phases */
+
 		/*
 		 * Do cleanup first, to reclaim as much space as possible that
 		 * was left behind from previous VACUUMs. This runs under local
@@ -2375,7 +2375,8 @@ vacuum_rel(Oid relid, RangeVar *relation, VacuumParams *params,
 		params->options = orig_options | VACOPT_AO_COMPACT_PHASE;
 		vacuum_rel(relid, this_rangevar, params, false);
 
-		/* Do a final round of cleanup. Hopefully, this can drop the segments
+		/* 
+		 * Do a final round of cleanup. Hopefully, this can drop the segments
 		 * that were compacted in the previous phase.
 		 */
 		params->options = orig_options | VACOPT_AO_POST_CLEANUP_PHASE;
