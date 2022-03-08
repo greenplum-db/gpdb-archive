@@ -284,12 +284,8 @@ close_ds_write(DatumStreamWrite **ds, int nvp)
 	}
 }
 
-/*
- * GPDB_12_MERGE_FIXME: Find a better name to match what this function is
- * actually doing
- */
 static void
-aocs_initscan(AOCSScanDesc scan)
+initscan_with_colinfo(AOCSScanDesc scan)
 {
 	MemoryContext	oldCtx;
 	AttrNumber		natts;
@@ -599,7 +595,7 @@ aocs_rescan(AOCSScanDesc scan)
 	close_cur_scan_seg(scan);
 	if (scan->columnScanInfo.ds)
 		close_ds_read(scan->columnScanInfo.ds, scan->columnScanInfo.relationTupleDesc->natts);
-	aocs_initscan(scan);
+	initscan_with_colinfo(scan);
 }
 
 void
@@ -739,7 +735,7 @@ aocs_getnext(AOCSScanDesc scan, ScanDirection direction, TupleTableSlot *slot)
 		scan->columnScanInfo.relationTupleDesc = slot->tts_tupleDescriptor;
 		/* Pin it! ... and of course release it upon destruction / rescan */
 		PinTupleDesc(scan->columnScanInfo.relationTupleDesc);
-		aocs_initscan(scan);
+		initscan_with_colinfo(scan);
 	}
 
 	natts = slot->tts_tupleDescriptor->natts;
