@@ -8,7 +8,7 @@
 
 -- start_matchsubs
 --
--- m/DETAIL:  Per-query memory limit reached: current limit is \d+ kB, requested \d+ bytes, has \d+ MB avaiable for this query/
+-- m/DETAIL:  Per-query memory limit reached: current limit is \d+ kB, requested \d+ bytes, has \d+ MB available for this query/
 -- s/\d+/XXX/g
 --
 -- m/DETAIL:  Vmem limit reached, failed to allocate \d+ bytes from tracker, which has \d+ MB available/

@@ -361,7 +361,7 @@ static void gp_failed_to_alloc(MemoryAllocationStatus ec, int en, int sz)
 		/* Hit MOP limit */
 		ereport(ERROR, (errcode(ERRCODE_GP_MEMPROT_KILL),
 				errmsg("Out of memory"),
-				errdetail("Per-query memory limit reached: current limit is %d kB, requested %d bytes, has %d MB avaiable for this query",
+				errdetail("Per-query memory limit reached: current limit is %d kB, requested %d bytes, has %d MB available for this query",
 						gp_vmem_limit_per_query, sz, VmemTracker_GetAvailableQueryVmemMB()
 				)
 		));

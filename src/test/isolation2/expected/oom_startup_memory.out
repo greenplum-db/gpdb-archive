@@ -8,7 +8,7 @@
 
 -- start_matchsubs
 --
--- m/DETAIL:  Per-query memory limit reached: current limit is \d+ kB, requested \d+ bytes, has \d+ MB avaiable for this query/
+-- m/DETAIL:  Per-query memory limit reached: current limit is \d+ kB, requested \d+ bytes, has \d+ MB available for this query/
 -- s/\d+/XXX/g
 --
 -- m/DETAIL:  Vmem limit reached, failed to allocate \d+ bytes from tracker, which has \d+ MB available/
@@ -29,7 +29,7 @@
 1: select * from gp_dist_random('gp_id') t1 join gp_dist_random('gp_id') t2 using(gpname) join gp_dist_random('gp_id') t3 using(gpname) join gp_dist_random('gp_id') t4 using(gpname) ;
 ERROR:  failed to acquire resources on one or more segments
 DETAIL:  FATAL:  Out of memory
-DETAIL:  Per-query memory limit reached: current limit is 20480 kB, requested 12582912 bytes, has 0 MB avaiable for this query
+DETAIL:  Per-query memory limit reached: current limit is 20480 kB, requested 12582912 bytes, has 0 MB available for this query
  (seg0 127.0.1.1:7002)
 1q: ... <quitting>
 
