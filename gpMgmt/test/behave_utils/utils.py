@@ -155,7 +155,6 @@ def check_string_not_present_stdout(context, msg):
         err_str = "Did not expect stdout string '%s' but found: '%s'" % (msg, context.stdout_message)
         raise Exception(err_str)
 
-
 def check_err_msg(context, err_msg):
     if not hasattr(context, 'exception'):
         raise Exception('An exception was not raised and it was expected')
