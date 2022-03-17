@@ -329,7 +329,7 @@ This table lists the versions of the Greenplum Extensions that are compatible wi
               <tr class="row">
                 <td class="entry nocellnorowborder" style="vertical-align:top;" headers="d78288e683 "><a class="xref" href="../analytics/madlib.html">MADlib Machine Learning</a></td>
 
-                <td class="entry nocellnorowborder" style="vertical-align:top;" headers="d78288e686 ">1.18, 1.17, 1.16</td>
+                <td class="entry nocellnorowborder" style="vertical-align:top;" headers="d78288e686 ">1.19, 1.18, 1.17, 1.16</td>
 
                 <td class="entry cell-norowborder" style="vertical-align:top;" headers="d78288e689 ">Support matrix at <a class="xref" href="https://cwiki.apache.org/confluence/display/MADLIB/FAQ#FAQ-Q1-2WhatdatabaseplatformsdoesMADlibsupportandwhatistheupgradematrix?" target="_blank">MADlib FAQ</a>.</td>
 
@@ -338,7 +338,7 @@ This table lists the versions of the Greenplum Extensions that are compatible wi
               <tr class="row">
                 <td class="entry row-nocellborder" style="vertical-align:top;" headers="d78288e683 "><a class="xref" href="../analytics/postGIS.html">PostGIS Spatial and Geographic Objects</a></td>
 
-                <td class="entry row-nocellborder" style="vertical-align:top;" headers="d78288e686 ">2.5.4+pivotal.4,2.5.4+pivotal.3,
+                <td class="entry row-nocellborder" style="vertical-align:top;" headers="d78288e686 ">2.5.4+pivotal.6.build.1, 2.5.4+pivotal.4, 2.5.4+pivotal.3,
                   2.5.4+pivotal.2, 2.5.4+pivotal.1,<p class="p">2.1.5+pivotal.2-2</p>
 </td>
 
