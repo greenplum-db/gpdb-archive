@@ -15980,7 +15980,23 @@ prebuild_temp_table(Relation rel, RangeVar *tmpname, DistributedBy *distro,
 				col_encs = RelationGetUntransformedAttributeOptions(rel);
 		}
 		else
+		{
 			cs->options = opts;
+
+			if (RelationIsAoRows(rel))
+			{
+				/*
+				 * In order to avoid being affected by the GUC of gp_default_storage_options,
+				 * we should re-build storage options from original table.
+				 *
+				 * The reason is that when we use the default parameters to create a table,
+				 * the configuration will not be written to pg_class.reloptions, and then if
+				 * gp_default_storage_options is modified, the newly created table will be
+				 * inconsistent with the original table.
+				 */
+				cs->options = build_ao_rel_storage_opts(cs->options, rel);
+			}
+		}
 
 		for (attno = 0; attno < tupdesc->natts; attno++)
 		{
