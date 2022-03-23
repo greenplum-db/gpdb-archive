@@ -24,6 +24,9 @@ CREATE TABLE correlated_subquery_test(
    b int
 );
 SELECT (SELECT a FROM correlated_subquery_test LIMIT 1)=ALL(SELECT a FROM correlated_subquery_test);
+-- Use a transaction because following CREATE CAST doesn't necessarily play
+-- nicely with other tests.
+BEGIN;
 CREATE CAST (integer AS text) WITH INOUT AS IMPLICIT;
 SELECT (SELECT b FROM correlated_subquery_test LIMIT 1)=ALL(SELECT a FROM correlated_subquery_test);
-DROP CAST (integer AS text);
+ROLLBACK;

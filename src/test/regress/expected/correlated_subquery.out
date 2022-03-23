@@ -121,6 +121,9 @@ SELECT (SELECT a FROM correlated_subquery_test LIMIT 1)=ALL(SELECT a FROM correl
  t
 (1 row)
 
+-- Use a transaction because following CREATE CAST doesn't necessarily play
+-- nicely with other tests.
+BEGIN;
 CREATE CAST (integer AS text) WITH INOUT AS IMPLICIT;
 SELECT (SELECT b FROM correlated_subquery_test LIMIT 1)=ALL(SELECT a FROM correlated_subquery_test);
  ?column? 
@@ -128,4 +131,4 @@ SELECT (SELECT b FROM correlated_subquery_test LIMIT 1)=ALL(SELECT a FROM correl
  t
 (1 row)
 
-DROP CAST (integer AS text);
+ROLLBACK;
