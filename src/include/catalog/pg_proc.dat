@@ -10890,7 +10890,7 @@
 
 
 # contrib/adminpack functions, brought to core in GPDB.
-# GPDB_12_MERGE_FIXME: Why?
+# the new version functions which using the GRANT system to control access instead of having hard-coded superuser checks
 { oid => 6045, descr => 'Read text from a file',
    proname => 'pg_file_read', provolatile => 'v', prorettype => 'text', proargtypes => 'text int8 int8', prosrc => 'pg_read_file' },
 
@@ -10898,16 +10898,16 @@
    proname => 'pg_logfile_rotate', provolatile => 'v', prorettype => 'bool', proargtypes => '', prosrc => 'pg_rotate_logfile' },
 
 { oid => 6047, descr => 'Write text to a file',
-   proname => 'pg_file_write', provolatile => 'v', prorettype => 'int8', proargtypes => 'text text bool', prosrc => 'pg_file_write' },
+   proname => 'pg_file_write', provolatile => 'v', prorettype => 'int8', proargtypes => 'text text bool', prosrc => 'pg_file_write_v1_1' },
 
 { oid => 6048, descr => 'Rename a file',
-   proname => 'pg_file_rename', proisstrict => 'f', provolatile => 'v', prorettype => 'bool', proargtypes => 'text text text', prosrc => 'pg_file_rename' },
+   proname => 'pg_file_rename', proisstrict => 'f', provolatile => 'v', prorettype => 'bool', proargtypes => 'text text text', prosrc => 'pg_file_rename_v1_1' },
 
 { oid => 6049, descr => 'Delete (unlink) a file',
-   proname => 'pg_file_unlink', provolatile => 'v', prorettype => 'bool', proargtypes => 'text', prosrc => 'pg_file_unlink' },
+   proname => 'pg_file_unlink', provolatile => 'v', prorettype => 'bool', proargtypes => 'text', prosrc => 'pg_file_unlink_v1_1' },
 
 { oid => 6050, descr => 'ls the log dir',
-   proname => 'pg_logdir_ls', prorows => '1000', proretset => 't', provolatile => 'v', prorettype => 'record', proargtypes => '', prosrc => 'pg_logdir_ls' },
+   proname => 'pg_logdir_ls', prorows => '1000', proretset => 't', provolatile => 'v', prorettype => 'record', proargtypes => '', prosrc => 'pg_logdir_ls_v1_1' },
 
 { oid => 6051, descr => 'Get the length of a file (via stat)',
    proname => 'pg_file_length', provolatile => 'v', prorettype => 'int8', proargtypes => 'text', prosrc => 'pg_file_length' },
@@ -10954,11 +10954,11 @@
 
 # 3220 - reserved for sum(numeric[]) 
 { oid => 6225, descr => 'aggregate transition function',
-   proname => 'int4_pivot_accum', proisstrict => 'f', prorettype => '_int4', proargtypes => '_int4 _text text int4', prosrc => 'int4_pivot_accum' },
+   proname => 'int4_pivot_accum', proisstrict => 'f', prorettype => '_int8', proargtypes => '_int8 _text text int4', prosrc => 'int4_pivot_accum' },
 
 { oid => 6226, descr => 'pivot sum aggregate',
    proname => 'pivot_sum', prokind => 'a', proisstrict => 'f',
-   prorettype => '_int4', proargtypes => '_text text int4',
+   prorettype => '_int8', proargtypes => '_text text int4',
    prosrc => 'aggregate_dummy' },
 
 { oid => 6227, descr => 'aggregate transition function',
@@ -11341,9 +11341,8 @@
 { oid => 5064, descr => 'cube root',
    proname => 'cbrt', prorettype => 'complex', proargtypes => 'complex', prosrc => 'complex_cbrt' },
 
-# GPDB_12_MERGE_FIXME: Why is this function called "numeric2point" ?
 { oid => 7597, descr => '(internal) type cast from numeric to complex',
-   proname => 'numeric2point', prorettype => 'complex', proargtypes => 'numeric', prosrc => 'numeric2complex' },
+   proname => 'numeric2complex', prorettype => 'complex', proargtypes => 'numeric', prosrc => 'numeric2complex' },
 
 { oid => 7598, descr => 'implementation of << operator',
    proname => 'complex_lt', prorettype => 'bool', proargtypes => 'complex complex', prosrc => 'complex_lt' },

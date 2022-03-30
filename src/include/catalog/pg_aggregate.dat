@@ -613,10 +613,9 @@
   aggcombinefn => 'float8_matrix_accum(_float8,_float8)',
   aggtranstype => '_float8' },
 
-# GPDB_12_MERGE_FIXME: is transtype really _int4? does that work with int8_matrix_accum?
-{ aggfnoid => 'pivot_sum(_text,text,int4)', aggtransfn => 'int4_pivot_accum(_int4,_text,text,int4)', aggkind => 'n',
+{ aggfnoid => 'pivot_sum(_text,text,int4)', aggtransfn => 'int4_pivot_accum(_int8,_text,text,int4)', aggkind => 'n',
   aggcombinefn => 'int8_matrix_accum(_int8,_int8)',
-  aggtranstype => '_int4' },
+  aggtranstype => '_int8' },
 
 { aggfnoid => 'pivot_sum(_text,text,int8)', aggtransfn => 'int8_pivot_accum(_int8,_text,text,int8)', aggkind => 'n',
   aggcombinefn => 'int8_matrix_accum(_int8,_int8)',
