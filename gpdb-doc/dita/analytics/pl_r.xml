@@ -50,8 +50,8 @@
             <codeph>$GPHOME/greenplum_path.sh</codeph> for Greenplum Database to use R.</p>
         <p>To use PL/R on Ubuntu host systems, you must install and configure R on all Greenplum
           Database host systems before installing PL/R.</p>
-        <note>You can use the <codeph><xref href="../utility_guide/ref/gpssh.xml" scope="peer">gpssh</xref>
-        </codeph> utility to run bash shell commands on multiple remote hosts.</note>
+        <note>You can use the <xref href="../utility_guide/ref/gpssh.xml" scope="peer">gpssh</xref>
+          utility to run bash shell commands on multiple remote hosts.</note>
         <ol id="ol_ypp_qnn_w3b">
           <li>To install R, run these <codeph>apt</codeph> commands on all host
               systems.<codeblock>$ sudo apt update &amp;&amp; sudo apt install r-base</codeblock><p>Installing
@@ -293,8 +293,8 @@ CREATE TABLE wj_model_results_roi AS SELECT *
           <li id="py219006">From the command line, use the <codeph>wget</codeph> utility to download
             the <codeph>tar.gz</codeph> files for the arm package to the Greenplum Database master
             host:<codeblock>wget https://cran.r-project.org/src/contrib/Archive/arm/arm_1.5-03.tar.gz</codeblock><codeblock>wget https://cran.r-project.org/src/contrib/Archive/Matrix/Matrix_0.9996875-1.tar.gz</codeblock></li>
-          <li id="py219012">Use the <codeph><xref href="../utility_guide/ref/gpscp.xml" scope="peer"
-              >gpscp</xref></codeph> utility and the <codeph>hosts_all</codeph> file to copy the
+          <li id="py219012">Use the <xref href="../utility_guide/ref/gpscp.xml" scope="peer"
+              >gpscp</xref> utility and the <codeph>hosts_all</codeph> file to copy the
               <codeph>tar.gz</codeph> files to the same directory on all nodes of the Greenplum
             Database cluster. The <codeph>hosts_all</codeph> file contains a list of all the
             Greenplum Database segment hosts. You might require root access to do
@@ -307,14 +307,14 @@ CREATE TABLE wj_model_results_roi AS SELECT *
             <codeblock>$R_HOME/bin/R CMD INSTALL Matrix_0.9996875-1.tar.gz   arm_1.5-03.tar.gz</codeblock></li>
           <li id="py219023">Ensure that the package is installed in the
               <codeph>$R_HOME/library</codeph> directory on all the segments (the
-              <codeph>gpssh</codeph> can be use to install the package). For example, this
+              <codeph>gpssh</codeph> can be used to install the package). For example, this
               <codeph>gpssh</codeph> command list the contents of the R library
               directory.<codeblock>gpssh -s -f all_hosts "ls $R_HOME/library"</codeblock><p>The
                 <codeph>gpssh</codeph> option <codeph>-s</codeph> sources the
                 <codeph>greenplum_path.sh</codeph> file before running commands on the remote hosts.
             </p></li>
           <li id="py219025">Test if the R package can be loaded. <p>This function performs a simple
-              test to if an R package can be
+              test to determine if an R package can be
               loaded:</p><codeblock>CREATE OR REPLACE FUNCTION R_test_require(fname text)
 RETURNS boolean AS
 $BODY$
@@ -337,11 +337,11 @@ LANGUAGE 'plr';</codeblock><p>This
         <p>This R function lists the available R packages from the R command line:</p>
         <codeblock>&gt; library()</codeblock>
         <p>Display the documentation for a particular R package</p>
-        <codeblock>&gt; library(help="<varname>package_name</varname>")
-&gt; help(package="<varname>package_name</varname>")</codeblock>
+        <codeblock>&gt; library(help="&lt;package_name>")
+&gt; help(package="&lt;package_name>")</codeblock>
         <p>Display the help file for an R function:</p>
-        <codeblock>&gt; help("<varname>function_name</varname>")
-&gt; ?<varname>function_name</varname></codeblock>
+        <codeblock>&gt; help("&lt;function_name>")
+&gt; ?&lt;function_name></codeblock>
         <p>To see what packages are installed, use the R command
             <codeph>installed.packages()</codeph>. This will return a matrix with a row for each
           package that has been installed. Below, we look at the first 5 rows of this matrix.</p>
@@ -349,12 +349,12 @@ LANGUAGE 'plr';</codeblock><p>This
         <p>Any package that does not appear in the installed packages matrix must be installed and
           loaded before its functions can be used. </p>
         <p>An R package can be installed with <codeph>install.packages()</codeph>:</p>
-        <codeblock>&gt; install.packages("<varname>package_name</varname>")
+        <codeblock>&gt; install.packages("&lt;package_name>")
 &gt; install.packages("mypkg", dependencies = TRUE, type="source")</codeblock>
         <p>Load a package from the R command
-          line.<codeblock>&gt; library(" <varname>package_name</varname> ") </codeblock></p>
+          line.<codeblock>&gt; library(" &lt;package_name> ") </codeblock></p>
         <p>An R package can be removed with <codeph>remove.packages</codeph></p>
-        <codeblock>&gt; remove.packages("<varname>package_name</varname>")</codeblock>
+        <codeblock>&gt; remove.packages("&lt;package_name>")</codeblock>
         <p>You can use the R command <codeph>-e</codeph> option to run functions from the command
           line. For example, this command displays help on the R package MASS.</p>
         <codeblock>$ R -e 'help("MASS")'</codeblock>
@@ -385,7 +385,7 @@ LANGUAGE 'plr';</codeblock><p>This
       <title id="py216497">References</title>
       <body>
         <p><xref href="https://www.r-project.org/" scope="external" format="html"
-            >https://www.r-project.org/</xref> - The R Project home page</p>
+            >https://www.r-project.org/</xref> - The R Project home page.</p>
         <p><xref href="https://cran.r-project.org/web/packages/PivotalR/" format="html"
             scope="external">https://cran.r-project.org/web/packages/PivotalR/</xref> - The home
           page for PivotalR, a package that provides an R interface to operate on Greenplum Database
