@@ -731,6 +731,9 @@ createdb(ParseState *pstate, const CreatedbStmt *stmt)
 				(void) XLogInsert(RM_DBASE_ID,
 								  XLOG_DBASE_CREATE | XLR_SPECIAL_REL_UPDATE);
 			}
+			
+			pfree(srcpath);
+			pfree(dstpath);
 		}
 
 		SIMPLE_FAULT_INJECTOR("after_xlog_create_database");
@@ -1540,6 +1543,8 @@ movedb(const char *dbname, const char *tblspcname)
 	 */
 	ScheduleDbDirDelete(db_id, src_tblspcoid, true);
 
+	pfree(src_dbpath);
+	pfree(dst_dbpath);
 	SIMPLE_FAULT_INJECTOR("inside_move_db_transaction");
 }
 
@@ -1558,6 +1563,8 @@ movedb_failure_callback(int code, Datum arg)
 	dstpath = GetDatabasePath(fparms->dest_dboid, fparms->dest_tsoid);
 
 	(void) rmtree(dstpath, true);
+
+	pfree(dstpath);
 }
 #endif
 
@@ -2409,6 +2416,9 @@ dbase_redo(XLogReaderState *record)
 		 * We don't need to copy subdirectories
 		 */
 		copydir(src_path, dst_path, false);
+
+		pfree(src_path);
+		pfree(dst_path);
 	}
 	else if (info == XLOG_DBASE_DROP)
 	{
@@ -2462,6 +2472,8 @@ dbase_redo(XLogReaderState *record)
 			 */
 			UnlockSharedObjectForSession(DatabaseRelationId, xlrec->db_id, 0, AccessExclusiveLock);
 		}
+
+		pfree(dst_path);
 	}
 	else
 		elog(PANIC, "dbase_redo: unknown op code %u", info);
