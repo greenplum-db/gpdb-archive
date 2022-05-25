@@ -421,7 +421,15 @@ appendonly_index_fetch_begin(Relation rel)
 static void
 appendonly_index_fetch_reset(IndexFetchTableData *scan)
 {
-	// GPDB_12_MERGE_FIXME: Should we close the underlying AO fetch desc here?
+	/*
+	 * Unlike Heap, we don't release the resources (fetch descriptor and its
+	 * members) here because it is more like a global data structure shared
+	 * across scans, rather than an iterator to yield a granularity of data.
+	 * 
+	 * Additionally, should be aware of that no matter whether allocation or
+	 * release on fetch descriptor, it is considerably expensive.
+	 */
+	return;
 }
 
 static void
