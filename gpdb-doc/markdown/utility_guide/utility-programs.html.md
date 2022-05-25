@@ -10,7 +10,7 @@ Several utilities are installed when you install the Greenplum Database server. 
 -   The [Tanzu Greenplum Copy Utility](https://docs.vmware.com/en/VMware-Tanzu-Greenplum-Data-Copy-Utility/index.html).
 -   The [Tanzu Greenplum Streaming Server](https://docs.vmware.com/en/VMware-Tanzu-Greenplum-Streaming-Server/index.html) utilities.
 
-Additionally, the [Tanzu Clients](../client_tool_guides/about.html) package is a separate download from VMware Tanzu Network that includes selected utilities from the Greenplum Database server installation that you can install on a client system.
+Additionally, the [Tanzu Clients](/vmware/client_tool_guides/about.html) package is a separate download from VMware Tanzu Network that includes selected utilities from the Greenplum Database server installation that you can install on a client system.
 
 Greenplum Database provides the following utility programs. Superscripts identify those utilities that require separate downloads, as well as those utilities that are also installed with the Client and Loader Tools Packages. \(See the Note following the table.\) All utilities are installed when you install the Greenplum Database server, unless specifically identified by a superscript.
 
@@ -58,8 +58,8 @@ Greenplum Database provides the following utility programs. Superscripts identif
 - [plcontainer](ref/plcontainer.html)
 - [plcontainer Configuration File](ref/plcontainer-configuration.html)
 - [psql](ref/psql.html)<sup>3</sup>
-- [pxf](../../pxf/latest/ref/pxf.html)
-- [pxf cluster](../../pxf/latest/ref/pxf-cluster.html)
+- [pxf](https://docs.vmware.com/en/VMware-Tanzu-Greenplum-Platform-Extension-Framework/6.3/tanzu-greenplum-platform-extension-framework/GUID-ref-pxf.html)
+- [pxf cluster](https://docs.vmware.com/en/VMware-Tanzu-Greenplum-Platform-Extension-Framework/6.3/tanzu-greenplum-platform-extension-framework/GUID-ref-pxf-cluster.html)
 - [reindexdb](ref/reindexdb.html)
 - [vacuumdb](ref/vacuumdb.html)
 
