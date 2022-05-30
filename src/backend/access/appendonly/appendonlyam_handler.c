@@ -473,11 +473,13 @@ appendonly_index_fetch_tuple(struct IndexFetchTableData *scan,
 								  snapshot,
 								  appendOnlyMetaDataSnapshot);
 	}
-	else
-	{
-		/* GPDB_12_MERGE_FIXME: Is it possible for the 'snapshot' to change
-		 * between calls? Add a sanity check for that here. */
-	}
+
+	/*
+	 * There is no reason to expect changes on snapshot between tuple
+	 * fetching calls after fech_init is called, treat it as a
+	 * programming error in case of occurrence.
+	 */
+	Assert(aoscan->aofetch->snapshot == snapshot);
 
 	appendonly_fetch(aoscan->aofetch, (AOTupleId *) tid, slot);
 
