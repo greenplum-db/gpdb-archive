@@ -642,6 +642,8 @@ aoco_index_fetch_end(IndexFetchTableData *scan)
 		pfree(aocoscan->proj);
 		aocoscan->proj = NULL;
 	}
+
+	pfree(aocoscan);
 }
 
 static bool

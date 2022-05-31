@@ -443,6 +443,8 @@ appendonly_index_fetch_end(IndexFetchTableData *scan)
 		pfree(aoscan->aofetch);
 		aoscan->aofetch = NULL;
 	}
+
+	pfree(aoscan);
 }
 
 static bool
