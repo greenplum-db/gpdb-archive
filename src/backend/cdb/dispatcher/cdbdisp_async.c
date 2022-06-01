@@ -129,6 +129,10 @@ static void dispatchCommand(CdbDispatchResult *dispatchResult,
 
 static void checkDispatchResult(CdbDispatcherState *ds, int timeout_sec);
 
+static void checkDispatchResultLoop(CdbDispatcherState *ds, int timeout_sec, WaitEventSet *waitset);
+
+static void cdbdisp_waitDispatchFinishLoop_async(struct CdbDispatcherState *ds, WaitEventSet *waitset);
+
 static bool processResults(CdbDispatchResult *dispatchResult);
 
 static void
@@ -212,15 +216,35 @@ cdbdisp_getWaitSocketFds_async(struct CdbDispatcherState *ds, int *nsocks)
 static void
 cdbdisp_waitDispatchFinish_async(struct CdbDispatcherState *ds)
 {
+	CdbDispatchCmdAsync *pParms = (CdbDispatchCmdAsync *) ds->dispatchParams;
+	int				dispatchCount = pParms->dispatchCount;
+	WaitEventSet 	*volatile waitset = CreateWaitEventSet(CurrentMemoryContext, dispatchCount);
+
+	/* Use PG_TRY() - PG_CATCH() to make sure destroy the waiteventset (close the epoll fd) */
+	PG_TRY();
+	{
+		cdbdisp_waitDispatchFinishLoop_async(ds, waitset);
+	}
+	PG_CATCH();
+	{
+		FreeWaitEventSet(waitset);
+		PG_RE_THROW();
+	}
+	PG_END_TRY();
+
+	FreeWaitEventSet(waitset);
+}
+
+static void
+cdbdisp_waitDispatchFinishLoop_async(struct CdbDispatcherState *ds, WaitEventSet *waitset)
+{
 	const static int DISPATCH_POLL_TIMEOUT = 500;
 	int			i;
 	CdbDispatchCmdAsync *pParms = (CdbDispatchCmdAsync *) ds->dispatchParams;
 	int			dispatchCount = pParms->dispatchCount;
 
-	WaitEventSet 	*waitset = CreateWaitEventSet(CurrentMemoryContext, dispatchCount);
 	WaitEvent 		*revents = palloc(sizeof(WaitEvent) * dispatchCount);
-	int 		*added = palloc0(sizeof(int) * dispatchCount);
-
+	int 			*added = palloc0(sizeof(int) * dispatchCount);
 	while (true)
 	{
 		int			pollRet;
@@ -266,7 +290,7 @@ cdbdisp_waitDispatchFinish_async(struct CdbDispatcherState *ds)
 				qeResult->stillRunning = false;
 				ereport(ERROR,
 						(errcode(ERRCODE_GP_INTERCONNECTION_ERROR),
-						 errmsg("Command could not be dispatch to segment %s: %s", qeResult->segdbDesc->whoami, msg ? msg : "unknown error")));
+						errmsg("Command could not be dispatch to segment %s: %s", qeResult->segdbDesc->whoami, msg ? msg : "unknown error")));
 			}
 		}
 
@@ -279,19 +303,14 @@ cdbdisp_waitDispatchFinish_async(struct CdbDispatcherState *ds)
 			CHECK_FOR_INTERRUPTS();
 
 			pollRet = WaitEventSetWait(waitset, DISPATCH_POLL_TIMEOUT, revents, dispatchCount, WAIT_EVENT_DISP_FINISH);
-
+			Assert(pollRet >= 0);
 			if (pollRet == 0)
 				ELOG_DISPATCHER_DEBUG("cdbdisp_waitDispatchFinish_async(): Dispatch poll timeout after %d ms", DISPATCH_POLL_TIMEOUT);
 		}
-		while (pollRet == 0 || (pollRet < 0 && (SOCK_ERRNO == EINTR || SOCK_ERRNO == EAGAIN)));
-
-		if (pollRet < 0)
-			elog(ERROR, "Poll failed during dispatch");
+		while (pollRet == 0);
 	}
-
 	pfree(revents);
 	pfree(added);
-	FreeWaitEventSet(waitset);
 }
 
 /*
@@ -442,30 +461,47 @@ cdbdisp_makeDispatchParams_async(int maxSlices, int largestGangSize, char *query
  * timeout_sec: the second that the dispatcher waits for the ack messages at most.
  *              DISPATCH_NO_WAIT(0): return immediate when there's no more data.
  *              DISPATCH_WAIT_UNTIL_FINISH(-1): wait until all dispatch works are completed.
- *
- * Don't throw out error, instead, append the error message to
- * CdbDispatchResult.error_message.
  */
 static void
 checkDispatchResult(CdbDispatcherState *ds, int timeout_sec)
 {
 	CdbDispatchCmdAsync *pParms = (CdbDispatchCmdAsync *) ds->dispatchParams;
-	CdbDispatchResults *meleeResults = ds->primaryResults;
-	SegmentDatabaseDescriptor *segdbDesc;
-	CdbDispatchResult *dispatchResult;
+	WaitEventSet *volatile waitset = CreateWaitEventSet(CurrentMemoryContext, pParms->dispatchCount);
+
+	/* Use PG_TRY() - PG_CATCH() to make sure destroy the waiteventset (close the epoll fd) */
+	PG_TRY();
+	{
+		checkDispatchResultLoop(ds, timeout_sec, waitset);
+	}
+	PG_CATCH();
+	{
+		FreeWaitEventSet(waitset);
+		PG_RE_THROW();
+	}
+	PG_END_TRY();
+
+	FreeWaitEventSet(waitset);
+}
+
+static void
+checkDispatchResultLoop(CdbDispatcherState *ds, int timeout_sec, WaitEventSet *waitset)
+{
 	int			i;
 	int			timeout = 0;
 	bool		sentSignal = false;
 	uint8 ftsVersion = 0;
 	struct timeval start_ts, now;
 	int64		diff_us;
-	bool        cancelRequested = false;
+
+	CdbDispatchCmdAsync *pParms = (CdbDispatchCmdAsync *) ds->dispatchParams;
+	CdbDispatchResults *meleeResults = ds->primaryResults;
+	SegmentDatabaseDescriptor *segdbDesc;
+	CdbDispatchResult *dispatchResult;
 
 	int 	db_count = pParms->dispatchCount;
 	int 	*added = palloc0(db_count * sizeof(int));
-	WaitEventSet 	*waitset = CreateWaitEventSet(CurrentMemoryContext, db_count);
-	WaitEvent 		*revents = palloc(sizeof(WaitEvent) * db_count);
-	
+	WaitEvent *revents = palloc(sizeof(WaitEvent) * db_count);
+
 	/*
 	 * OK, we are finished submitting the command to the segdbs. Now, we have
 	 * to wait for them to finish.
@@ -488,7 +524,6 @@ checkDispatchResult(CdbDispatcherState *ds, int timeout_sec)
 		/*
 		 * Current loop might last for the long time so check on interrupts.
 		 */
-
 		CHECK_FOR_INTERRUPTS();
 
 		/*
@@ -646,11 +681,10 @@ checkDispatchResult(CdbDispatcherState *ds, int timeout_sec)
 		/* We have data waiting on one or more of the connections. */
 		else
 			handlePollSuccess(pParms, revents, n);
-	}
+	} /* for (;;) */
 
 	pfree(revents);
 	pfree(added);
-	FreeWaitEventSet(waitset);
 }
 
 /*
