@@ -1,7 +1,6 @@
 -- predicates and indexing
 
-\!gpconfig -c enable_seqscan -v "off" > /dev/null
-\!gpstop -u > /dev/null
+set enable_seqscan = "off";
 
 create table ipranges_exp (r iprange, r4 ip4r, r6 ip6r) distributed by (r);
 
@@ -143,6 +142,3 @@ vacuum ipranges_exp;
 explain select r from ipranges_exp where r >>= '5555::' order by r;
 explain select r6 from ipranges_exp where r6 >>= '5555::' order by r6;
 explain select r4 from ipranges_exp where r4 >>= '172.16.2.0' order by r4;
-
-\!gpconfig -r enable_seqscan > /dev/null
-\!gpstop -u > /dev/null

@@ -1,6 +1,5 @@
 -- predicates and indexing
-\!gpconfig -c enable_seqscan -v "off" > /dev/null
-\!gpstop -u > /dev/null
+set enable_seqscan = "off";
 create table ipranges_exp (r iprange, r4 ip4r, r6 ip6r) distributed by (r);
 insert into ipranges_exp
 select r, null, r
@@ -745,5 +744,3 @@ explain select r4 from ipranges_exp where r4 >>= '172.16.2.0' order by r4;
  Optimizer: Pivotal Optimizer (GPORCA)
 (8 rows)
 
-\!gpconfig -r enable_seqscan > /dev/null
-\!gpstop -u > /dev/null

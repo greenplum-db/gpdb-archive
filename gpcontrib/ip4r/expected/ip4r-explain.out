@@ -1,6 +1,5 @@
 -- predicates and indexing
-\!gpconfig -c enable_seqscan -v "off" > /dev/null
-\!gpstop -u > /dev/null
+set enable_seqscan = "off";
 create table ipranges_exp (r iprange, r4 ip4r, r6 ip6r) distributed by (r);
 insert into ipranges_exp
 select r, null, r
@@ -678,14 +677,14 @@ explain select * from ipaddrs_exp where a4 between '8.0.0.0' and '15.0.0.0' orde
 explain select * from ipaddrs_exp a join ipranges_exp r on (r.r >>= a.a) order by a,r;
                                                        QUERY PLAN                                                       
 ------------------------------------------------------------------------------------------------------------------------
- Gather Motion 3:1  (slice1; segments: 3)  (cost=20000000910.35..20000001029.90 rows=8439 width=96)
+ Gather Motion 3:1  (slice1; segments: 3)  (cost=20000000914.35..20000001033.90 rows=8439 width=96)
    Merge Key: a.a, r.r
-   ->  Sort  (cost=20000000910.35..20000000917.38 rows=2813 width=96)
+   ->  Sort  (cost=20000000914.35..20000000921.38 rows=2813 width=96)
          Sort Key: a.a, r.r
-         ->  Nested Loop  (cost=20000000000.28..20000000749.19 rows=2813 width=96)
+         ->  Nested Loop  (cost=20000000000.28..20000000753.19 rows=2813 width=96)
                ->  Broadcast Motion 3:3  (slice2; segments: 3)  (cost=10000000000.00..10000000005.53 rows=272 width=36)
                      ->  Seq Scan on ipaddrs_exp a  (cost=10000000000.00..10000000001.91 rows=91 width=36)
-               ->  Index Scan using ipranges_exp_r on ipranges_exp r  (cost=0.28..2.63 rows=10 width=60)
+               ->  Index Scan using ipranges_exp_r on ipranges_exp r  (cost=0.28..2.65 rows=10 width=60)
                      Index Cond: (r >>= (a.a)::iprange)
  Optimizer: Postgres query optimizer
 (10 rows)
@@ -708,14 +707,14 @@ explain select * from ipaddrs_exp a join ipranges_exp r on (r.r4 >>= a.a4) order
 explain select * from ipaddrs_exp a join ipranges_exp r on (r.r6 >>= a.a6) order by a6,r6;
                                                        QUERY PLAN                                                       
 ------------------------------------------------------------------------------------------------------------------------
- Gather Motion 3:1  (slice1; segments: 3)  (cost=20000000732.35..20000000851.90 rows=8439 width=96)
+ Gather Motion 3:1  (slice1; segments: 3)  (cost=20000000740.35..20000000859.90 rows=8439 width=96)
    Merge Key: a.a6, r.r6
-   ->  Sort  (cost=20000000732.35..20000000739.38 rows=2813 width=96)
+   ->  Sort  (cost=20000000740.35..20000000747.38 rows=2813 width=96)
          Sort Key: a.a6, r.r6
-         ->  Nested Loop  (cost=20000000000.15..20000000571.19 rows=2813 width=96)
+         ->  Nested Loop  (cost=20000000000.15..20000000579.19 rows=2813 width=96)
                ->  Broadcast Motion 3:3  (slice2; segments: 3)  (cost=10000000000.00..10000000005.53 rows=272 width=36)
                      ->  Seq Scan on ipaddrs_exp a  (cost=10000000000.00..10000000001.91 rows=91 width=36)
-               ->  Index Scan using ipranges_exp_r6 on ipranges_exp r  (cost=0.15..1.98 rows=10 width=60)
+               ->  Index Scan using ipranges_exp_r6 on ipranges_exp r  (cost=0.15..2.01 rows=10 width=60)
                      Index Cond: (r6 >>= (a.a6)::ip6r)
  Optimizer: Postgres query optimizer
 (10 rows)
@@ -758,5 +757,3 @@ explain select r4 from ipranges_exp where r4 >>= '172.16.2.0' order by r4;
  Optimizer: Postgres query optimizer
 (7 rows)
 
-\!gpconfig -r enable_seqscan > /dev/null
-\!gpstop -u > /dev/null
