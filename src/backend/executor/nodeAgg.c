@@ -4640,7 +4640,6 @@ ExecReScanAgg(AggState *node)
 {
 	ExprContext *econtext = node->ss.ps.ps_ExprContext;
 	PlanState  *outerPlan = outerPlanState(node);
-	Agg		   *aggnode = (Agg *) node->ss.ps.plan;
 	int			transno;
 	int			numGroupingSets = Max(node->maxsets, 1);
 	int			setno;
