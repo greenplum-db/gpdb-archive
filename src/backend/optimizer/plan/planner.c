@@ -4903,19 +4903,6 @@ consider_groupingsets_paths(PlannerInfo *root,
 											   parse->groupClause,
 											   srd->new_rollups);
 
-		// GPDB_12_MERGE_FIXME: fix computation of dNumGroups
-#if 0
-		/*
-		 * dNumGroupsTotal is the total number of groups across all segments. If the
-		 * Aggregate is distributed, then the number of groups in one segment
-		 * is only a fraction of the total.
-		 */
-		if (CdbPathLocus_IsPartitioned(path->locus))
-			dNumGroups = clamp_row_est(dNumGroupsTotal /
-										   CdbPathLocus_NumSegments(path->locus));
-		else
-			dNumGroups = dNumGroupsTotal;
-#endif
 
 		add_path(grouped_rel, (Path *)
 				 create_groupingsets_path(root,
@@ -7269,9 +7256,14 @@ add_paths_to_grouping_rel(PlannerInfo *root, RelOptInfo *input_rel,
 				/* Now decide what to stick atop it */
 				if (parse->groupingSets)
 				{
+					/*
+					 * the last param of consider_groupingsets_paths should be
+					 * dNumGroupsTotal. In consider_groupingsets_paths it will
+					 * calculate dNumGroups in one segment.
+					 */
 					consider_groupingsets_paths(root, grouped_rel,
 												path, true, can_hash,
-												gd, agg_costs, dNumGroups);
+												gd, agg_costs, dNumGroupsTotal);
 				}
 				else if (parse->hasAggs || parse->groupClause)
 				{
