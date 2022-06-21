@@ -905,9 +905,7 @@ static void
 											  NIL,
 											  AGG_SORTED,
 											  ctx->rollups,
-											  ctx->agg_partial_costs,
-											  estimate_num_groups_on_segment(ctx->dNumGroupsTotal,
-																			 path->rows, path->locus));
+											  ctx->agg_partial_costs);
 		add_path(ctx->partial_rel, first_stage_agg_path);
 	}
 	else if (ctx->hasAggs || ctx->groupClause)
@@ -1064,8 +1062,7 @@ add_first_stage_hash_agg_path(PlannerInfo *root,
 											  NIL,
 											  ctx->strat,
 											  ctx->new_rollups,
-											  ctx->agg_partial_costs,
-											  dNumGroups);
+											  ctx->agg_partial_costs);
 		CdbPathLocus_MakeStrewn(&(first_stage_agg_path->locus),
 								CdbPathLocus_NumSegments(first_stage_agg_path->locus));
 		add_path(ctx->partial_rel, first_stage_agg_path);
