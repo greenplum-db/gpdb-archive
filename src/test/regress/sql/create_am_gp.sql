@@ -33,3 +33,12 @@ create table create_am_gp_ao6(a int, b int) using ao_row with (compresstype=zlib
 
 create table create_am_gp_ao7(a int, b int encoding (compresstype=zlib)) using ao_column distributed by (a);
 \d+ create_am_gp_ao7
+
+reset gp_default_storage_options;
+
+-- create partition hierarchies with AM specified
+create table create_am_gp_part1(a int, b int) partition by range(a) (start (1) end (2)) using ao_row;
+insert into create_am_gp_part1 select 1, i from generate_series(1, 10) i;
+\d+ create_am_gp_part1
+select relam, relname from pg_class where relname IN ('create_am_gp_part1', 'create_am_gp_part1_1_prt_1');
+select count(*) from create_am_gp_part1;

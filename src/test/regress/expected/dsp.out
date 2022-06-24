@@ -1152,7 +1152,7 @@ select c.relname, am.amname, c.relkind, c.reloptions
     where c.relname like 'dsp_partition1%' order by relname;
         relname         | amname | relkind | reloptions 
 ------------------------+--------+---------+------------
- dsp_partition1         |        | p       | 
+ dsp_partition1         | ao_row | p       | 
  dsp_partition1_1_prt_1 | ao_row | r       | 
  dsp_partition1_1_prt_2 | ao_row | r       | 
 (3 rows)
@@ -1165,6 +1165,7 @@ select compresslevel, compresstype, blocksize, checksum, columnstore from pg_app
              0 |              |     32768 | t        | f
 (2 rows)
 
+-- The child partition tables should default to their parent table's AM.
 set default_table_access_method = ao_column;
 set gp_default_storage_options = "blocksize=32768,compresstype=none,checksum=true";
 -- Add partition
@@ -1173,13 +1174,13 @@ alter table dsp_partition1 add partition p4 start(16) end(18) with(appendonly=fa
 select c.relname, am.amname, c.relkind, c.reloptions
 	from pg_class c left join pg_am am on (c.relam = am.oid)
     where c.relname like 'dsp_partition1%' order by relname;
-         relname         |  amname   | relkind | reloptions 
--------------------------+-----------+---------+------------
- dsp_partition1          |           | p       | 
- dsp_partition1_1_prt_1  | ao_row    | r       | 
- dsp_partition1_1_prt_2  | ao_row    | r       | 
- dsp_partition1_1_prt_p3 | ao_column | r       | 
- dsp_partition1_1_prt_p4 | heap      | r       | 
+         relname         | amname | relkind | reloptions 
+-------------------------+--------+---------+------------
+ dsp_partition1          | ao_row | p       | 
+ dsp_partition1_1_prt_1  | ao_row | r       | 
+ dsp_partition1_1_prt_2  | ao_row | r       | 
+ dsp_partition1_1_prt_p3 | ao_row | r       | 
+ dsp_partition1_1_prt_p4 | heap   | r       | 
 (5 rows)
 
 -- Split partition
@@ -1187,14 +1188,14 @@ alter table dsp_partition1 split partition for (6) at (7) into (partition split_
 select c.relname, am.amname, c.relkind, c.reloptions
 	from pg_class c left join pg_am am on (c.relam = am.oid)
     where c.relname like 'dsp_partition1%' order by relname;
-            relname            |  amname   | relkind | reloptions 
--------------------------------+-----------+---------+------------
- dsp_partition1                |           | p       | 
- dsp_partition1_1_prt_1        | ao_row    | r       | 
- dsp_partition1_1_prt_p3       | ao_column | r       | 
- dsp_partition1_1_prt_p4       | heap      | r       | 
- dsp_partition1_1_prt_split_p1 | ao_row    | r       | 
- dsp_partition1_1_prt_split_p2 | ao_row    | r       | 
+            relname            | amname | relkind | reloptions 
+-------------------------------+--------+---------+------------
+ dsp_partition1                | ao_row | p       | 
+ dsp_partition1_1_prt_1        | ao_row | r       | 
+ dsp_partition1_1_prt_p3       | ao_row | r       | 
+ dsp_partition1_1_prt_p4       | heap   | r       | 
+ dsp_partition1_1_prt_split_p1 | ao_row | r       | 
+ dsp_partition1_1_prt_split_p2 | ao_row | r       | 
 (6 rows)
 
 RESET gp_default_storage_options;

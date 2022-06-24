@@ -47,6 +47,7 @@
 #include "catalog/pg_inherits.h"
 #include "catalog/pg_namespace.h"
 #include "catalog/pg_opclass.h"
+#include "catalog/pg_proc_d.h"
 #include "catalog/pg_tablespace.h"
 #include "catalog/pg_trigger.h"
 #include "catalog/pg_tablespace.h"
@@ -449,6 +450,7 @@ static ObjectAddress ATExecClusterOn(Relation rel, const char *indexName,
 									 LOCKMODE lockmode);
 static void ATExecDropCluster(Relation rel, LOCKMODE lockmode);
 static void ATPrepSetAccessMethod(AlteredTableInfo *tab, Relation rel, const char *amname);
+static void ATExecSetAccessMethodNoStorage(Relation rel, Oid newAccessMethod);
 static bool ATPrepChangePersistence(Relation rel, bool toLogged);
 static void ATPrepSetTableSpace(AlteredTableInfo *tab, Relation rel,
 								const char *tablespacename, LOCKMODE lockmode);
@@ -569,7 +571,6 @@ DefineRelation(CreateStmt *stmt, char relkind, Oid ownerId,
 	Oid			ofTypeId;
 	ObjectAddress address;
 	LOCKMODE	parentLockmode;
-	const char *accessMethod = NULL;
 	Oid			accessMethodId = InvalidOid;
 	List	   *schema;
 	List	   *cooked_constraints;
@@ -758,23 +759,34 @@ DefineRelation(CreateStmt *stmt, char relkind, Oid ownerId,
 	 * a type of relation that needs one, use the default.
 	 */
 	if (stmt->accessMethod != NULL)
+		accessMethodId = get_table_am_oid(stmt->accessMethod, false);
+	else if (stmt->partbound && (relkind == RELKIND_RELATION || relkind == RELKIND_PARTITIONED_TABLE))
 	{
-		accessMethod = stmt->accessMethod;
+		HeapTuple	tup;
+		Oid			relid;
 
-		if (partitioned)
-			ereport(ERROR,
-					(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-					 errmsg("specifying a table access method is not supported on a partitioned table")));
+		/*
+		 * For partitioned tables, when no access method is specified, we
+		 * default to the parent table's AM.
+		 */
+		Assert(list_length(inheritOids) == 1);
+		relid = linitial_oid(inheritOids);
+		tup = SearchSysCache1(RELOID, ObjectIdGetDatum(relid));
+		if (!HeapTupleIsValid(tup))
+			elog(ERROR, "cache lookup failed for relation %u", relid);
 
+		accessMethodId = ((Form_pg_class) GETSTRUCT(tup))->relam;
+
+		ReleaseSysCache(tup);
+
+		if (!OidIsValid(accessMethodId))
+			accessMethodId = get_table_am_oid(default_table_access_method, false);
 	}
 	else if (relkind == RELKIND_RELATION ||
 			 relkind == RELKIND_TOASTVALUE ||
+			 relkind == RELKIND_PARTITIONED_TABLE ||
 			 relkind == RELKIND_MATVIEW)
-		accessMethod = default_table_access_method;
-
-	/* look up the access method, verify it is for a table */
-	if (accessMethod != NULL)
-		accessMethodId = get_table_am_oid(accessMethod, false);
+		accessMethodId = get_table_am_oid(default_table_access_method, false);
 
 	/*
 	 * Parse and validate reloptions, if any.
@@ -790,8 +802,6 @@ DefineRelation(CreateStmt *stmt, char relkind, Oid ownerId,
 	if ((accessMethodId == AO_ROW_TABLE_AM_OID ||
 			accessMethodId == AO_COLUMN_TABLE_AM_OID))
 	{
-		Assert(relkind == RELKIND_MATVIEW || relkind == RELKIND_RELATION );
-
 		/*
 		 * Extract and process any WITH options supplied, otherwise use defaults
 		 *
@@ -1081,7 +1091,7 @@ DefineRelation(CreateStmt *stmt, char relkind, Oid ownerId,
 	/*
 	 * If this is an append-only relation, create the auxliary tables necessary
 	 */
-	if (RelationIsAppendOptimized(rel))
+	if (RelationIsAppendOptimized(rel) && relkind != RELKIND_PARTITIONED_TABLE)
 		NewRelationCreateAOAuxTables(RelationGetRelid(rel), stmt->buildAoBlkdir);
 
 	/*
@@ -4813,18 +4823,14 @@ ATPrepCmd(List **wqueue, Relation rel, AlterTableCmd *cmd,
 		case AT_SetAccessMethod:	/* SET ACCESS METHOD */
 			ATSimplePermissions(rel, ATT_TABLE | ATT_MATVIEW);
 
-			/* partitioned tables don't have an access method */
-			if (rel->rd_rel->relkind == RELKIND_PARTITIONED_TABLE)
-				ereport(ERROR,
-						(errcode(ERRCODE_WRONG_OBJECT_TYPE),
-						 errmsg("cannot change access method of a partitioned table")));
-
 			/* check if another access method change was already requested */
 			if (OidIsValid(tab->newAccessMethod))
 				ereport(ERROR,
 						(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
 						 errmsg("cannot have multiple SET ACCESS METHOD subcommands")));
 
+			if (rel->rd_rel->relkind == RELKIND_PARTITIONED_TABLE)
+				ATSimpleRecursion(wqueue, rel, cmd, recurse, lockmode);
 			ATPrepSetAccessMethod(tab, rel, cmd->name);
 			pass = AT_PASS_MISC;	/* does not matter; no work in Phase 2 */
 			break;
@@ -5318,6 +5324,7 @@ ATExecCmd(List **wqueue, AlteredTableInfo *tab, Relation rel,
 					clear_rel_opts(rel);
 
 				ATExecSetRelOptions(rel, (List *) cmd->def, cmd->subtype, &aoopt_changed, tab->newAccessMethod, lockmode);
+				CommandCounterIncrement(); /* make reloptions change visiable */
 
 				/* 
 				 * When user sets the same access method as the existing one, the
@@ -5332,6 +5339,13 @@ ATExecCmd(List **wqueue, AlteredTableInfo *tab, Relation rel,
 			if (tab->newAccessMethod == AO_COLUMN_TABLE_AM_OID) 
 				populate_rel_col_encodings(rel, NULL, (List*)cmd->def);
 
+			/*
+			 * Only do this when it's a valid AM change and just for partitioned tables, 
+			 * for which this is just a catalog change. Other relation types which have
+			 * storage are handled by Phase 3.
+			 */
+			if (OidIsValid(tab->newAccessMethod) && rel->rd_rel->relkind == RELKIND_PARTITIONED_TABLE)
+				ATExecSetAccessMethodNoStorage(rel, tab->newAccessMethod);
 			break;
 		case AT_SetTableSpace:	/* SET TABLESPACE */
 
@@ -14656,6 +14670,58 @@ ATExecSetTableSpace(Oid tableOid, Oid newTableSpace, LOCKMODE lockmode)
 
 	/* Clean up */
 	list_free(reltoastidxids);
+}
+
+/*
+ * Special handling of ALTER TABLE SET ACCESS METHOD for relations with no
+ * storage that have an interest in preserving AM.
+ *
+ * Since these relations have no storage the access method can be updated with a
+ * simple metadata only operation.
+ */
+static void
+ATExecSetAccessMethodNoStorage(Relation rel, Oid newAccessMethod)
+{
+	Relation	pg_class;
+	Oid			relid;
+	Oid			oldrelam;
+	HeapTuple	tuple;
+
+	/*
+	 * Shouldn't be called on relations having storage; these are processed in
+	 * phase 3.
+	 */
+	Assert(!RELKIND_HAS_STORAGE(rel->rd_rel->relkind));
+
+	relid = RelationGetRelid(rel);
+
+	/* Pull the record for this relation and update it */
+	pg_class = table_open(RelationRelationId, RowExclusiveLock);
+
+	tuple = SearchSysCacheCopy1(RELOID, ObjectIdGetDatum(relid));
+
+	if (!HeapTupleIsValid(tuple))
+		elog(ERROR, "cache lookup failed for relation %u", relid);
+
+	oldrelam = ((Form_pg_class) GETSTRUCT(tuple))->relam;
+	((Form_pg_class) GETSTRUCT(tuple))->relam = newAccessMethod;
+	CatalogTupleUpdate(pg_class, &tuple->t_self, tuple);
+
+	/*
+	 * Record dependency on AM.  This is only required for relations
+	 * that have no physical storage.
+	 */
+	changeDependencyFor(RelationRelationId, RelationGetRelid(rel),
+			AccessMethodRelationId, oldrelam,
+			newAccessMethod);
+
+	InvokeObjectPostAlterHook(RelationRelationId, RelationGetRelid(rel), 0);
+
+	heap_freetuple(tuple);
+	table_close(pg_class, RowExclusiveLock);
+
+	/* Make sure the relam change is visible */
+	CommandCounterIncrement();
 }
 
 /*

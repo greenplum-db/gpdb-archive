@@ -2070,8 +2070,9 @@ describeOneTableDetails(const char *schemaname,
 		goto error_return;		/* not an error, just return early */
 	}
 
-	if (greenplum_is_ao_column(tableinfo.relstorage, tableinfo.relam)
-			|| greenplum_is_ao_row(tableinfo.relstorage, tableinfo.relam))
+	if (tableinfo.relkind != RELKIND_PARTITIONED_TABLE &&
+		(greenplum_is_ao_column(tableinfo.relstorage, tableinfo.relam)
+			|| greenplum_is_ao_row(tableinfo.relstorage, tableinfo.relam)))
 	{
 		PGresult *result = NULL;
 		/* Get Append Only information
@@ -2188,7 +2189,8 @@ describeOneTableDetails(const char *schemaname,
 			attstattarget_col = cols++;
 		}
 
-		if (greenplum_is_ao_column(tableinfo.relstorage, tableinfo.relam))
+		if (greenplum_is_ao_column(tableinfo.relstorage, tableinfo.relam) &&
+				tableinfo.relkind != RELKIND_PARTITIONED_TABLE)
 		{
 			if (isGE42 == true)
 			{
@@ -2319,7 +2321,8 @@ describeOneTableDetails(const char *schemaname,
 	if (attstattarget_col >= 0)
 		headers[cols++] = gettext_noop("Stats target");
 
-	if (verbose && greenplum_is_ao_column(tableinfo.relstorage, tableinfo.relam))
+	if (verbose && greenplum_is_ao_column(tableinfo.relstorage, tableinfo.relam) && 
+			tableinfo.relkind != RELKIND_PARTITIONED_TABLE)
 	{
 		headers[cols++] = gettext_noop("Compression Type");
 		headers[cols++] = gettext_noop("Compression Level");
@@ -2406,7 +2409,7 @@ describeOneTableDetails(const char *schemaname,
 							  false, false);
 
 		if (greenplum_is_ao_column(tableinfo.relstorage, tableinfo.relam)
-				&& attoptions_col >= 0)
+				&& attoptions_col >= 0 && tableinfo.relkind != RELKIND_PARTITIONED_TABLE)
 		{
 			/* The compression type, compression level, and block size are all in the next column.
 			 * attributeOptions is a text array of key=value pairs retrieved as a string from the catalog.
@@ -2645,8 +2648,9 @@ describeOneTableDetails(const char *schemaname,
 			add_external_table_footer(&cont, oid);
 
 		/* print append only table information */
-		if (greenplum_is_ao_row(tableinfo.relstorage, tableinfo.relam) ||
-			greenplum_is_ao_column(tableinfo.relstorage, tableinfo.relam))
+		if (tableinfo.relkind != RELKIND_PARTITIONED_TABLE &&
+			(greenplum_is_ao_row(tableinfo.relstorage, tableinfo.relam) ||
+			greenplum_is_ao_column(tableinfo.relstorage, tableinfo.relam)))
 		{
 			if (greenplum_is_ao_row(tableinfo.relstorage, tableinfo.relam))
 			{

@@ -463,6 +463,7 @@ select c.relname, am.amname, c.relkind, c.reloptions
     where c.relname like 'dsp_partition1%' order by relname;
 select compresslevel, compresstype, blocksize, checksum, columnstore from pg_appendonly
        where relid in (select oid from pg_class where relname  like 'dsp_partition1%') order by columnstore;
+-- The child partition tables should default to their parent table's AM.
 set default_table_access_method = ao_column;
 set gp_default_storage_options = "blocksize=32768,compresstype=none,checksum=true";
 -- Add partition

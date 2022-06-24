@@ -2431,6 +2431,13 @@ CTranslatorRelcacheToDXL::RetrieveRelStorageType(Relation rel)
 	IMDRelation::Erelstoragetype rel_storage_type =
 		IMDRelation::ErelstorageSentinel;
 
+	// handle partition root first, note the partition type returned here
+	// is not necessarily the same as the one root partition carries
+	if (rel->rd_rel->relkind == RELKIND_PARTITIONED_TABLE)
+	{
+		return RetrieveStorageTypeForPartitionedTable(rel);
+	}
+
 	switch (rel->rd_rel->relam)
 	{
 		case HEAP_TABLE_AM_OID:
@@ -2447,10 +2454,6 @@ CTranslatorRelcacheToDXL::RetrieveRelStorageType(Relation rel)
 			if (rel->rd_rel->relkind == RELKIND_COMPOSITE_TYPE)
 			{
 				rel_storage_type = IMDRelation::ErelstorageCompositeType;
-			}
-			else if (rel->rd_rel->relkind == RELKIND_PARTITIONED_TABLE)
-			{
-				rel_storage_type = RetrieveStorageTypeForPartitionedTable(rel);
 			}
 			else if (gpdb::RelIsExternalTable(rel->rd_id))
 			{

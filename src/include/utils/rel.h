@@ -441,7 +441,8 @@ typedef struct ViewOptions
  * 		True iff relation has append only storage (can be row or column orientation)
  */
 #define RelationIsAppendOptimized(relation) \
-	(RelationIsAoRows(relation) || RelationIsAoCols(relation))
+	((RelationIsAoRows(relation) || RelationIsAoCols(relation)) && \
+		relation->rd_rel->relkind != RELKIND_PARTITIONED_TABLE)
 
 /*
  * RelationIsBitmapIndex
