@@ -132,6 +132,7 @@ More specifically, you need to edit the following Linux configuration settings:
 -   [Disk I/O Settings](#disk_io_settings)
     -   Read ahead values
     -   Disk I/O scheduler disk access
+-   [Networking](#networking)
 -   [Transparent Huge Pages \(THP\)](#huge_pages)
 -   [IPC Object Removal](#ipc_object_removal)
 -   [SSH Connection Threshold](#ssh_max_connections)
@@ -411,6 +412,20 @@ The XFS options can also be set in the `/etc/fstab` file. This example entry fro
     ```
 
     For more information about the `grubby` utility, see your operating system documentation. If the `grubby` command does not update the kernels, see the [Note](#grubby_note) at the end of the section.
+
+### <a id="networking"></a>Networking
+
+The maximum transmission unit (MTU) of a network specifies the size (in bytes) of the largest data packet/frame accepted by a network-connected device. A jumbo frame is a frame that contains more than the standard MTU of 1500 bytes.
+
+Greenplum Database utilizes 3 distinct MTU settings:
+
+- The Greenplum Database [gp_max_packet_size](../ref_guide/config_params/guc-list.html#gp_max_packet_size) server configuration parameter. The default max packet size is 8192. This default assumes a jumbo frame MTU.
+- The operating system MTU setting.
+- The rack switch MTU setting.
+
+These settings are connected, in that they should always be either the same, or close to the same, value, or otherwise in the order of Greenplum < OS < switch for MTU size.
+
+9000 is a common supported setting for switches, and is the recommended OS and rack switch MTU setting for your Greenplum Database hosts.
 
 
 ### <a id="huge_pages"></a>Transparent Huge Pages \(THP\) 
