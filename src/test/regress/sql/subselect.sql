@@ -612,16 +612,10 @@ set optimizer to off;
 -- Test that LIMIT can be pushed to SORT through a subquery that just projects
 -- columns.  We check for that having happened by looking to see if EXPLAIN
 -- ANALYZE shows that a top-N sort was used.  We must suppress or filter away
--- all the non-invariant parts of the EXPLAIN ANALYZE output.
+-- all the non-invariant parts of the EXPLAIN ANALYZE output. Use a replicated
+-- table to genarate a plan like: Limit -> Subquery -> Sort
 --
--- GPDB_12_MERGE_FIXME: we need to revisit the following test because it is not
--- testing what it advertized in the above comment. Specificly, we don't
--- execute top-N sort for the planner plan. Orca on the other hand never honors
--- ORDER BY in a subquery, as permitted by the SQL spec.  Consider rewriting
--- the test using a replicated table so that we get the plan stucture like
--- this: Limit -> Subquery -> Sort
---
-create table sq_limit (pk int primary key, c1 int, c2 int);
+create table sq_limit (pk int primary key, c1 int, c2 int) distributed replicated;
 insert into sq_limit values
     (1, 1, 1),
     (2, 2, 2),
@@ -702,14 +696,21 @@ explain (verbose, costs off)
 with x as (select * from (select f1, current_database() from subselect_tbl) ss)
 select * from x where f1 = 1;
 
+
 -- Volatile functions prevent inlining
--- GPDB_12_MERGE_FIXME: inlining happens on GPDB: But the plan seems OK
--- nevertheless. Is the GPDB planner smart, and notices that this is
--- ok to inline, or is it doing something that would be unsafe in more
--- complicated queries? Investigte
+-- Prevent inlining happens on GPDB, inlining may cause wrong results.
+-- For example, nextval() function.
 explain (verbose, costs off)
 with x as (select * from (select f1, random() from subselect_tbl) ss)
 select * from x where f1 = 1;
+
+create temporary sequence ts;
+create table vol_test(a int, b int);
+explain (verbose, costs off)
+with x as (select * from (select a, nextval('ts') from vol_test) ss)
+select * from x where a = 1;
+drop sequence ts;
+drop table vol_test;
 
 -- SELECT FOR UPDATE cannot be inlined
 -- GPDB: select statement with locking clause is not easy to fully supported
