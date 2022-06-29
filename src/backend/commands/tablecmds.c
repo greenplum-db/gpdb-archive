@@ -571,7 +571,6 @@ DefineRelation(CreateStmt *stmt, char relkind, Oid ownerId,
 	LOCKMODE	parentLockmode;
 	const char *accessMethod = NULL;
 	Oid			accessMethodId = InvalidOid;
-	Oid			amHandlerOid = InvalidOid;
 	List	   *schema;
 	List	   *cooked_constraints;
 	bool		shouldDispatch = dispatch &&
@@ -775,11 +774,7 @@ DefineRelation(CreateStmt *stmt, char relkind, Oid ownerId,
 
 	/* look up the access method, verify it is for a table */
 	if (accessMethod != NULL)
-	{
 		accessMethodId = get_table_am_oid(accessMethod, false);
-		amHandlerOid = get_table_am_handler_oid(accessMethod, false);
-	}
-
 
 	/*
 	 * Parse and validate reloptions, if any.
@@ -792,8 +787,8 @@ DefineRelation(CreateStmt *stmt, char relkind, Oid ownerId,
 	 * appendonly relations. This check can not be performed earlier because it
 	 * is needed to know the access method.
 	 */
-	if ((amHandlerOid == AO_ROW_TABLE_AM_HANDLER_OID ||
-			amHandlerOid == AO_COLUMN_TABLE_AM_HANDLER_OID))
+	if ((accessMethodId == AO_ROW_TABLE_AM_OID ||
+			accessMethodId == AO_COLUMN_TABLE_AM_OID))
 	{
 		Assert(relkind == RELKIND_MATVIEW || relkind == RELKIND_RELATION );
 
@@ -814,7 +809,7 @@ DefineRelation(CreateStmt *stmt, char relkind, Oid ownerId,
 									 stdRdOptions->compresslevel,
 									 stdRdOptions->compresstype,
 									 stdRdOptions->checksum,
-									 (amHandlerOid == AO_COLUMN_TABLE_AM_HANDLER_OID));
+									 (accessMethodId == AO_COLUMN_TABLE_AM_OID));
 
 		reloptions = transformAOStdRdOptions(stdRdOptions, reloptions);
 	} else if (relkind == RELKIND_VIEW)
@@ -979,10 +974,10 @@ DefineRelation(CreateStmt *stmt, char relkind, Oid ownerId,
 								stmt->attr_encodings,
 								stmt->options,
 								relkind == RELKIND_PARTITIONED_TABLE,
-								amHandlerOid != AO_COLUMN_TABLE_AM_HANDLER_OID 
+								accessMethodId != AO_COLUMN_TABLE_AM_OID
 										&& !stmt->partbound 
 										&& !stmt->partspec /* errorOnEncodingClause */);
-		if (amHandlerOid != AO_COLUMN_TABLE_AM_HANDLER_OID && relkind != RELKIND_PARTITIONED_TABLE)
+		if (accessMethodId != AO_COLUMN_TABLE_AM_OID && relkind != RELKIND_PARTITIONED_TABLE)
 			stmt->attr_encodings = NIL;
 	}
 
