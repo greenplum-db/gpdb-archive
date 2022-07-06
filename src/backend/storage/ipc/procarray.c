@@ -1461,7 +1461,6 @@ GetLocalOldestXmin(Relation rel, int flags)
 		PGPROC	   *proc = &allProcs[pgprocno];
 		PGXACT	   *pgxact = &allPgXact[pgprocno];
 
-		/* Upstream code which ignores lazy vacuum is not applicable to GPDB, see comment in vacuum_rel() */
 		if (pgxact->vacuumFlags & (flags & PROCARRAY_PROC_FLAGS_MASK))
 			continue;
 
@@ -2292,11 +2291,10 @@ GetSnapshotData(Snapshot snapshot, DtxContext distributedTransactionContext)
 
 			/*
 			 * Skip over backends doing logical decoding which manages xmin
-			 * separately (check below).
-			 * Upstream code which skips ones running LAZY VACUUM is not applicable
-			 * to GPDB, see comment in vacuum_rel().
+			 * separately (check below) and ones running LAZY VACUUM.
 			 */
-			if (pgxact->vacuumFlags & PROC_IN_LOGICAL_DECODING)
+			if (pgxact->vacuumFlags &
+				(PROC_IN_LOGICAL_DECODING | PROC_IN_VACUUM))
 				continue;
 
 			/* Update globalxmin to be the smallest valid xmin */
