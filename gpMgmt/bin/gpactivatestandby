@@ -321,6 +321,21 @@ def promote_standby(coordinator_data_dir):
     cmd = gp.Command('pg_ctl promote',
                      'pg_ctl promote -D %s -t 600' % coordinator_data_dir)
     cmd.run(validateAfter=True)
+    logger.info('Standby coordinator is promoted')
+
+    # After promotion run CHECKPOINT to force the new TimeLineID to be
+    # written to the pg_control file. This happens in async way in
+    # server since pg_ctl promote uses fast_promote. Given gpstart
+    # depends on TLI to be reflect after right after promotion mainly
+    # for testing we force CHECKPOINT here.
+    logger.debug('forcing CHECKPOINT to reflect new TimeLineID...')
+    try:
+        dburl = dbconn.DbURL()
+        conn = dbconn.connect(dburl, utility=True, logConn=False)
+        dbconn.execSQL(conn, 'CHECKPOINT')
+        conn.close()
+    except pygresql.InternalError as e:
+        pass
 
 #-------------------------------------------------------------------------
 # Main
