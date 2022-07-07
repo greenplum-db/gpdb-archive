@@ -31,7 +31,7 @@ $$ language plpgsql;
 
 --
 -- Test explain_memory_verbosity option
--- 
+--
 CREATE TABLE explaintest (id int4);
 INSERT INTO explaintest SELECT generate_series(1, 10);
 ANALYZE explaintest;
@@ -68,8 +68,8 @@ SELECT
 
 reset explain_memory_verbosity;
 
-EXPLAIN ANALYZE SELECT id FROM 
-( SELECT id 
+EXPLAIN ANALYZE SELECT id FROM
+( SELECT id
 	FROM explaintest
 	WHERE id > (
 		SELECT avg(id)
@@ -81,14 +81,14 @@ LIMIT 1;
 
 select * from
   test_util.extract_plan_stats($$
-SELECT id FROM 
-( SELECT id  
+SELECT id FROM
+( SELECT id
     FROM explaintest
-    WHERE id > ( 
+    WHERE id > (
         SELECT avg(id)
         FROM explaintest
-    )   
-) as foo 
+    )
+) as foo
 ORDER BY id
 LIMIT 1;
   $$, false)
@@ -142,7 +142,7 @@ WHERE et like '%Filter: %';
 create table foo (a int) distributed randomly;
 -- "outer", "inner" prefix must also be prefixed to variable name as length of rtable > 1
 SELECT trim(et) et from
-get_explain_output($$ 
+get_explain_output($$
 	select * from (values (1),(2)) as f(a) join (values(1),(2)) b(b) on a = b join foo on true join foo as foo2 on true $$) as et
 WHERE et like '%Join Filter:%' or et like '%Hash Cond:%';
 
