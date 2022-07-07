@@ -816,8 +816,15 @@ cdbexplain_collectStatsFromNode(PlanState *planstate, CdbExplain_SendStatCtx *ct
 	if (si->bnotes < si->enotes)
 		appendStringInfoChar(ctx->notebuf, '\0');
 
-	if (planstate->node_context)
+	/* Use the instrument's memory record if exists, or query the memory context. */
+	if (instr->execmemused)
+	{
+		si->execmemused = instr->execmemused;
+	}
+	else if (planstate->node_context)
+	{
 		si->execmemused = (double) MemoryContextGetPeakSpace(planstate->node_context);
+	}
 
 	/* Transfer this node's statistics from Instrumentation into StatInst. */
 	si->starttime = instr->starttime;

@@ -24,6 +24,14 @@
 -- s/((0[1-9]|1[0-2])-(0[1-9]|1[0-9]|2[0-9])|(0[13-9]|1[0-2])-30|(0[13578]|1[02])-31)-(?!0000)[0-9]{4}/xx-xx-xxxx/
 -- m/((Mon|Tue|Wed|Thu|Fri|Sat|Sun) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (0[1-9]|[12][0-9]|3[01]) ([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](.[0-9]+)? (?!0000)[0-9]{4}.*)+(['"])/
 -- s/((Mon|Tue|Wed|Thu|Fri|Sat|Sun) (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (0[1-9]|[12][0-9]|3[01]) ([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](.[0-9]+)? (?!0000)[0-9]{4}.*)+(['"])/xxx xx xx xx:xx:xx xxxx"/
+-- m/Memory: \d+kB/
+-- s/Memory: \d+kB/Memory: ###kB/
+-- m/Segments: \d+/
+-- s/Segments: \d+/Segments: ###/
+-- m/Max: \d+kB/
+-- s/Max: \d+kB/Max: ###kB/
+-- m/segment \d+/
+-- s/segment \d+/segment ###/
 -- end_matchsubs
 
 -- Force generic plans to be used for all prepared statements in this file.

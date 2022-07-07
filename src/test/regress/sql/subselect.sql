@@ -637,6 +637,7 @@ begin
         ln := regexp_replace(ln, 'Memory: \S*',  'Memory: xxx');
         -- this case might occur if force_parallel_mode is on:
         ln := regexp_replace(ln, 'Worker 0:  Sort Method',  'Sort Method');
+        ln := regexp_replace(ln, 'Segments: \S*  Max: \S*kB \(segment \S*\)',  'Segments: x  Max: xxkB (segment x)');
         return next ln;
     end loop;
 end;

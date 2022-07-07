@@ -607,6 +607,7 @@ select * from explain_parallel_sort_stats();
                ->  Sort (actual rows=3386 loops=1)
                      Sort Key: tenk1.ten
                      Sort Method:  quicksort  Memory: xxx
+                     Executor Memory: xxx  Segments: 3  Max: 203kB (segment 1)
                      ->  Seq Scan on tenk1 (actual rows=3386 loops=1)
                            Filter: (ten < 100)
  Optimizer: Postgres query optimizer
