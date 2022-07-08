@@ -12,10 +12,10 @@
 -- m/Extra Text: \(seg\d+\)/
 -- s/Extra Text: \(seg\d+\)/Extra Text: ###/
 -- m/Segments: \d+/
--- s/Segments: \d+/Segments: ###/ 
+-- s/Segments: \d+/Segments: ###/
 -- m/Max: \d+kB/
 -- s/Max: \d+kB/Max: ###kB/
--- m/segment \d+/ 
+-- m/segment \d+/
 -- s/segment \d+/segment ###/
 -- m/Hash chain length \d+\.\d+ avg, \d+ max/
 -- s/Hash chain length \d+\.\d+ avg, \d+ max/Hash chain length ###/
@@ -36,9 +36,9 @@ drop table if exists t;
 NOTICE:  table "t" does not exist, skipping
 drop table if exists t1;
 NOTICE:  table "t1" does not exist, skipping
-create table pt(dist int, pt1 text, pt2 text, pt3 text, ptid int) 
+create table pt(dist int, pt1 text, pt2 text, pt3 text, ptid int)
 DISTRIBUTED BY (dist)
-PARTITION BY RANGE(ptid) 
+PARTITION BY RANGE(ptid)
           (
           START (0) END (5) EVERY (1),
           DEFAULT PARTITION junk_data
@@ -52,9 +52,9 @@ PARTITION BY RANGE(ptid)
 -- loading all the data, changing policy to randomly without
 -- data movement. Thus every time we will have a static
 -- data distribution plus randomly policy.
-create table pt1(dist int, pt1 text, pt2 text, pt3 text, ptid int) 
+create table pt1(dist int, pt1 text, pt2 text, pt3 text, ptid int)
 DISTRIBUTED BY (dist)
-PARTITION BY RANGE(ptid) 
+PARTITION BY RANGE(ptid)
           (
           START (0) END (5) EVERY (1),
           DEFAULT PARTITION junk_data
@@ -286,7 +286,7 @@ explain (costs off, timing off, summary off, analyze) select * from pt where pti
                                  Group Key: t.tid
                                  ->  Sort (actual rows=2 loops=1)
                                        Sort Key: t.tid
-                                       Sort Method:  quicksort  Memory: 150kB
+                                       Sort Method:  quicksort  Memory: 75kB
                                        Executor Memory: 178kB  Segments: 3  Max: 60kB (segment 0)
                                        ->  Redistribute Motion 3:3  (slice3; segments: 3) (actual rows=2 loops=1)
                                              Hash Key: t.tid
@@ -344,7 +344,7 @@ explain (costs off, timing off, summary off, analyze) select * from pt where exi
                                  Group Key: t.tid
                                  ->  Sort (actual rows=2 loops=1)
                                        Sort Key: t.tid
-                                       Sort Method:  quicksort  Memory: 150kB
+                                       Sort Method:  quicksort  Memory: 75kB
                                        Executor Memory: 76kB  Segments: 3  Max: 26kB (segment 1)
                                        ->  Redistribute Motion 3:3  (slice3; segments: 3) (actual rows=2 loops=1)
                                              Hash Key: t.tid
@@ -423,7 +423,7 @@ explain (costs off, timing off, summary off, analyze) select *, rank() over (ord
          Merge Key: pt_1_prt_2.ptid, pt_1_prt_2.pt1
          ->  Sort (actual rows=8 loops=1)
                Sort Key: pt_1_prt_2.ptid, pt_1_prt_2.pt1
-               Sort Method:  quicksort  Memory: 152kB
+               Sort Method:  quicksort  Memory: 76kB
                Executor Memory: 85kB  Segments: 3  Max: 29kB (segment 1)
                ->  Nested Loop (actual rows=8 loops=1)
                      Join Filter: true
@@ -1128,7 +1128,7 @@ explain (costs off, timing off, summary off, analyze) select * from pt, pt1 wher
    Merge Key: pt1_1_prt_2.dist
    ->  Sort (actual rows=5 loops=1)
          Sort Key: pt1_1_prt_2.dist
-         Sort Method:  quicksort  Memory: 150kB
+         Sort Method:  quicksort  Memory: 75kB
          Executor Memory: 77kB  Segments: 3  Max: 26kB (segment 1)
          ->  Hash Join (actual rows=5 loops=1)
                Hash Cond: (pt1_1_prt_2.ptid = pt_1_prt_2.ptid)
@@ -1339,7 +1339,7 @@ analyze dim1;
 create table fact1(dist int, pid int, code text, u int)
 partition by range(pid)
 subpartition by list(code)
-subpartition template 
+subpartition template
 (
  subpartition ca values('CA'),
  subpartition oh values('OH'),
@@ -1347,7 +1347,7 @@ subpartition template
 )
 (
  start (0)
- end (4) 
+ end (4)
  every (1)
 );
 NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'dist' as the Greenplum Database data distribution key for this table.
@@ -1365,7 +1365,7 @@ explain (costs off, timing off, summary off, analyze) select * from dim1 inner j
    Merge Key: fact1_1_prt_1_2_prt_ca.u
    ->  Sort (actual rows=50 loops=1)
          Sort Key: fact1_1_prt_1_2_prt_ca.u
-         Sort Method:  quicksort  Memory: 158kB
+         Sort Method:  quicksort  Memory: 79kB
          Executor Memory: 79kB  Segments: 3  Max: 29kB (segment 1)
          ->  Hash Join (actual rows=50 loops=1)
                Hash Cond: ((fact1_1_prt_1_2_prt_ca.pid = dim1.pid) AND (fact1_1_prt_1_2_prt_ca.code = dim1.code))
@@ -1453,7 +1453,7 @@ explain (costs off, timing off, summary off, analyze) select * from dim1 inner j
    Merge Key: fact1_1_prt_1_2_prt_ca.u
    ->  Sort (actual rows=50 loops=1)
          Sort Key: fact1_1_prt_1_2_prt_ca.u
-         Sort Method:  quicksort  Memory: 158kB
+         Sort Method:  quicksort  Memory: 79kB
          Executor Memory: 79kB  Segments: 3  Max: 29kB (segment 1)
          ->  Hash Join (actual rows=50 loops=1)
                Hash Cond: ((fact1_1_prt_1_2_prt_ca.pid = dim1.pid) AND (fact1_1_prt_1_2_prt_ca.code = dim1.code))
@@ -1546,7 +1546,7 @@ explain (costs off, timing off, summary off, analyze) select * from dim1 inner j
    Merge Key: fact1_1_prt_1_2_prt_ca.u
    ->  Sort (actual rows=100 loops=1)
          Sort Key: fact1_1_prt_1_2_prt_ca.u
-         Sort Method:  quicksort  Memory: 166kB
+         Sort Method:  quicksort  Memory: 83kB
          Executor Memory: 82kB  Segments: 3  Max: 32kB (segment 1)
          ->  Hash Join (actual rows=100 loops=1)
                Hash Cond: (fact1_1_prt_1_2_prt_ca.pid = dim1.pid)
@@ -1684,7 +1684,7 @@ explain (costs off, timing off, summary off, analyze) select * from dim1 inner j
    Merge Key: fact1_1_prt_1_2_prt_ca.u
    ->  Sort (actual rows=100 loops=1)
          Sort Key: fact1_1_prt_1_2_prt_ca.u
-         Sort Method:  quicksort  Memory: 166kB
+         Sort Method:  quicksort  Memory: 83kB
          Executor Memory: 82kB  Segments: 3  Max: 32kB (segment 1)
          ->  Hash Join (actual rows=100 loops=1)
                Hash Cond: (fact1_1_prt_1_2_prt_ca.pid = dim1.pid)
@@ -2298,7 +2298,7 @@ explain (costs off, timing off, summary off, analyze) select * from dim1 inner j
    Merge Key: fact1_1_prt_1_2_prt_oh.u
    ->  Sort (actual rows=50 loops=1)
          Sort Key: fact1_1_prt_1_2_prt_oh.u
-         Sort Method:  quicksort  Memory: 158kB
+         Sort Method:  quicksort  Memory: 79kB
          Executor Memory: 79kB  Segments: 3  Max: 29kB (segment 1)
          ->  Hash Join (actual rows=50 loops=1)
                Hash Cond: (fact1_1_prt_1_2_prt_oh.pid = dim1.pid)
@@ -2382,7 +2382,7 @@ explain (costs off, timing off, summary off, analyze) select * from dim1 inner j
    Merge Key: fact1_1_prt_1_2_prt_oh.u
    ->  Sort (actual rows=50 loops=1)
          Sort Key: fact1_1_prt_1_2_prt_oh.u
-         Sort Method:  quicksort  Memory: 158kB
+         Sort Method:  quicksort  Memory: 79kB
          Executor Memory: 79kB  Segments: 3  Max: 29kB (segment 1)
          ->  Hash Join (actual rows=50 loops=1)
                Hash Cond: (fact1_1_prt_1_2_prt_oh.pid = dim1.pid)
@@ -2473,7 +2473,7 @@ explain (costs off, timing off, summary off, analyze) select fact1.code, count(*
          Group Key: fact1_1_prt_1_2_prt_ca.code
          ->  Sort (actual rows=100 loops=1)
                Sort Key: fact1_1_prt_1_2_prt_ca.code
-               Sort Method:  quicksort  Memory: 160kB
+               Sort Method:  quicksort  Memory: 80kB
                Executor Memory: 86kB  Segments: 3  Max: 31kB (segment 1)
                ->  Redistribute Motion 3:3  (slice2; segments: 3) (actual rows=100 loops=1)
                      Hash Key: fact1_1_prt_1_2_prt_ca.code
@@ -2517,7 +2517,7 @@ explain (costs off, timing off, summary off, analyze) select fact1.code, count(*
          Group Key: fact1_1_prt_1_2_prt_ca.code
          ->  Sort (actual rows=100 loops=1)
                Sort Key: fact1_1_prt_1_2_prt_ca.code
-               Sort Method:  quicksort  Memory: 160kB
+               Sort Method:  quicksort  Memory: 80kB
                Executor Memory: 86kB  Segments: 3  Max: 31kB (segment 1)
                ->  Redistribute Motion 3:3  (slice2; segments: 3) (actual rows=100 loops=1)
                      Hash Key: fact1_1_prt_1_2_prt_ca.code
@@ -2569,8 +2569,8 @@ set search_path='dpe_malp';
 set gp_segments_for_planner=2;
 set optimizer_segments=2;
 create type malp_key as (i int, j int);
-create table malp (i int, j int, t text) 
-distributed by (i) 
+create table malp (i int, j int, t text)
+distributed by (i)
 partition by list ((row(i, j)::malp_key));
 create table malp_p1 partition of malp for values in (row(1, 10));
 NOTICE:  table has parent, setting distribution columns to match parent table
@@ -2747,7 +2747,7 @@ set optimizer_segments=2;
 create table pat(a int, b date) partition by range (b) (start ('2010-01-01') end ('2010-01-05') every (1), default partition other);
 NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
 HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
-insert into pat select i,date '2010-01-01' + i from generate_series(1, 10)i;  
+insert into pat select i,date '2010-01-01' + i from generate_series(1, 10)i;
 create table jpat(a int, b date);
 NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
 HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
@@ -2768,7 +2768,7 @@ explain (costs off, timing off, summary off, analyze) select * from (select coun
                Merge Key: jpat.a
                ->  Sort (actual rows=1 loops=1)
                      Sort Key: jpat.a
-                     Sort Method:  quicksort  Memory: 150kB
+                     Sort Method:  quicksort  Memory: 75kB
                      Executor Memory: 76kB  Segments: 3  Max: 26kB (segment 1)
                      ->  Seq Scan on jpat (actual rows=1 loops=1)
    ->  Hash (actual rows=10 loops=1)
@@ -3003,7 +3003,7 @@ select * from pt, t where t.dist = pt.dist and t.tid = pt.ptid order by t.tid, t
    Merge Key: t.tid, t.sk
    ->  Sort  (cost=0.00..862.09 rows=33 width=24) (actual rows=2 loops=1)
          Sort Key: t.tid, t.sk
-         Sort Method:  quicksort  Memory: 150kB
+         Sort Method:  quicksort  Memory: 75kB
          Executor Memory: 76kB  Segments: 3  Max: 26kB (segment 0)
          ->  Hash Join  (cost=0.00..862.05 rows=33 width=24) (actual rows=2 loops=1)
                Hash Cond: ((pt1.dist = t.dist) AND (pt1.ptid = t.tid))
