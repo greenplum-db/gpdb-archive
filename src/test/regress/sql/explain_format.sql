@@ -94,6 +94,10 @@ RESET cpu_index_tuple_cost;
 -- explain_processing_off
 EXPLAIN (ANALYZE, FORMAT YAML) SELECT * from boxes LEFT JOIN apples ON apples.id = boxes.apple_id LEFT JOIN box_locations ON box_locations.id = boxes.location_id;
 
+-- start_matchsubs
+-- m/Executor Memory: \d+kB/
+-- s/Executor Memory: \d+kB/Executor Memory: ###kB/
+-- end_matchsubs
 --- Check explain analyze sort infomation in verbose mode
 EXPLAIN (ANALYZE, VERBOSE) SELECT * from boxes ORDER BY apple_id;
 -- explain_processing_on

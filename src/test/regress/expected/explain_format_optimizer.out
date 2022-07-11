@@ -462,6 +462,10 @@ QUERY PLAN
     Memory used: 128000
   Execution Time: 3.332
 (1 row)
+-- start_matchsubs
+-- m/Executor Memory: \d+kB/
+-- s/Executor Memory: \d+kB/Executor Memory: ###kB/
+-- end_matchsubs
 --- Check explain analyze sort infomation in verbose mode
 EXPLAIN (ANALYZE, VERBOSE) SELECT * from boxes ORDER BY apple_id;
 QUERY PLAN
