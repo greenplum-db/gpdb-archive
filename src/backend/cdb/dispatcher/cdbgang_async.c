@@ -307,7 +307,7 @@ create_gang_retry:
 						continue;
 
 					segdbDesc = newGangDefinition->db_descriptors[pos];
-					int fd_desc = PQsocket(segdbDesc->conn);
+					int fd_desc PG_USED_FOR_ASSERTS_ONLY = PQsocket(segdbDesc->conn);
 					Assert(fd_desc > 0);
 					Assert(fd_desc == revents[i].fd);
 
