@@ -131,7 +131,7 @@ The Greenplum Database server `ftsprobe` subprocess handles fault detection. `ft
 -   [gprecoverseg](../utility_guide/ref/gprecoverseg.html) - recover a failed segment
 -   [gpactivatestandby](../utility_guide/ref/gpactivatestandby.html) - make the standby master the active master
 
-[RDBMS MIB Specification](http://tools.ietf.org/html/rfc1697)
+[RDBMS MIB Specification](https://datatracker.ietf.org/doc/html/rfc1697)
 
 ## <a id="topic_ngz_qf4_tt"></a>Segment Mirroring Configurations 
 
