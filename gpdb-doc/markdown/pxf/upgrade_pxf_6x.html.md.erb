@@ -64,8 +64,6 @@ After you upgrade to the new version of Greenplum Database, perform the followin
 
 1. Starting in Greenplum Database version 6.19.0, PXF is removed from the Greenplum Server distribution. You must download and install the standalone PXF `rpm` or `deb` package as described in [Installing PXF](https://docs.vmware.com/en/VMware-Tanzu-Greenplum-Platform-Extension-Framework/6.3/tanzu-greenplum-platform-extension-framework/GUID-installing_pxf.html). **Install the same PXF 5.x version as *PXF.from*.**
 
-2. Initialize PXF on each segment host as described in [Initializing PXF](https://docs.vmware.com/en/VMware-Tanzu-Greenplum-Platform-Extension-Framework/6.3/tanzu-greenplum-platform-extension-framework/GUID-init_pxf.html). You may choose to use your existing `$PXF_CONF` for the initialization.
-
 3. Synchronize the PXF configuration from the master host to the standby master and each Greenplum Database segment host. For example:
 
     ``` shell
