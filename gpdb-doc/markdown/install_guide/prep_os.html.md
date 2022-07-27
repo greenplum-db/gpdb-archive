@@ -302,13 +302,13 @@ To apply the changes to the live kernel, run the following command:
 
 ### <a id="xfs_mount"></a>XFS Mount Options 
 
-XFS is the preferred data storage file system on Linux platforms. Use the `mount` command with the following recommended XFS mount options for RHEL and CentOS systems:
+XFS is the preferred data storage file system on Linux platforms. Use the `mount` command with the following recommended XFS mount options for RHEL 7 and CentOS systems:
 
 ```
 rw,nodev,noatime,nobarrier,inode64
 ```
 
-The `nobarrier` option is not supported on Ubuntu systems. Use only the options:
+The `nobarrier` option is not supported on RHEL 8 or Ubuntu systems. Use only the options:
 
 ```
 rw,nodev,noatime,inode64
@@ -319,7 +319,7 @@ See the `mount` manual page \(`man mount` opens the man page\) for more informat
 The XFS options can also be set in the `/etc/fstab` file. This example entry from an `fstab` file specifies the XFS options.
 
 ```
-/dev/data /data xfs nodev,noatime,nobarrier,inode64 0 0
+/dev/data /data xfs nodev,noatime,inode64 0 0
 ```
 
 **Note:** You must have root permission to edit the `/etc/fstab` file.

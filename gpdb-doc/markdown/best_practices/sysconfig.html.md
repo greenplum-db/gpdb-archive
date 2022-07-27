@@ -23,17 +23,7 @@ You must restart Greenplum Database after changing the timezone. The command `gp
 
 ## <a id="file_system"></a>File System 
 
-XFS is the file system used for Greenplum Database data directories. On RHEL/CentOS systems, mount XFS volumes with the following mount options:
-
-```
-rw,nodev,noatime,nobarrier,inode64
-```
-
-The `nobarrier` option is not supported on Ubuntu systems. Use only the options:
-
-```
-rw,nodev,noatime,inode64
-```
+XFS is the file system used for Greenplum Database data directories. Use the mount options described in [Configuring Your Systems](../install_guide/prep_os.html).
 
 ## <a id="port_config"></a>Port Configuration 
 
