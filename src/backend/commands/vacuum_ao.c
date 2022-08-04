@@ -144,7 +144,6 @@
 
 
 static void vacuum_appendonly_index(Relation indexRelation,
-									double rel_tuple_count,
 									Bitmapset *dead_segs,
 									int elevel,
 									BufferAccessStrategy bstrategy);
@@ -181,10 +180,7 @@ ao_vacuum_rel_pre_cleanup(Relation onerel, VacuumParams *params, BufferAccessStr
 					relname)));
 
 	/* 
-	 * Truncate AWAITING_DROP segments that are no longer visible to anyone
-	 * to 0 bytes. We cannot actually remove them yet, because there might
-	 * still be index entries pointing to them. We cannot recycle the segments
-	 * until the indexes have been vacuumed.
+	 * Recycle AWAITING_DROP segments that are no longer visible to anyone.
 	 *
 	 * This is optional. We'll drop old AWAITING_DROP segments in the
 	 * post-cleanup phase, too, but doing this first helps to reclaim some
@@ -483,7 +479,7 @@ vacuum_appendonly_indexes(Relation aoRelation, int options, Bitmapset *dead_segs
 		{
 			for (i = 0; i < nindexes; i++)
 			{
-				scan_index(Irel[i], Irel[i]->rd_rel->reltuples, elevel, bstrategy);
+				scan_index(Irel[i], elevel, bstrategy);
 			}
 		}
 		else
@@ -491,7 +487,6 @@ vacuum_appendonly_indexes(Relation aoRelation, int options, Bitmapset *dead_segs
 			for (i = 0; i < nindexes; i++)
 			{
 				vacuum_appendonly_index(Irel[i],
-										Irel[i]->rd_rel->reltuples,
 										dead_segs,
 										elevel,
 										bstrategy);
@@ -508,17 +503,21 @@ vacuum_appendonly_indexes(Relation aoRelation, int options, Bitmapset *dead_segs
  *
  * This is called after an append-only segment file compaction to move
  * all tuples from the compacted segment files.
- * The segmentFileList is an
+ * 
+ * We used to pass an argument num_tuples with value of table->reltuples to
+ * ivinfo.num_heap_tuples, now with the new VACUUM strategy, we removed it
+ * since we cannot get table->reltuples in the calling context.
+ * Therefore, ivinfo.num_heap_tuples is not an accurate value, so we need
+ * to set estimated_count to true.
  */
 static void
 vacuum_appendonly_index(Relation indexRelation,
-						double rel_tuple_count,
 						Bitmapset *dead_segs,
 						int elevel,
 						BufferAccessStrategy bstrategy)
 {
 	IndexBulkDeleteResult *stats;
-	IndexVacuumInfo ivinfo;
+	IndexVacuumInfo ivinfo = {0};
 	PGRUsage	ru0;
 
 	Assert(RelationIsValid(indexRelation));
@@ -527,7 +526,8 @@ vacuum_appendonly_index(Relation indexRelation,
 
 	ivinfo.index = indexRelation;
 	ivinfo.message_level = elevel;
-	ivinfo.num_heap_tuples = rel_tuple_count;
+	ivinfo.estimated_count = true;
+	ivinfo.num_heap_tuples = indexRelation->rd_rel->reltuples; /* inaccurate */;
 	ivinfo.strategy = bstrategy;
 
 	/* Do bulk deletion */
@@ -666,22 +666,27 @@ vacuum_appendonly_fill_stats(Relation aorel, Snapshot snapshot, int elevel,
  *	scan_index() -- scan one index relation to update pg_class statistics.
  *
  * We use this when we have no deletions to do.
+ * 
+ * We used to pass an argument num_tuples with value of table->reltuples to
+ * ivinfo.num_heap_tuples, now with the new VACUUM strategy, we removed it
+ * since we cannot get table->reltuples in the calling context.
+ * Therefore, ivinfo.num_heap_tuples is not an accurate value, so we need
+ * to set estimated_count to true.
  */
 void
-scan_index(Relation indrel, double num_tuples,
-		   int elevel, BufferAccessStrategy vac_strategy)
+scan_index(Relation indrel, int elevel, BufferAccessStrategy vac_strategy)
 {
 	IndexBulkDeleteResult *stats;
-	IndexVacuumInfo ivinfo;
+	IndexVacuumInfo ivinfo = {0};
 	PGRUsage	ru0;
 
 	pg_rusage_init(&ru0);
 
 	ivinfo.index = indrel;
 	ivinfo.analyze_only = false;
-	ivinfo.estimated_count = false;
+	ivinfo.estimated_count = true;
 	ivinfo.message_level = elevel;
-	ivinfo.num_heap_tuples = num_tuples;
+	ivinfo.num_heap_tuples = indrel->rd_rel->reltuples; /* inaccurate */
 	ivinfo.strategy = vac_strategy;
 
 	stats = index_vacuum_cleanup(&ivinfo, NULL);
