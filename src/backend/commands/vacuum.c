@@ -2712,7 +2712,8 @@ vacuum_params_to_options_list(VacuumParams *params)
 		elog(ERROR, "unrecognized vacuum option %x", optmask);
 
 	/*
-	 * GPDB_12_MERGE_FIXME:
+	 * NOTE:
+	 *
 	 * User-invoked vacuum will never have special values for VacuumParams's
 	 * freeze_min_age, freeze_table_age, multixact_freeze_min_age,
 	 * multixact_freeze_table_age, is_wraparound and log_min_duration. So no need
@@ -2726,7 +2727,12 @@ vacuum_params_to_options_list(VacuumParams *params)
 	 *
 	 * We should consider dispatch these values only if we do vacuum
 	 * as how we do analyze through autovacuum on coordinator.
-	 */
+	 *
+	 * GPDB has no plan to support distributed auto vacuum (do vacuum as how we do
+	 * analyze, i.e. to trigger auto vacuum on QD, and QD manages to dispatch the
+	 * vacuum request to QEs as distributed transaction) for GPDB7.
+	 * See more details in the head comments of autovacuum.c.
+	*/
 	if (params->truncate == VACOPT_TERNARY_DISABLED)
 		options = lappend(options, makeDefElem("truncate", (Node *) makeInteger(0), -1));
 	else if (params->truncate == VACOPT_TERNARY_ENABLED)
