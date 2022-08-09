@@ -259,7 +259,7 @@ OPTIONS key 'value'\[, key' value' ...\]
 :   Optional. Specifies parameters and values as key-value pairs that are set to a custom data access protocol when the protocol is used as a external table protocol for an external table. It is the responsibility of the custom data access protocol to process and validate the key-value pairs.
 
 ENCODING 'encoding'
-:   Character set encoding to use for the external table. Specify a string constant \(such as `'SQL_ASCII'`\), an integer encoding number, or `DEFAULT` to use the default client encoding. See [Character Set Support](../character_sets.html).
+:   Character set encoding to use for the external table. Specify a string constant \(such as `'SQL_ASCII'`\), an integer encoding number, or `DEFAULT` to use the default server encoding. See [Character Set Support](../character_sets.html).
 
 LOG ERRORS \[PERSISTENTLY\]
 :   This is an optional clause that can precede a `SEGMENT REJECT LIMIT` clause to log information about rows with formatting errors. The error log data is stored internally. If error log data exists for a specified external table, new data is appended to existing error log data. The error log data is not replicated to mirror segments.
