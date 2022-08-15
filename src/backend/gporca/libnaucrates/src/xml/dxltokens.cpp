@@ -415,7 +415,6 @@ CDXLTokens::Init(CMemoryPool *mp)
 		{EdxltokenCtidColId, GPOS_WSZ_LIT("CtidCol")},
 		{EdxltokenGpSegmentIdColId, GPOS_WSZ_LIT("SegmentIdCol")},
 		{EdxltokenTupleOidColId, GPOS_WSZ_LIT("TupleOidCol")},
-		{EdxltokenUpdatePreservesOids, GPOS_WSZ_LIT("PreserveOids")},
 		{EdxltokenInputSorted, GPOS_WSZ_LIT("InputSorted")},
 		{EdxltokenSplitUpdate, GPOS_WSZ_LIT("IsSplitUpdate")},
 
@@ -512,7 +511,6 @@ CDXLTokens::Init(CMemoryPool *mp)
 		{EdxltokenDoubleValue, GPOS_WSZ_LIT("DoubleValue")},
 
 		{EdxltokenRelTemporary, GPOS_WSZ_LIT("IsTemporary")},
-		{EdxltokenRelHasOids, GPOS_WSZ_LIT("HasOids")},
 
 		{EdxltokenEntireRow, GPOS_WSZ_LIT("*")},
 

@@ -4913,15 +4913,6 @@ CTranslatorExprToDXL::PdxlnDML(CExpression *pexpr,
 		segid_colid = pcrSegmentId->Id();
 	}
 
-	CColRef *pcrTupleOid = popDML->PcrTupleOid();
-	ULONG tuple_oid = 0;
-	BOOL preserve_oids = false;
-	if (nullptr != pcrTupleOid)
-	{
-		preserve_oids = true;
-		tuple_oid = pcrTupleOid->Id();
-	}
-
 	CDXLNode *child_dxlnode = CreateDXLNode(
 		pexprChild, pdrgpcrSource, pdrgpdsBaseTables, pulNonGatherMotions,
 		pfDML, false /*fRemap*/, false /*fRoot*/);
@@ -4934,8 +4925,8 @@ CTranslatorExprToDXL::PdxlnDML(CExpression *pexpr,
 		GetDXLDirectDispatchInfo(pexpr);
 	CDXLPhysicalDML *pdxlopDML = GPOS_NEW(m_mp) CDXLPhysicalDML(
 		m_mp, dxl_dml_type, table_descr, pdrgpul, action_colid, oid_colid,
-		ctid_colid, segid_colid, preserve_oids, tuple_oid,
-		dxl_direct_dispatch_info, popDML->IsInputSortReq(), popDML->FSplit());
+		ctid_colid, segid_colid, dxl_direct_dispatch_info,
+		popDML->IsInputSortReq(), popDML->FSplit());
 
 	// project list
 	CColRefSet *pcrsOutput = pexpr->Prpp()->PcrsRequired();
@@ -5049,8 +5040,8 @@ CTranslatorExprToDXL::PdxlnCTAS(CExpression *pexpr,
 		GPOS_NEW(m_mp) CMDName(m_mp, pmdrel->Mdname().GetMDName()),
 		dxl_col_descr_array, pmdrel->GetDxlCtasStorageOption(),
 		pmdrel->GetRelDistribution(), pdrgpulDistr, pmdrel->GetDistrOpClasses(),
-		pmdrel->IsTemporary(), pmdrel->HasOids(),
-		pmdrel->RetrieveRelStorageType(), pdrgpul, vartypemod_array);
+		pmdrel->IsTemporary(), pmdrel->RetrieveRelStorageType(), pdrgpul,
+		vartypemod_array);
 
 	CDXLNode *pdxlnCTAS = GPOS_NEW(m_mp) CDXLNode(m_mp, pdxlopCTAS);
 	CDXLPhysicalProperties *dxl_properties = GetProperties(pexpr);
@@ -5169,7 +5160,6 @@ CTranslatorExprToDXL::PdxlnSplit(CExpression *pexpr,
 	ULONG action_colid = 0;
 	ULONG ctid_colid = 0;
 	ULONG segid_colid = 0;
-	ULONG tuple_oid = 0;
 
 	// extract components
 	CPhysicalSplit *popSplit = CPhysicalSplit::PopConvert(pexpr->Pop());
@@ -5189,14 +5179,6 @@ CTranslatorExprToDXL::PdxlnSplit(CExpression *pexpr,
 	GPOS_ASSERT(nullptr != pcrSegmentId);
 	segid_colid = pcrSegmentId->Id();
 
-	CColRef *pcrTupleOid = popSplit->PcrTupleOid();
-	BOOL preserve_oids = false;
-	if (nullptr != pcrTupleOid)
-	{
-		preserve_oids = true;
-		tuple_oid = pcrTupleOid->Id();
-	}
-
 	CColRefArray *pdrgpcrDelete = popSplit->PdrgpcrDelete();
 	ULongPtrArray *delete_colid_array = CUtils::Pdrgpul(m_mp, pdrgpcrDelete);
 
@@ -5214,9 +5196,9 @@ CTranslatorExprToDXL::PdxlnSplit(CExpression *pexpr,
 	pdrgpcrRequired->Release();
 	pcrsRequired->Release();
 
-	CDXLPhysicalSplit *pdxlopSplit = GPOS_NEW(m_mp) CDXLPhysicalSplit(
-		m_mp, delete_colid_array, insert_colid_array, action_colid, ctid_colid,
-		segid_colid, preserve_oids, tuple_oid);
+	CDXLPhysicalSplit *pdxlopSplit = GPOS_NEW(m_mp)
+		CDXLPhysicalSplit(m_mp, delete_colid_array, insert_colid_array,
+						  action_colid, ctid_colid, segid_colid);
 
 	// project list
 	CColRefSet *pcrsOutput = pexpr->Prpp()->PcrsRequired();

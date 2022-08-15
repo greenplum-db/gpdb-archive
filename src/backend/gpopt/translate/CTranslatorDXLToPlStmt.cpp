@@ -4266,11 +4266,6 @@ CTranslatorDXLToPlStmt::TranslateDXLDml(
 								   phy_dml_dxlop->GetSegmentIdColId(),
 								   "gp_segment_id");
 	}
-	if (m_cmd_type == CMD_UPDATE && phy_dml_dxlop->IsOidsPreserved() && isSplit)
-	{
-		AddJunkTargetEntryForColId(&dml_target_list, &child_context,
-								   phy_dml_dxlop->GetTupleOid(), "oid");
-	}
 
 	// Add a Result node on top of the child plan, to coerce the target
 	// list to match the exact physical layout of the target table,
@@ -4505,8 +4500,6 @@ CTranslatorDXLToPlStmt::TranslateDXLSplit(
 
 	const TargetEntry *te_action_col =
 		output_context->GetTargetEntry(phy_split_dxlop->ActionColId());
-	const TargetEntry *te_tuple_oid_col =
-		output_context->GetTargetEntry(phy_split_dxlop->GetTupleOid());
 
 	if (nullptr == te_action_col)
 	{
@@ -4515,12 +4508,6 @@ CTranslatorDXLToPlStmt::TranslateDXLSplit(
 	}
 
 	split->actionColIdx = te_action_col->resno;
-
-	split->tupleoidColIdx = FirstLowInvalidHeapAttributeNumber;
-	if (nullptr != te_tuple_oid_col)
-	{
-		split->tupleoidColIdx = te_tuple_oid_col->resno;
-	}
 
 	plan->lefttree = child_plan;
 	plan->plan_node_id = m_dxl_to_plstmt_context->GetNextPlanId();

@@ -1488,19 +1488,12 @@ CTranslatorDXLToExpr::PexprLogicalUpdate(const CDXLNode *dxlnode)
 	CColRefArray *pdrgpcrDelete =
 		CTranslatorDXLToExprUtils::Pdrgpcr(m_mp, m_phmulcr, pdrgpulDeleteCols);
 
-	CColRef *pcrTupleOid = nullptr;
-	if (pdxlopUpdate->IsOidsPreserved())
-	{
-		ULONG tuple_oid = pdxlopUpdate->GetTupleOid();
-		pcrTupleOid = LookupColRef(m_phmulcr, tuple_oid);
-	}
-
-	return GPOS_NEW(m_mp) CExpression(
-		m_mp,
-		GPOS_NEW(m_mp)
-			CLogicalUpdate(m_mp, ptabdesc, pdrgpcrDelete, pdrgpcrInsert,
-						   pcrCtid, pcrSegmentId, pcrTupleOid, true),
-		pexprChild);
+	return GPOS_NEW(m_mp)
+		CExpression(m_mp,
+					GPOS_NEW(m_mp) CLogicalUpdate(m_mp, ptabdesc, pdrgpcrDelete,
+												  pdrgpcrInsert, pcrCtid,
+												  pcrSegmentId, true),
+					pexprChild);
 }
 
 //---------------------------------------------------------------------------
@@ -2228,10 +2221,9 @@ CTranslatorDXLToExpr::RegisterMDRelationCtas(CDXLLogicalCTAS *pdxlopCTAS)
 	CMDRelationCtasGPDB *pmdrel = GPOS_NEW(m_mp) CMDRelationCtasGPDB(
 		m_mp, pdxlopCTAS->MDId(), mdname_schema,
 		GPOS_NEW(m_mp) CMDName(m_mp, pdxlopCTAS->MdName()->GetMDName()),
-		pdxlopCTAS->IsTemporary(), pdxlopCTAS->HasOids(),
-		pdxlopCTAS->RetrieveRelStorageType(), pdxlopCTAS->Ereldistrpolicy(),
-		mdcol_array, pdxlopCTAS->GetDistrColPosArray(), distr_opfamilies,
-		distr_opclasses,
+		pdxlopCTAS->IsTemporary(), pdxlopCTAS->RetrieveRelStorageType(),
+		pdxlopCTAS->Ereldistrpolicy(), mdcol_array,
+		pdxlopCTAS->GetDistrColPosArray(), distr_opfamilies, distr_opclasses,
 		GPOS_NEW(m_mp) ULongPtr2dArray(m_mp),  // keyset_array,
 		pdxlopCTAS->GetDxlCtasStorageOption(), vartypemod_array);
 
