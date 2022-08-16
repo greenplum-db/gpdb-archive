@@ -2739,7 +2739,6 @@ appendonly_insert_init(Relation rel, int segno)
 	firstSequence =
 		GetFastSequences(segrelid,
 						 segno,
-						 aoInsertDesc->rowCount + 1,
 						 NUM_FAST_SEQUENCES);
 	aoInsertDesc->numSequences = NUM_FAST_SEQUENCES;
 
@@ -2979,7 +2978,6 @@ appendonly_insert(AppendOnlyInsertDesc aoInsertDesc,
 		firstSequence =
 			GetFastSequences(segrelid,
 							 aoInsertDesc->cur_segno,
-							 aoInsertDesc->lastSequence + 1,
 							 NUM_FAST_SEQUENCES);
 
 		Assert(firstSequence == aoInsertDesc->lastSequence + 1);

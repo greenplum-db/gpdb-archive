@@ -163,24 +163,22 @@ insert_or_update_fastsequence(Relation gp_fastsequence_rel,
  * GetFastSequences
  *
  * Get a list of consecutive sequence numbers. The starting sequence
- * number is the maximal value between 'lastsequence' + 1 and minSequence.
- * The length of the list is given.
+ * number is the current stored value in the table plus 1.
  *
  * If there is not such an entry for objid in the table, create
- * one here.
+ * one here and starting value as 1 is returned.
  *
  * The existing entry for objid in the table is updated with a new
  * lastsequence value.
  */
-int64 GetFastSequences(Oid objid, int64 objmod,
-					   int64 minSequence, int64 numSequences)
+int64 GetFastSequences(Oid objid, int64 objmod, int64 numSequences)
 {
 	Relation gp_fastsequence_rel;
 	ScanKeyData scankey[2];
 	SysScanDesc scan;
 	TupleDesc tupleDesc;
 	HeapTuple tuple;
-	int64 firstSequence = minSequence;
+	int64 firstSequence;
 	Datum lastSequenceDatum;
 	int64 newLastSequence;
 
@@ -206,7 +204,8 @@ int64 GetFastSequences(Oid objid, int64 objmod,
 	tuple = systable_getnext(scan);
 	if (!HeapTupleIsValid(tuple))
 	{
-		newLastSequence = firstSequence + numSequences - 1;
+		firstSequence = 1;
+		newLastSequence = numSequences;
 	}
 	else
 	{
@@ -220,8 +219,7 @@ int64 GetFastSequences(Oid objid, int64 objmod,
 					(errcode(ERRCODE_UNDEFINED_OBJECT),
 					 errmsg("got an invalid lastsequence number: NULL")));
 		
-		if (DatumGetInt64(lastSequenceDatum) + 1 > firstSequence)
-			firstSequence = DatumGetInt64(lastSequenceDatum) + 1;
+		firstSequence = DatumGetInt64(lastSequenceDatum) + 1;
 		newLastSequence = firstSequence + numSequences - 1;
 	}
 

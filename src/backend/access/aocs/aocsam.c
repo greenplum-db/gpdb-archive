@@ -939,7 +939,6 @@ aocs_insert_init(Relation rel, int segno)
 	firstSequence =
 		GetFastSequences(desc->segrelid,
 						 segno,
-						 desc->rowCount + 1,
 						 NUM_FAST_SEQUENCES);
 	desc->numSequences = NUM_FAST_SEQUENCES;
 
@@ -1058,7 +1057,6 @@ aocs_insert_values(AOCSInsertDesc idesc, Datum *d, bool *null, AOTupleId *aoTupl
 		firstSequence =
 			GetFastSequences(idesc->segrelid,
 							 idesc->cur_segno,
-							 idesc->lastSequence + 1,
 							 NUM_FAST_SEQUENCES);
 
 		Assert(firstSequence == idesc->lastSequence + 1);
