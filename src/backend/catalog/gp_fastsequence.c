@@ -122,10 +122,11 @@ insert_or_update_fastsequence(Relation gp_fastsequence_rel,
 	}
 	else
 	{
+		bool isNull;
+		int64 currentLastSequence;
 #ifdef USE_ASSERT_CHECKING
 		Oid oldObjid;
 		int64 oldObjmod;
-		bool isNull;
 		
 		oldObjid = heap_getattr(oldTuple, Anum_gp_fastsequence_objid, tupleDesc, &isNull);
 		Assert(!isNull);
@@ -133,6 +134,14 @@ insert_or_update_fastsequence(Relation gp_fastsequence_rel,
 		Assert(!isNull);
 		Assert(oldObjid == objid && oldObjmod == objmod);
 #endif
+
+		currentLastSequence = heap_getattr(oldTuple, Anum_gp_fastsequence_last_sequence, tupleDesc, &isNull);
+		if (newLastSequence < currentLastSequence)
+			ereport(ERROR,
+					(errcode(ERRCODE_INTERNAL_ERROR),
+					 errmsg("gp_fastsequence value shouldn't go backwards for AO table"),
+					 errdetail("current value:" INT64_FORMAT " new value:" INT64_FORMAT,
+							   currentLastSequence, newLastSequence)));
 
 		values[Anum_gp_fastsequence_objid - 1] = ObjectIdGetDatum(objid);
 		values[Anum_gp_fastsequence_objmod - 1] = Int64GetDatum(objmod);
