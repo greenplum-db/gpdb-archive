@@ -1200,10 +1200,10 @@ standard_ExecutorEnd(QueryDesc *queryDesc)
      * If EXPLAIN ANALYZE, qExec returns stats to qDisp now.
      */
     if (estate->es_sliceTable &&
-        estate->es_sliceTable->instrument_options &&
-        (estate->es_sliceTable->instrument_options & INSTRUMENT_CDB) &&
-        Gp_role == GP_ROLE_EXECUTE)
-        cdbexplain_sendExecStats(queryDesc);
+		estate->es_sliceTable->instrument_options &&
+		(estate->es_sliceTable->instrument_options & INSTRUMENT_CDB) &&
+			Gp_role == GP_ROLE_EXECUTE)
+		cdbexplain_sendExecStats(queryDesc);
 
 	/*
 	 * if needed, collect mpp dispatch results and tear down
