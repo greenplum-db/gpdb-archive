@@ -782,32 +782,6 @@ AppendOnlyStorageWrite_LogicalBlockStartOffset(AppendOnlyStorageWrite *storageWr
 	return storageWrite->logicalBlockStartOffset;
 }
 
-/*
- * Return the position of the current write buffer.
- */
-int64
-AppendOnlyStorageWrite_CurrentPosition(AppendOnlyStorageWrite *storageWrite)
-{
-	Assert(storageWrite != NULL);
-	Assert(storageWrite->isActive);
-
-	return BufferedAppendCurrentBufferPosition(
-											   &storageWrite->bufferedAppend);
-}
-
-/*
- * Return the internal current write buffer that includes the header.
- * UNDONE: Fix this interface privacy violation...
- */
-uint8 *
-AppendOnlyStorageWrite_GetCurrentInternalBuffer(AppendOnlyStorageWrite *storageWrite)
-{
-	Assert(storageWrite != NULL);
-	Assert(storageWrite->isActive);
-
-	return BufferedAppendGetCurrentBuffer(&storageWrite->bufferedAppend);
-}
-
 
 static void
 AppendOnlyStorageWrite_VerifyWriteBlock(AppendOnlyStorageWrite *storageWrite,
