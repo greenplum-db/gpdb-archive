@@ -397,11 +397,11 @@ ExecInsert(ModifyTableState *mtstate,
 	 * violations before firing these triggers, because they can change the
 	 * values to insert.  Also, they can run arbitrary user-defined code with
 	 * side-effects that we can't cancel by just not inserting the tuple.
-	 */
-	/*
-	 * GPDB_12_MERGE_FIXME: PostgreSQL *does* fire INSERT and DELETE
-	 * triggers on an UPDATE that moves tuples from one partition to another.
-	 * Should we follow that example with cross-segment UPDATEs too?
+	 *
+	 * Considering that the original command is UPDATE for a SplitUpdate, fire
+	 * insert triggers may lead to the wrong action to be enforced. And the
+	 * triggers in GPDB may require cross segments data changes, disallow the
+	 * INSERT triggers on a SplitUpdate.
 	 */
 	if (resultRelInfo->ri_TrigDesc &&
 		resultRelInfo->ri_TrigDesc->trig_insert_before_row &&
@@ -660,11 +660,8 @@ ExecInsert(ModifyTableState *mtstate,
 
 	/* AFTER ROW INSERT Triggers */
 	/*
-	 * GPDB: Don't fire DELETE triggers on a split UPDATE.
-	 *
-	 * GPDB_12_MERGE_FIXME: PostgreSQL *does* fire INSERT and DELETE
-	 * triggers on an UPDATE that moves tuples from one partition to another.
-	 * Should we follow that example with cross-segment UPDATEs too?
+	 * GPDB: Disallow INSERT triggers on a split UPDATE. See comments in
+	 * BEFORE ROW INSERT Triggers.
 	 */
 	if (!splitUpdate)
 		ExecARInsertTriggers(estate, resultRelInfo, slot, recheckIndexes,
@@ -794,9 +791,7 @@ ExecDelete(ModifyTableState *mtstate,
 
 	/* BEFORE ROW DELETE Triggers */
 	/*
-	 * GPDB_12_MERGE_FIXME: PostgreSQL *does* fire INSERT and DELETE
-	 * triggers on an UPDATE that moves tuples from one partition to another.
-	 * Should we follow that example with cross-segment UPDATEs too?
+	 * Disallow DELETE triggers on a split UPDATE. See comments in ExecInsert().
 	 */
 	if (resultRelInfo->ri_TrigDesc &&
 		resultRelInfo->ri_TrigDesc->trig_delete_before_row &&
@@ -1090,9 +1085,7 @@ ldelete:;
 
 	/* AFTER ROW DELETE Triggers */
 	/*
-	 * GPDB_12_MERGE_FIXME: PostgreSQL *does* fire INSERT and DELETE
-	 * triggers on an UPDATE that moves tuples from one partition to another.
-	 * Should we follow that example with cross-segment UPDATEs too?
+	 * Disallow DELETE triggers on a split UPDATE. See comments in ExecInsert().
 	 */
 	if (!RelationIsAppendOptimized(resultRelationDesc) && !splitUpdate)
 	{
