@@ -134,9 +134,11 @@ CPhysicalHashJoin::CreateHashRedistributeRequests(CMemoryPool *mp)
 
 			// add a separate request for each hash join key
 
+			// TODO:  - Dec 30, 2011; change fNullsColocated to false when our
+			// distribution matching can handle differences in NULL colocation
 			CDistributionSpecHashed *pdshashedCurrent =
 				GPOS_NEW(mp) CDistributionSpecHashed(
-					pdrgpexprCurrent, false /* fNullsCollocated */, opfamilies);
+					pdrgpexprCurrent, true /* fNullsCollocated */, opfamilies);
 			m_pdrgpdsRedistributeRequests->Append(pdshashedCurrent);
 		}
 	}
@@ -148,7 +150,7 @@ CPhysicalHashJoin::CreateHashRedistributeRequests(CMemoryPool *mp)
 		m_hash_opfamilies->AddRef();
 	}
 	CDistributionSpecHashed *pdshashed = GPOS_NEW(mp) CDistributionSpecHashed(
-		pdrgpexpr, false /* fNullsCollocated */, m_hash_opfamilies);
+		pdrgpexpr, true /* fNullsCollocated */, m_hash_opfamilies);
 	m_pdrgpdsRedistributeRequests->Append(pdshashed);
 }
 
@@ -292,6 +294,7 @@ CPhysicalHashJoin::PdsMatch(CMemoryPool *mp, CDistributionSpec *pds,
 	}
 }
 
+
 //---------------------------------------------------------------------------
 //	@function:
 //		CPhysicalHashJoin::PdshashedMatching
@@ -391,17 +394,8 @@ CPhysicalHashJoin::PdshashedMatching(
 			GPOS_WSZ_LIT("Unable to create matching hashed distribution."));
 	}
 
-	// nulls colocated for inner hash joins, but not colocated in outer hash joins
-	BOOL fNullsColocated = true;
-
-	if (COperator::EopPhysicalLeftOuterHashJoin == Eopid() ||
-		COperator::EopPhysicalRightOuterHashJoin == Eopid())
-	{
-		fNullsColocated = false;
-	}
-
-	return GPOS_NEW(mp)
-		CDistributionSpecHashed(pdrgpexpr, fNullsColocated, opfamilies);
+	return GPOS_NEW(mp) CDistributionSpecHashed(
+		pdrgpexpr, true /* fNullsCollocated */, opfamilies);
 }
 
 
