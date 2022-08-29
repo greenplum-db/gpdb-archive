@@ -193,7 +193,7 @@ SELECT diskquota.status();
 ------------------------+--------- 
  soft limits            | on 
  hard limits            | on 
- current binary version | 2.0.0 
+ current binary version | 2.0.1 
  current schema version | 2.0 
 ```
 
