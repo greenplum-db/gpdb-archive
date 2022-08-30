@@ -984,20 +984,19 @@ select gp_inject_fault('simulate_bitmap_and', 'skip', dbid) from gp_segment_conf
 (1 row)
 
 explain (costs off) select count(*) from bmunion where a = 53 and b < 3;
-                           QUERY PLAN                           
---------------------------------------------------------------------
- Finalize Aggregate
+                          QUERY PLAN                          
+--------------------------------------------------------------
+ Aggregate
    ->  Gather Motion 1:1  (slice1; segments: 1)
-         ->  Partial Aggregate
-               ->  Bitmap Heap Scan on bmunion
-                     Recheck Cond: ((a = 53) AND (b < 3))
-                     ->  BitmapAnd
-                           ->  Bitmap Index Scan on bmu_i_bmtest2_a
-                                 Index Cond: (a = 53)
-                           ->  Bitmap Index Scan on bmu_i_bmtest2_b
-                                 Index Cond: (b < 3)
+         ->  Bitmap Heap Scan on bmunion
+               Recheck Cond: ((a = 53) AND (b < 3))
+               ->  BitmapAnd
+                     ->  Bitmap Index Scan on bmu_i_bmtest2_a
+                           Index Cond: (a = 53)
+                     ->  Bitmap Index Scan on bmu_i_bmtest2_b
+                           Index Cond: (b < 3)
  Optimizer: Pivotal Optimizer (GPORCA)
-(11 rows)
+(10 rows)
 
 select gp_inject_fault('simulate_bitmap_and', 'reset', dbid) from gp_segment_configuration where role = 'p' and content = -1;
  gp_inject_fault 

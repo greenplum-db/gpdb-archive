@@ -54,7 +54,6 @@ drop table mpp3061;
 --
 
 -- SETUP
-set optimizer_force_multistage_agg=off;
 create table mpp7980
 (
  month_id date,
@@ -81,7 +80,7 @@ select cust_type, subscription_status,count(distinct subscription_id),sum(voice_
 
 -- CLEANUP
 drop table mpp7980;
-reset optimizer_force_multistage_agg;
+
 
 -- ************ORCA ENABLED**********
 
