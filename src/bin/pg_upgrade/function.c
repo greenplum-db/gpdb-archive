@@ -128,7 +128,6 @@ check_loadable_libraries(void)
 	int			libnum;
 	int			was_load_failure = false;
 	FILE	   *script = NULL;
-	bool		found = false;
 	char		output_path[MAXPGPATH];
 
 	prep_status("Checking for presence of required libraries");
@@ -163,7 +162,6 @@ check_loadable_libraries(void)
 
 			if (PQresultStatus(res) != PGRES_COMMAND_OK)
 			{
-				found = true;
 				was_load_failure = true;
 
 				if (script == NULL && (script = fopen_priv(output_path, "w")) == NULL)
@@ -186,7 +184,7 @@ check_loadable_libraries(void)
 
 	PQfinish(conn);
 
-	if (found)
+	if (script)
 	{
 		fclose(script);
 		pg_log(PG_REPORT, "fatal\n");
