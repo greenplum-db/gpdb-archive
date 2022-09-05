@@ -39,6 +39,7 @@ static bool describeOneTableDetails(const char *schemaname,
 									bool verbose);
 static void add_external_table_footer(printTableContent *const cont, const char *oid);
 static void add_distributed_by_footer(printTableContent *const cont, const char *oid);
+static void add_partition_by_footer(printTableContent *const cont, const char *oid);
 static void add_tablespace_footer(printTableContent *const cont, char relkind,
 								  Oid tablespace, const bool newline);
 static void add_role_attribute(PQExpBuffer buf, const char *const str);
@@ -3650,12 +3651,9 @@ describeOneTableDetails(const char *schemaname,
 		/* mpp addition start: dump distributed by clause */
 		add_distributed_by_footer(&cont, oid);
 
-		/* GPDB_12_MERGE_FIXME: legacy partitioning. Still needed for old server versions? */
-#if 0
-		/* print 'partition by' clause */
-		if (tuples > 0)
+		/* Still needed by legacy partitioning to print old version server's 'partition by' clause */
+		if (!isGPDB7000OrLater() && tuples > 0)
 			add_partition_by_footer(&cont, oid);
-#endif
 
 		/* Tablespace info */
 		add_tablespace_footer(&cont, tableinfo.relkind, tableinfo.tablespace,
@@ -4141,8 +4139,6 @@ add_distributed_by_footer(printTableContent *const cont, const char *oid)
 /*
  * Add a 'partition by' description to the footer.
  */
-/* GPDB_12_MERGE_FIXME: legacy partitioning. Still needed for old server versions? */
-#if 0
 static void
 add_partition_by_footer(printTableContent *const cont, const char *oid)
 {
@@ -4221,7 +4217,6 @@ add_partition_by_footer(printTableContent *const cont, const char *oid)
 	termPQExpBuffer(&buf);
 	return;		/* success */
 }
-#endif
 
 /*
  * Add a tablespace description to a footer.  If 'newline' is true, it is added
