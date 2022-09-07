@@ -10,7 +10,7 @@ The `pgcrypto` module is installed when you install Greenplum Database. Before y
 
 ## Configuring FIPS Encryption 
 
-The `pgcrypto` extension provides a module-specific configuration parameter, `pgcrypto.fips`, that configures Greenplum Database support for a limited set of FIPS encryption functionality \(*Federal Information Processing Standard* \(FIPS\) 140-2\). For information about FIPS, see [https://www.nist.gov/itl/popular-links/federal-information-processing-standards-fips](https://www.nist.gov/itl/popular-links/federal-information-processing-standards-fips). The default setting is `off`, FIPS encryption is not enabled.
+Starting with Greenplum 6.22, the `pgcrypto` extension provides a module-specific configuration parameter, `pgcrypto.fips`. This parameter configures Greenplum Database support for a limited set of FIPS encryption functionality \(*Federal Information Processing Standard* \(FIPS\) 140-2\). For information about FIPS, see [https://www.nist.gov/itl/popular-links/federal-information-processing-standards-fips](https://www.nist.gov/itl/popular-links/federal-information-processing-standards-fips). The default setting is `off`, FIPS encryption is not enabled.
 
 Before enabling this parameter, ensure that FIPS is enabled on all Greenplum Database system hosts.
 
