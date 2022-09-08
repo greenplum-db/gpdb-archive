@@ -118,6 +118,7 @@ static bool finalize_primnode(Node *node, finalize_primnode_context *context);
 static bool finalize_agg_primnode(Node *node, finalize_primnode_context *context);
 
 extern	double global_work_mem(PlannerInfo *root);
+static bool contain_outer_selfref_walker(Node *node, Index *depth);
 
 /*
  * Get the datatype/typmod/collation of the first column of the plan's output.
@@ -1236,11 +1237,11 @@ contain_dml_walker(Node *node, void *context)
 	}
 	return expression_tree_walker(node, contain_dml_walker, context);
 }
-
+#endif
 /*
  * contain_outer_selfref: is there an external recursive self-reference?
  */
-static bool
+bool
 contain_outer_selfref(Node *node)
 {
 	Index		depth = 0;
@@ -1291,7 +1292,7 @@ contain_outer_selfref_walker(Node *node, Index *depth)
 	return expression_tree_walker(node, contain_outer_selfref_walker,
 								  (void *) depth);
 }
-
+#if 0
 /*
  * inline_cte: convert RTE_CTE references to given CTE into RTE_SUBQUERYs
  */

@@ -43,6 +43,7 @@
 #include "optimizer/planmain.h"
 #include "optimizer/planner.h"
 #include "optimizer/restrictinfo.h"
+#include "optimizer/subselect.h"
 #include "optimizer/tlist.h"
 #include "optimizer/planshare.h"
 #include "parser/parse_clause.h"
@@ -2944,6 +2945,13 @@ set_cte_pathlist(PlannerInfo *root, RelOptInfo *rel, RangeTblEntry *rte)
 			is_shared =  root->config->gp_cte_sharing && (cte->cterefcount > 1 || contain_volatile_function);
 
 	}
+
+	/*
+	 * since shareinputscan with outer refs is not supported by GPDB, if
+	 * contain outer self references, the cte need to be inlined.
+	 */
+	if (is_shared && contain_outer_selfref(cte->ctequery))
+		is_shared = false;
 
 	if (!is_shared)
 	{
