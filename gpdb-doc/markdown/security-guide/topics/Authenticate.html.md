@@ -255,7 +255,7 @@ ldapsearchattribute
 :   Attribute to match against the user name in the search when doing search+bind authentication.
 
 ldapsearchfilter
-:   Beginning with Greenplum 6.22, this attribute enables you to provide a search filter to use when doing search+bind authentication. Occurrences of `$username` will be replaced with the user name. This allows for more flexible search filters than `ldapsearchattribute`.
+:   Beginning with Greenplum 6.22, this attribute enables you to provide a search filter to use when doing search+bind authentication. Occurrences of `$username` will be replaced with the user name. This allows for more flexible search filters than `ldapsearchattribute`. Note that you can specify _either_ `ldapsearchattribute` or `ldapsearchattribute`, but not both.
 
 When using search+bind mode, the search can be performed using a single attribute specified with `ldapsearchattribute`, or using a custom search filter specified with `ldapsearchfilter`. Specifying `ldapsearchattribute=foo` is equivalent to specifying `ldapsearchfilter="(foo=$username)"`. If neither option is specified the default is `ldapsearchattribute=uid`.
 
