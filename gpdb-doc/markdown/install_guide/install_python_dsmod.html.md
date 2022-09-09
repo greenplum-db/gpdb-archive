@@ -88,6 +88,7 @@ Packages required for Deep Learning features of MADlib are now included. Note th
 |python-dateutil|Extensions to the standard Python datetime module|
 |pytz|World timezone definitions, modern and historical|
 |PyYAML|YAML parser and emitter|
+| regex | Alternative regular expression module, to replace re |
 |requests|HTTP library|
 |s3transfer|Amazon S3 transfer manager|
 |scandir|Directory iteration function|
