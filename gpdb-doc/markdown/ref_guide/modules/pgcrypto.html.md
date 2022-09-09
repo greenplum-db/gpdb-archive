@@ -68,7 +68,7 @@ When this parameter is enabled, these changes occur:
 
 **To disable `pgcrypto.fips`**
 
-1.  If the database does not use `pgcrypto` functions, disable the `pgcrypto` extension. See [pgcrypto Cryptographic Functions](../../install_guide/install_pgcrypto.html). This example `psql` command drops the `pgcrypto` extension in the database `testdb`.
+1.  If the database does not use `pgcrypto` functions, disable the `pgcrypto` extension. This example `psql` command drops the `pgcrypto` extension in the database `testdb`.
 
     ```
     psql -d testdb -c 'DROP EXTENSION pgcrypto'
