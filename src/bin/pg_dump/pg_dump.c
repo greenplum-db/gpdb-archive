@@ -5959,7 +5959,7 @@ getExtProtocols(Archive *fout, int *numExtProtocols)
 	int			i_ptcvalidid;
 
 	/* find all user-defined external protocol */
-	if (fout->remoteVersion >= 90200)
+	if (fout->remoteVersion >= 90600)
 	{
 		appendPQExpBuffer(query, "SELECT tableoid, "
 								 "oid, "
