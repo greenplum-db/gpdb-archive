@@ -86,6 +86,7 @@ DROP EXTERNAL TABLE IF EXISTS exttab_udfs_1;
 DROP EXTERNAL TABLE IF EXISTS exttab_udfs_2;
 DROP EXTERNAL TABLE IF EXISTS exttab_views_3;
 DROP EXTERNAL WEB TABLE IF EXISTS table_env;
+DROP EXTERNAL WEB TABLE IF EXISTS table_master;
 DROP EXTERNAL WEB TABLE IF EXISTS table_qry;
 
 DROP VIEW IF EXISTS exttab_views_3;
@@ -116,6 +117,16 @@ CREATE EXTERNAL WEB TABLE table_env (val TEXT)
   FORMAT 'TEXT' (ESCAPE 'OFF');
 SELECT * FROM table_env WHERE val LIKE 'GP_QUERY%' ORDER BY val ASC;
 SELECT * FROM table_env WHERE val LIKE 'GP_QUERY%\%' ESCAPE '&' ORDER BY val ASC;
+
+-- ensure squelching on master
+CREATE EXTERNAL WEB TABLE table_master (val TEXT)
+  EXECUTE E'cat @abs_srcdir@/data/lineitem.csv' ON MASTER
+  FORMAT 'TEXT' (ESCAPE 'OFF');
+BEGIN;
+DECLARE _psql_cursor NO SCROLL CURSOR FOR SELECT 1 FROM table_master;
+FETCH FORWARD 1 FROM _psql_cursor;
+CLOSE _psql_cursor;
+COMMIT;
 
 -- echo will behave differently on different platforms, force to use bash with -E option
 CREATE EXTERNAL WEB TABLE table_qry (val TEXT)
