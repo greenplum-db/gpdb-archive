@@ -117,9 +117,8 @@ CParseHandlerPhysicalDML::StartElement(const XMLCh *const,	// element_uri,
 		attrs.getValue(CDXLTokens::XmlstrToken(EdxltokenSplitUpdate));
 	if (nullptr != fSplit)
 	{
-		m_fSplit = CDXLOperatorFactory::ConvertAttrValueToBool(
-			m_parse_handler_mgr->GetDXLMemoryManager(), fSplit,
-			EdxltokenSplitUpdate, EdxltokenPhysicalDMLUpdate);
+		// KIMURA: FIXME: is this correct??
+		m_fSplit = false;
 	}
 
 

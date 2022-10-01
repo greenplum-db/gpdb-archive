@@ -877,13 +877,13 @@ begin;
 -- orca does not handle direct dispatch for DELETE or UPDATE now
 -- also orca does not handle DELETE/UPDATE for partitioned tables now.
 explain (costs off) delete from t_hash_partition where r_regionkey=1;
-                          QUERY PLAN                           
----------------------------------------------------------------
+                    QUERY PLAN                    
+--------------------------------------------------
  Delete on t_hash_partition
-   ->  Dynamic Seq Scan on t_hash_partition t_hash_partition_1
-         Number of partitions to scan: 1 (out of 3)
+   Delete on t_hash_partition_1_prt_region1
+   ->  Seq Scan on t_hash_partition_1_prt_region1
          Filter: (r_regionkey = 1)
- Optimizer: Pivotal Optimizer (GPORCA)
+ Optimizer: Postgres query optimizer
 (5 rows)
 
 delete from t_hash_partition where r_regionkey=1;
@@ -901,19 +901,19 @@ begin;
 -- orca does not handle direct dispatch for DELETE or UPDATE now
 -- also orca does not handle DELETE/UPDATE for partitioned tables now.
 explain (costs off) update t_hash_partition set r_name = 'CHINA' where r_regionkey=1;
-                          QUERY PLAN                           
----------------------------------------------------------------
+                    QUERY PLAN                    
+--------------------------------------------------
  Update on t_hash_partition
-   ->  Dynamic Seq Scan on t_hash_partition t_hash_partition_1
-         Number of partitions to scan: 1 (out of 3)
+   Update on t_hash_partition_1_prt_region1
+   ->  Seq Scan on t_hash_partition_1_prt_region1
          Filter: (r_regionkey = 1)
- Optimizer: Pivotal Optimizer (GPORCA)
+ Optimizer: Postgres query optimizer
 (5 rows)
 
 update t_hash_partition set r_name = 'CHINA' where r_regionkey=1;
-INFO:  (slice 0) Dispatch command to ALL contents: 0 1 2
+INFO:  (slice 0) Dispatch command to SINGLE content
 abort;
-INFO:  Distributed transaction command 'Distributed Abort (No Prepared)' to ALL contents: 0 1 2
+INFO:  Distributed transaction command 'Distributed Abort (No Prepared)' to SINGLE content
 begin;
 -- orca does not handle direct dispatch for DELETE or UPDATE now
 update t_hash_partition_1_prt_region1 set r_name = 'CHINA' where r_regionkey=1;
@@ -954,7 +954,6 @@ INFO:  Distributed transaction command 'Distributed Abort (No Prepared)' to ALL 
 begin;
 -- root & leaf policy mismatch, will not direct dispatch
 delete from t_hash_partition where r_regionkey=1;
-INFO:  (slice 1) Dispatch command to ALL contents: 0 1 2
 INFO:  (slice 0) Dispatch command to ALL contents: 0 1 2
 abort;
 INFO:  Distributed transaction command 'Distributed Abort (No Prepared)' to ALL contents: 0 1 2
@@ -968,7 +967,6 @@ INFO:  Distributed transaction command 'Distributed Abort (No Prepared)' to ALL 
 begin;
 -- root & leaf policy mismatch, will not direct dispatch
 update t_hash_partition set r_name = 'CHINA' where r_regionkey=1;
-INFO:  (slice 1) Dispatch command to ALL contents: 0 1 2
 INFO:  (slice 0) Dispatch command to ALL contents: 0 1 2
 abort;
 INFO:  Distributed transaction command 'Distributed Abort (No Prepared)' to ALL contents: 0 1 2

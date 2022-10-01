@@ -353,7 +353,6 @@ _copyModifyTable(const ModifyTable *from)
 	COPY_SCALAR_FIELD(exclRelRTI);
 	COPY_NODE_FIELD(exclRelTlist);
 	COPY_NODE_FIELD(isSplitUpdates);
-	COPY_SCALAR_FIELD(forceTupleRouting);
 
 	return newnode;
 }
