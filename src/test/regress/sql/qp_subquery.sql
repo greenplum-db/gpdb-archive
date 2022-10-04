@@ -690,6 +690,7 @@ where unnested_array_column is not null;
 -- check that predicate is not pushed through a projected non-correlated subquery
 create table subquery_nonpush_through_1(a int, b int);
 create table subquery_nonpush_through_2(a int, b int);
+analyze subquery_nonpush_through_1, subquery_nonpush_through_2;
 
 explain (costs off)
 select *
