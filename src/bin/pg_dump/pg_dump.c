@@ -17397,11 +17397,6 @@ dumpTableSchema(Archive *fout, const TableInfo *tbinfo)
 			tbinfo->relkind == RELKIND_MATVIEW)
 			tableam = tbinfo->amname;
 
-		/*
-		 * GPDB_94_MERGE_FIXME: Why gpdb doesn't pass conditionally
-		 * SECTION_PRE_DATA or SECTION_POST_DATA based on tbinfo->postponed_def
-		 * similar to upstream.
-		 */
 		ArchiveEntry(fout, tbinfo->dobj.catId, tbinfo->dobj.dumpId,
 					 ARCHIVE_OPTS(.tag = tbinfo->dobj.name,
 								  .namespace = tbinfo->dobj.namespace->dobj.name,
@@ -17410,7 +17405,8 @@ dumpTableSchema(Archive *fout, const TableInfo *tbinfo)
 								  .tableam = tableam,
 								  .owner = tbinfo->rolname,
 								  .description = reltypename,
-								  .section = SECTION_PRE_DATA,
+								  .section = tbinfo->postponed_def ?
+								  SECTION_POST_DATA : SECTION_PRE_DATA,
 								  .createStmt = q->data,
 								  .dropStmt = delq->data));
 	}
