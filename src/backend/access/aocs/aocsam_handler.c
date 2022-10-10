@@ -657,6 +657,7 @@ aoco_index_fetch_tuple(struct IndexFetchTableData *scan,
                              bool *call_again, bool *all_dead)
 {
 	IndexFetchAOCOData *aocoscan = (IndexFetchAOCOData *) scan;
+	bool found = false;
 
 	if (!aocoscan->aocofetch)
 	{
@@ -684,7 +685,6 @@ aoco_index_fetch_tuple(struct IndexFetchTableData *scan,
 											  appendOnlyMetaDataSnapshot,
 											  aocoscan->proj);
 	}
-
 	/*
 	 * There is no reason to expect changes on snapshot between tuple
 	 * fetching calls after fech_init is called, treat it as a
@@ -697,10 +697,28 @@ aoco_index_fetch_tuple(struct IndexFetchTableData *scan,
 	if (aocs_fetch(aocoscan->aocofetch, (AOTupleId *) tid, slot))
 	{
 		ExecStoreVirtualTuple(slot);
-		return true;
+		found = true;
 	}
 
-	return false;
+	/*
+	 * Currently, we don't determine this parameter. By contract, it is to be
+	 * set to true iff we can determine that this row is dead to all
+	 * transactions. Failure to set this will lead to use of a garbage value
+	 * in certain code, such as that for unique index checks.
+	 * This is typically used for HOT chains, which we don't support.
+	 */
+	if (all_dead)
+		*all_dead = false;
+
+	/* Currently, we don't determine this parameter. By contract, it is to be
+	 * set to true iff there is another tuple for the tid, so that we can prompt
+	 * the caller to call index_fetch_tuple() again for the same tid.
+	 * This is typically used for HOT chains, which we don't support.
+	 */
+	if (call_again)
+		*call_again = false;
+
+	return found;
 }
 
 static void

@@ -486,7 +486,6 @@ appendonly_index_fetch_tuple(struct IndexFetchTableData *scan,
 								  snapshot,
 								  appendOnlyMetaDataSnapshot);
 	}
-
 	/*
 	 * There is no reason to expect changes on snapshot between tuple
 	 * fetching calls after fech_init is called, treat it as a
@@ -495,6 +494,24 @@ appendonly_index_fetch_tuple(struct IndexFetchTableData *scan,
 	Assert(aoscan->aofetch->snapshot == snapshot);
 
 	appendonly_fetch(aoscan->aofetch, (AOTupleId *) tid, slot);
+
+	/*
+	 * Currently, we don't determine this parameter. By contract, it is to be
+	 * set to true iff we can determine that this row is dead to all
+	 * transactions. Failure to set this will lead to use of a garbage value
+	 * in certain code, such as that for unique index checks.
+	 * This is typically used for HOT chains, which we don't support.
+	 */
+	if (all_dead)
+		*all_dead = false;
+
+	/* Currently, we don't determine this parameter. By contract, it is to be
+	 * set to true iff there is another tuple for the tid, so that we can prompt
+	 * the caller to call index_fetch_tuple() again for the same tid.
+	 * This is typically used for HOT chains, which we don't support.
+	 */
+	if (call_again)
+		*call_again = false;
 
 	return !TupIsNull(slot);
 }
