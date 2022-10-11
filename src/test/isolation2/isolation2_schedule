@@ -310,3 +310,5 @@ test: tcp_ic_teardown
 # Tests for unique indexes on AO/CO tables (uses fault injector)
 test: ao_unique_index
 test: aocs_unique_index
+test: uao/ao_unique_index_vacuum_row
+test: uao/ao_unique_index_vacuum_column

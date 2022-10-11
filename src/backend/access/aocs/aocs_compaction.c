@@ -267,6 +267,14 @@ AOCSSegmentFileFullCompaction(Relation aorel,
 	estate->es_num_result_relations = 1;
 	estate->es_result_relation_info = resultRelInfo;
 
+	/*
+	 * We don't want uniqueness checks to be performed while "insert"ing tuples
+	 * to a destination segfile during AOCSMoveTuple(). This is to ensure that
+	 * we can avoid spurious conflicts between the moved tuple and the original
+	 * tuple.
+	 */
+	estate->gp_bypass_unique_check = true;
+
 	while (aocs_getnext(scanDesc, ForwardScanDirection, slot))
 	{
 		CHECK_FOR_INTERRUPTS();

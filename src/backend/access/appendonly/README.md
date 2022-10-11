@@ -214,3 +214,15 @@ directory struct. It will be modified later on to hold a visimap reference to
 help implement DELETEs/UPDATEs. Furthermore, we initialize this struct on the
 first unique index check performed, akin to how we initialize descriptors for
 insert and delete.
+
+AO lazy VACUUM is different from heap vacuum in the sense that ctids of data
+tuples change (and the index tuples need to be updated as a consequence). It
+leverages the scan and insert code to scan live tuples from each segfile and to
+move (insert) them in a target segfile. While moving tuples, we need to avoid
+performing uniqueness checks from the insert machinery. This is to ensure that
+we avoid spurious conflicts between the moved tuple and the original tuple. We
+don't need to insert a placeholder row for the backend running vacuum as the old
+index entries will still point to the segment being compacted. This will be the
+case up until the index entries are bulk deleted, but by then the new index
+entries along with new block directory rows would already have been written and
+would be able to answer uniqueness checks.
