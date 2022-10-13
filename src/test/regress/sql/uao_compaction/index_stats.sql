@@ -17,3 +17,18 @@ select * from mytab;
 vacuum mytab;
 SELECT relname, reltuples FROM pg_class WHERE relname = 'mytab';
 SELECT relname, reltuples FROM pg_class WHERE relname = 'mytab_int_idx1';
+
+-- A test of index stat for access methods that rely on table tuple count (bitmap, gin)
+truncate mytab;
+create index mytab_int_idx2 on mytab using bitmap(col_int);
+
+insert into mytab values(1,'aa',1001,101),(2,'bb',1002,102);
+
+SELECT relname, reltuples FROM pg_class WHERE relname = 'mytab_int_idx2';
+
+-- first vacuum collect table stat on segments
+vacuum mytab;
+-- second vacuum update index stat with table stat
+vacuum mytab;
+
+SELECT relname, reltuples FROM pg_class WHERE relname = 'mytab_int_idx2';

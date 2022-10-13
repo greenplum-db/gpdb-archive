@@ -17,3 +17,18 @@ select * from uaocs_index_stats;
 vacuum uaocs_index_stats;
 SELECT relname, reltuples FROM pg_class WHERE relname = 'uaocs_index_stats';
 SELECT relname, reltuples FROM pg_class WHERE relname = 'uaocs_index_stats_int_idx1';
+
+-- A test of index stat for access methods that rely on table tuple count (bitmap, gin)
+truncate uaocs_index_stats;
+create index uaocs_index_stats_int_idx2 on uaocs_index_stats using bitmap(col_int);
+
+insert into uaocs_index_stats values(1,'aa',1001,101),(2,'bb',1002,102);
+
+SELECT relname, reltuples FROM pg_class WHERE relname = 'uaocs_index_stats_int_idx2';
+
+-- first vacuum collect table stat on segments
+vacuum uaocs_index_stats;
+-- second vacuum update index stat with table stat
+vacuum uaocs_index_stats;
+
+SELECT relname, reltuples FROM pg_class WHERE relname = 'uaocs_index_stats_int_idx2';
