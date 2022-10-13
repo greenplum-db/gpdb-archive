@@ -17394,6 +17394,7 @@ dumpTableSchema(Archive *fout, const TableInfo *tbinfo)
 		char	   *tableam = NULL;
 
 		if (tbinfo->relkind == RELKIND_RELATION ||
+			tbinfo->relkind == RELKIND_PARTITIONED_TABLE ||
 			tbinfo->relkind == RELKIND_MATVIEW)
 			tableam = tbinfo->amname;
 
