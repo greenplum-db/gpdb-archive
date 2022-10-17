@@ -1424,8 +1424,6 @@ AppendOnlyBlockDirectory_End_forInsert(
 							  "(columnGroupNo, nEntries) = (%d, %u)",
 							  groupNo, minipageInfo->numMinipageEntries)));
 		}
-
-		pfree(minipageInfo->minipage);
 	}
 
 	ereportif(Debug_appendonly_print_blockdirectory, LOG,
@@ -1435,12 +1433,6 @@ AppendOnlyBlockDirectory_End_forInsert(
 					  blockDirectory->currentSegmentFileNum,
 					  blockDirectory->numColumnGroups,
 					  blockDirectory->isAOCol)));
-
-	pfree(blockDirectory->values);
-	pfree(blockDirectory->nulls);
-	pfree(blockDirectory->minipages);
-	pfree(blockDirectory->scanKeys);
-	pfree(blockDirectory->strategyNumbers);
 
 	index_close(blockDirectory->blkdirIdx, RowExclusiveLock);
 	heap_close(blockDirectory->blkdirRel, RowExclusiveLock);
@@ -1458,12 +1450,6 @@ AppendOnlyBlockDirectory_End_forSearch(
 	if (blockDirectory->blkdirRel == NULL)
 		return;
 
-	for (groupNo = 0; groupNo < blockDirectory->numColumnGroups; groupNo++)
-	{
-		if (blockDirectory->minipages[groupNo].minipage != NULL)
-			pfree(blockDirectory->minipages[groupNo].minipage);
-	}
-
 	ereportif(Debug_appendonly_print_blockdirectory, LOG,
 			  (errmsg("Append-only block directory end for search: "
 					  "(totalSegfiles, numColumnGroups, isAOCol)="
@@ -1471,12 +1457,6 @@ AppendOnlyBlockDirectory_End_forSearch(
 					  blockDirectory->totalSegfiles,
 					  blockDirectory->numColumnGroups,
 					  blockDirectory->isAOCol)));
-
-	pfree(blockDirectory->values);
-	pfree(blockDirectory->nulls);
-	pfree(blockDirectory->minipages);
-	pfree(blockDirectory->scanKeys);
-	pfree(blockDirectory->strategyNumbers);
 
 	if (blockDirectory->blkdirIdx)
 		index_close(blockDirectory->blkdirIdx, AccessShareLock);
@@ -1511,7 +1491,6 @@ AppendOnlyBlockDirectory_End_addCol(
 							  " minipage: (columnGroupNo, nEntries) = (%d, %u)",
 							  groupNo, minipageInfo->numMinipageEntries)));
 		}
-		pfree(minipageInfo->minipage);
 	}
 
 	ereportif(Debug_appendonly_print_blockdirectory, LOG,
@@ -1521,12 +1500,6 @@ AppendOnlyBlockDirectory_End_addCol(
 					  blockDirectory->currentSegmentFileNum,
 					  blockDirectory->numColumnGroups,
 					  blockDirectory->isAOCol)));
-
-	pfree(blockDirectory->values);
-	pfree(blockDirectory->nulls);
-	pfree(blockDirectory->minipages);
-	pfree(blockDirectory->scanKeys);
-	pfree(blockDirectory->strategyNumbers);
 
 	/*
 	 * We already hold transaction-scope exclusive lock on the AOCS relation.
