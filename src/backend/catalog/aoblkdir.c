@@ -167,6 +167,15 @@ ValidateRelationVersionForUniqueIndex(Relation rel)
 		}
 	}
 
+	/*
+	 * We currently raise an error in this scenario. We could alternatively
+	 * recreate the block directory (and perform a relfile swap of the block
+	 * directory relation, similar to alter table rewrites). Such a solution is
+	 * complex enough and can be explored with appropriate user need. Block
+	 * directory creation during DefineIndex() has exposed complexities in the
+	 * past too, especially around locking when multiple indexes are being
+	 * created at a time.
+	 */
 	if (error)
 		ereport(ERROR,
 				(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
