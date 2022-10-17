@@ -1226,7 +1226,7 @@ ProcessUtilitySlow(ParseState *pstate,
 														   cstmt->partspec->subPartSpec,
 														   queryString, cstmt->options,
 														   cstmt->accessMethod,
-														   cstmt->attr_encodings, false);
+														   cstmt->attr_encodings, false, true);
 								more_stmts = list_concat(more_stmts, parts);
 							}
 
