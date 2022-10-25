@@ -118,7 +118,7 @@ Greenplum Databased 6 supports these Java versions for PL/Java and PXF:
 
 ## <a id="topic_tnl_3mx_zgb"></a>Hardware and Network 
 
-The following table lists minimum recommended specifications for hardware servers intended to support Greenplum Database on Linux systems in a production environment. All host servers in your Greenplum Database system must have the same hardware and software configuration. Greenplum also provides hardware build guides for its certified hardware platforms. It is recommended that you work with a Greenplum Systems Engineer to review your anticipated environment to ensure an appropriate hardware configuration for Greenplum Database.
+The following table lists minimum recommended specifications for hardware servers intended to support Greenplum Database on Linux systems in a production environment. All host servers in your Greenplum Database system must have the same hardware and software configuration. Greenplum also provides hardware build guides for its certified hardware platforms. Work with a Greenplum Systems Engineer to review your anticipated environment to ensure an appropriate hardware configuration for Greenplum Database.
 
 <div class="tablenoborder"><table cellpadding="4" cellspacing="0" summary="" id="topic_tnl_3mx_zgb__ji162790" class="table" frame="border" border="1" rules="all"><caption><span class="tablecap">Minimum Hardware Requirements</span></caption><colgroup><col style="width:120pt" /><col style="width:255pt" /></colgroup><tbody class="tbody">
 <tr class="row">
@@ -150,6 +150,12 @@ The following table lists minimum recommended specifications for hardware server
 </tbody>
 </table>
 </div>
+
+**Hyperthreading**
+
+Resource Groups - one of the key Greenplum Database features - can control transaction concurrency, CPU and memory resources, workload isolation, and dynamic bursting. 
+
+When using resource groups to control resource allocation on Intel based systems, consider switching off Hyper-Threading (HT) in the server BIOS (for Intel cores the default is ON). Switching off HT might cause a small throughput reduction (less than 15%), but can achieve greater isolation between resource groups, and higher query performance with lower concurrency workloads.
 
 ### <a id="topic_elb_4ss_n4b"></a>Tanzu Greenplum on DCA Systems 
 
