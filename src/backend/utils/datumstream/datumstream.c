@@ -1078,7 +1078,7 @@ datumstreamwrite_lob(DatumStreamWrite *acc,
 	return varLen;
 }
 
-static bool
+bool
 datumstreamread_block_info(DatumStreamRead * acc)
 {
 	bool		readOK = false;
