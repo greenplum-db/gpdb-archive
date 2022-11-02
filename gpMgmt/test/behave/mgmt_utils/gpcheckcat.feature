@@ -232,6 +232,23 @@ Feature: gpcheckcat tests
         And gpcheckcat should not print "Failed test\(s\) that are not reported here: part_integrity" to stdout
         And the user runs "dropdb policy_db"
 
+    Scenario: gpcheckcat should report when parent and child partitions have different numsegments value
+        Given database "policy_db" is dropped and recreated
+        And the user runs "psql policy_db -f test/behave/mgmt_utils/steps/data/gpcheckcat/create_multilevel_partition.sql"
+        Then psql should return a return code of 0
+        When the user runs "gpcheckcat -R part_integrity policy_db"
+        Then gpcheckcat should return a return code of 0
+        And gpcheckcat should not print "child partition\(s\) have different numsegments value from the root partition" to stdout
+        And gpcheckcat should not print "Failed test\(s\) that are not reported here: part_integrity" to stdout
+
+        And the user runs sql "set allow_system_table_mods=true; update gp_distribution_policy set numsegments = '1' where localoid='sales_1_prt_2'::regclass::oid;" in "policy_db" on all the segments
+        Then psql should return a return code of 0
+        When the user runs "gpcheckcat -R part_integrity policy_db"
+        Then gpcheckcat should return a return code of 1
+        And gpcheckcat should print "child partition\(s\) have different numsegments value from the root partition" to stdout
+        And gpcheckcat should print "Failed test\(s\) that are not reported here: part_integrity" to stdout
+        And the user runs "dropdb policy_db"
+
     Scenario: gpcheckcat foreign key check should report missing catalog entries. Also test missing_extraneous for the same case.
         Given database "fkey_db" is dropped and recreated
         And the path "gpcheckcat.repair.*" is removed from current working directory
