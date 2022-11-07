@@ -149,7 +149,6 @@
 		"geqo_threshold",
 		"gp_adjust_selectivity_for_outerjoins",
 		"gp_allow_non_uniform_partitioning_ddl",
-		"gp_allow_rename_relation_without_lock",
 		"gp_appendonly_compaction",
 		"gp_appendonly_compaction_threshold",
 		"gp_appendonly_verify_block_checksums",
