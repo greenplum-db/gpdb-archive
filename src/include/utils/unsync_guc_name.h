@@ -223,6 +223,7 @@
 		"gp_max_parallel_cursors",
 		"gp_max_plan_size",
 		"gp_motion_cost_per_row",
+		"gp_print_create_gang_time",
 		"gp_qd_hostname",
 		"gp_qd_port",
 		"gp_recursive_cte",
