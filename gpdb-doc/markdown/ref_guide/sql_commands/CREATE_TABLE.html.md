@@ -18,6 +18,8 @@ CREATE [ [GLOBAL | LOCAL] {TEMPORARY | TEMP } | UNLOGGED] TABLE [IF NOT EXISTS]
     [, ... ]
 ] )
 [ INHERITS ( <parent_table> [, ... ] ) ]
+
+[ USING ( <access method> ) ]
 [ WITH ( <storage_parameter> [=<value>] [, ... ] ) ]
 [ ON COMMIT { PRESERVE ROWS | DELETE ROWS | DROP } ]
 [ TABLESPACE <tablespace_name> ]
@@ -58,6 +60,8 @@ CREATE [ [GLOBAL | LOCAL] {TEMPORARY | TEMP} | UNLOGGED ] TABLE [IF NOT EXISTS]
     | <table_constraint> } 
     [, ... ]
 ) ]
+
+[ USING <access_method> ]
 [ WITH ( <storage_parameter> [=<value>] [, ... ] ) ]
 [ ON COMMIT { PRESERVE ROWS | DELETE ROWS | DROP } ]
 [ TABLESPACE <tablespace_name> ]
@@ -125,8 +129,8 @@ and storage\_parameter for the table is:
    compresstype={ZLIB|ZSTD|QUICKLZ|RLE_TYPE|NONE}
    compresslevel={0-9}
    fillfactor={10-100}
-   [oids=FALSE]
 ```
+
 
 and key\_action is:
 
@@ -348,6 +352,14 @@ INITIALLY IMMEDIATE
 INITIALLY DEFERRED
 :   If a constraint is deferrable, this clause specifies the default time to check the constraint. If the constraint is `INITIALLY IMMEDIATE`, it is checked after each statement. This is the default. If the constraint is `INITIALLY DEFERRED`, it is checked only at the end of the transaction. The constraint check time can be altered with the `SET CONSTRAINTS` command.
 
+USING <access_method>
+:   The `USING` clause specifies the access method for the table you are creating. Set to `heap` to access the table as a heap-storage table, `ao_row` to access the table as an append-optimized table with row-oriented storage (AO), or `ao_column` to access the table as an append-optimized table with column-oriented storage (AOCO).The default is determined by the value of the `default_table_access_method` server configuration parameter.
+
+  <p class="note">
+<strong>Note:</strong>
+Although you can specify the table's access method using <code>WITH (appendoptimized=true|false, orientation=row|column)</code> VMware recommends that you use <code>USING &ltaccess_method></code> instead.
+</p>
+  
 WITH \( storage\_parameter=value \)
 :   The `WITH` clause can specify storage parameters for tables, and for indexes associated with a `UNIQUE` or `PRIMARY` constraint. Note that you can also set storage parameters on a particular partition or subpartition by declaring the `WITH` clause in the partition specification. The lowest-level settings have priority.
 
@@ -378,8 +390,6 @@ WITH \( storage\_parameter=value \)
 :   The `compresslevel` option is valid only if `appendoptimized=TRUE`.
 
 :   **fillfactor** — The fillfactor for a table is a percentage between 10 and 100. 100 \(complete packing\) is the default. When a smaller fillfactor is specified, `INSERT` operations pack table pages only to the indicated percentage; the remaining space on each page is reserved for updating rows on that page. This gives `UPDATE` a chance to place the updated copy of a row on the same page as the original, which is more efficient than placing it on a different page. For a table whose entries are never updated, complete packing is the best choice, but in heavily updated tables smaller fillfactors are appropriate. This parameter cannot be set for TOAST tables.
-
-:   **oids=FALSE** — This setting is the default, and it ensures that rows do not have object identifiers assigned to them. VMware does not support using `WITH OIDS` or `oids=TRUE` to assign an OID system column.On large tables, such as those in a typical Greenplum Database system, using OIDs for table rows can cause wrap-around of the 32-bit OID counter. Once the counter wraps around, OIDs can no longer be assumed to be unique, which not only makes them useless to user applications, but can also cause problems in the Greenplum Database system catalog tables. In addition, excluding OIDs from a table reduces the space required to store the table on disk by 4 bytes per row, slightly improving performance. You cannot create OIDS on a partitioned or column-oriented table \(an error is displayed\). This syntax is deprecated and will be removed in a future Greenplum release.
 
 ON COMMIT
 :   The behavior of temporary tables at the end of a transaction block can be controlled using `ON COMMIT`. The three options are:
