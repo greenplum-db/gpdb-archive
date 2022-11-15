@@ -44,7 +44,7 @@ This is an example file. Note that all XML elements, names, and attributes are c
         <command>/clientdir/rclient.sh</command>
         <shared_directory access="ro" container="/clientdir" host="/usr/local/greenplum-db/bin/plcontainer_clients"/>
         <setting use_container_logging="yes"/>
-        <setting enable_netowrk="no"/>
+        <setting enable_network="no"/>
         <setting roles="gpadmin,user1"/>
     </runtime>
     <runtime>
