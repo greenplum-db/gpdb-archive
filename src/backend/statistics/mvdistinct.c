@@ -44,6 +44,8 @@ static double estimate_ndistinct(double totalrows, int numrows, int d, int f1);
 static int	n_choose_k(int n, int k);
 static int	num_combinations(int n);
 
+extern void statistics_scanner_init(const char *query_string);
+
 /* size of the struct header fields (magic, type, nitems) */
 #define SizeOfHeader		(3 * sizeof(uint32))
 
@@ -340,15 +342,27 @@ statext_ndistinct_deserialize(bytea *data)
  *
  * pg_ndistinct is real enough to be a table column, but it has no
  * operations of its own, and disallows input (jus like pg_node_tree).
+ *
+ * GPDB allows input for the type pg_ndistinct, which converts the
+ * distinct from the external format in "string" to its internal format.
  */
 Datum
 pg_ndistinct_in(PG_FUNCTION_ARGS)
 {
-	ereport(ERROR,
-			(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-			 errmsg("cannot accept a value of type %s", "pg_ndistinct")));
+	char		   *str = PG_GETARG_CSTRING(0);
+	MVNDistinct	   *mvndistinct;
+	int				parse_rc;
 
-	PG_RETURN_VOID();			/* keep compiler quiet */
+	statistics_scanner_init(str);
+	parse_rc = statistic_yyparse();
+	if (parse_rc != 0)
+		ereport(ERROR,
+			(errcode(ERRCODE_INVALID_TEXT_REPRESENTATION),
+			errmsg("failed to parse a value of type %s", "pg_ndistinct")));
+	statistic_scanner_finish();
+        mvndistinct = mvndistinct_parse_result;
+
+	PG_RETURN_MVNDistinct_P(statext_ndistinct_serialize(mvndistinct));
 }
 
 /*
