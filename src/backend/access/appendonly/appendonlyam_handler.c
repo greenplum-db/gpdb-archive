@@ -177,7 +177,7 @@ find_dml_state(const Oid relationOid)
  *
  * Should be called exactly once per relation.
  */
-static inline AppendOnlyDMLState *
+static inline void
 remove_dml_state(const Oid relationOid)
 {
 	AppendOnlyDMLState *state;
@@ -194,7 +194,7 @@ remove_dml_state(const Oid relationOid)
 			appendOnlyDMLStates.last_used_state->relationOid == relationOid)
 		appendOnlyDMLStates.last_used_state = NULL;
 
-	return state;
+	return;
 }
 
 /*
@@ -223,7 +223,16 @@ appendonly_dml_finish(Relation relation)
 	AppendOnlyDMLState *state;
 	bool				had_delete_desc = false;
 
-	state = remove_dml_state(RelationGetRelid(relation));
+	Oid relationOid = RelationGetRelid(relation);
+
+	Assert(appendOnlyDMLStates.state_table);
+
+	state = (AppendOnlyDMLState *)hash_search(appendOnlyDMLStates.state_table,
+											  &relationOid,
+											  HASH_FIND,
+											  NULL);
+
+	Assert(state);
 
 	if (state->deleteDesc)
 	{
@@ -270,6 +279,8 @@ appendonly_dml_finish(Relation relation)
 		pfree(state->uniqueCheckDesc);
 		state->uniqueCheckDesc = NULL;
 	}
+
+	remove_dml_state(relationOid);
 }
 
 /*

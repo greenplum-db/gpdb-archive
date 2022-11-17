@@ -221,7 +221,7 @@ find_dml_state(const Oid relationOid)
  *
  * Should be called exactly once per relation.
  */
-static inline AOCODMLState *
+static inline void
 remove_dml_state(const Oid relationOid)
 {
 	AOCODMLState *state;
@@ -238,7 +238,7 @@ remove_dml_state(const Oid relationOid)
 		aocoDMLStates.last_used_state->relationOid == relationOid)
 		aocoDMLStates.last_used_state = NULL;
 
-	return state;
+	return;
 }
 
 /*
@@ -262,7 +262,16 @@ aoco_dml_finish(Relation relation)
 	AOCODMLState *state;
 	bool		 had_delete_desc = false;
 
-	state = remove_dml_state(RelationGetRelid(relation));
+	Oid relationOid = RelationGetRelid(relation);
+
+	Assert(aocoDMLStates.state_table);
+
+	state = (AOCODMLState *) hash_search(aocoDMLStates.state_table,
+										 &relationOid,
+										 HASH_FIND,
+										 NULL);
+
+	Assert(state);
 
 	if (state->deleteDesc)
 	{
@@ -310,6 +319,7 @@ aoco_dml_finish(Relation relation)
 		state->uniqueCheckDesc = NULL;
 	}
 
+	remove_dml_state(relationOid);
 }
 
 /*
