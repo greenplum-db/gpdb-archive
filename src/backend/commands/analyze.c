@@ -163,6 +163,7 @@ static MemoryContext anl_context = NULL;
 static BufferAccessStrategy vac_strategy;
 
 Bitmapset	**acquire_func_colLargeRowIndexes;
+double		 *acquire_func_colLargeRowLength;
 
 
 static void do_analyze_rel(Relation onerel,
@@ -481,6 +482,7 @@ do_analyze_rel(Relation onerel, VacuumParams *params,
 	int			save_sec_context;
 	int			save_nestlevel;
 	Bitmapset **colLargeRowIndexes;
+	double     *colLargeRowLength;
 	bool		sample_needed;
 
 	if (inh)
@@ -669,6 +671,7 @@ do_analyze_rel(Relation onerel, VacuumParams *params,
 	 * Maintain information if the row of a column exceeds WIDTH_THRESHOLD
 	 */
 	colLargeRowIndexes = (Bitmapset **) palloc0(sizeof(Bitmapset *) * onerel->rd_att->natts);
+	colLargeRowLength = (double *)palloc0(sizeof(double) * onerel->rd_att->natts);
 
 	if ((params->options & VACOPT_FULLSCAN) != 0)
 	{
@@ -690,10 +693,18 @@ do_analyze_rel(Relation onerel, VacuumParams *params,
 		/*
 		 * Acquire the sample rows
 		 *
-		 * colLargeRowindexes is passed out-of-band, in a global variable,
+		 * colLargeRowIndexes is passed out-of-band, in a global variable,
 		 * to avoid changing the function signature from upstream's.
+		 *
+		 * The same as colLargeRowIndexes. colLargeRowLength stores total
+		 * length of too wide rows in the sample for every attribute of
+		 * the target relation. ANALYZE ignores too wide columns during
+		 * analysis(See comments of WIDTH_THRESHOLD), the stawidth can be
+		 * far smaller than the real average width for varlena datums which
+		 * are larger than WIDTH_THRESHOLD but stored uncompressed.
 		 */
 		acquire_func_colLargeRowIndexes = colLargeRowIndexes;
+		acquire_func_colLargeRowLength = colLargeRowLength;
 		if (inh)
 			numrows = acquire_inherited_sample_rows(onerel, elevel,
 													rows, targrows,
@@ -703,6 +714,7 @@ do_analyze_rel(Relation onerel, VacuumParams *params,
 									  rows, targrows,
 									  &totalrows, &totaldeadrows);
 		acquire_func_colLargeRowIndexes = NULL;
+		acquire_func_colLargeRowLength = NULL;
 		if (ctx)
 			MemoryContextSwitchTo(anl_context);
 	}
@@ -792,6 +804,12 @@ do_analyze_rel(Relation onerel, VacuumParams *params,
 			get_attribute_options(onerel->rd_id, stats->attr->attnum);
 
 			stats->tupDesc = onerel->rd_att;
+			/*
+			 * get total length and number of too wide rows in the sample,
+			 * in case get wrong stawidth.
+			 */
+			stats->totalwidelength = colLargeRowLength[stats->attr->attnum - 1];
+			stats->widerow_num = numrows - validRowsLength;
 
 			if (validRowsLength > 0)
 			{
@@ -851,7 +869,7 @@ do_analyze_rel(Relation onerel, VacuumParams *params,
 				// that every item was >= WIDTH_THRESHOLD in width.
 				stats->stats_valid = true;
 				stats->stanullfrac = 0.0;
-				stats->stawidth = WIDTH_THRESHOLD;
+				stats->stawidth = stats->totalwidelength/numrows;
 				stats->stadistinct = 0.0;		/* "unknown" */
 			}
 			stats->rows = rows; // Reset to original rows
@@ -2172,6 +2190,7 @@ acquire_sample_rows_dispatcher(Relation onerel, bool inh, int elevel,
 	 * global variable to avoid changing the AcquireSampleRowsFunc prototype.
 	 */
 	Bitmapset **colLargeRowIndexes = acquire_func_colLargeRowIndexes;
+	double     *colLargeRowLength = acquire_func_colLargeRowLength;
 	TupleDesc	relDesc = RelationGetDescr(onerel);
 	TupleDesc	funcTupleDesc;
 	TupleDesc	sampleTupleDesc;
@@ -2258,7 +2277,7 @@ acquire_sample_rows_dispatcher(Relation onerel, bool inh, int elevel,
 	funcTupleDesc = CreateTemplateTupleDesc(ncolumns);
 	TupleDescInitEntry(funcTupleDesc, (AttrNumber) 1, "", FLOAT8OID, -1, 0);
 	TupleDescInitEntry(funcTupleDesc, (AttrNumber) 2, "", FLOAT8OID, -1, 0);
-	TupleDescInitEntry(funcTupleDesc, (AttrNumber) 3, "", TEXTOID, -1, 0);
+	TupleDescInitEntry(funcTupleDesc, (AttrNumber) 3, "", FLOAT8ARRAYOID, -1, 0);
 	
 	for (i = 0; i < relDesc->natts; i++)
 	{
@@ -2357,12 +2376,17 @@ acquire_sample_rows_dispatcher(Relation onerel, bool inh, int elevel,
 				/* Read the 'toolarge' bitmap, if any */
 				if (colLargeRowIndexes && !funcRetNulls[2])
 				{
-					char	   *toolarge;
-					toolarge = funcRetValues[2];
-					if (strlen(toolarge) != numLiveColumns)
-						elog(ERROR, "'toolarge' bitmap has incorrect length");
+					ArrayType  *arrayVal;
+					Datum	   *largelength;
+					bool	   *nulls;
+					int	    numelems;
+					arrayVal = DatumGetArrayTypeP(OidFunctionCall3(F_ARRAY_IN,
+											CStringGetDatum(funcRetValues[2]),
+											FLOAT8OID,
+											-1));
+					deconstruct_array(arrayVal, FLOAT8OID, 8, true, 'd',
+								&largelength, &nulls, &numelems);
 
-					index = 0;
 					for (i = 0; i < relDesc->natts; i++)
 					{
 						Form_pg_attribute attr = TupleDescAttr(relDesc, i);
@@ -2370,9 +2394,11 @@ acquire_sample_rows_dispatcher(Relation onerel, bool inh, int elevel,
 						if (attr->attisdropped)
 							continue;
 
-						if (toolarge[index] == '1')
+						if (largelength[i] != (Datum) 0)
+						{
 							colLargeRowIndexes[i] = bms_add_member(colLargeRowIndexes[i], sampleTuples);
-						index++;
+							colLargeRowLength[i] += DatumGetFloat8(largelength[i]);
+						}
 					}
 				}
 
@@ -2385,10 +2411,10 @@ acquire_sample_rows_dispatcher(Relation onerel, bool inh, int elevel,
 					if (attr->attisdropped)
 						continue;
 
-					if (funcRetNulls[3 + index])
+					if (funcRetNulls[FIX_ATTR_NUM + index])
 						values[i] = NULL;
 					else
-						values[i] = funcRetValues[3 + index];
+						values[i] = funcRetValues[FIX_ATTR_NUM + index];
 					index++; /* Move index to the next result set attribute */
 				}
 
@@ -3021,7 +3047,7 @@ compute_distinct_stats(VacAttrStatsP stats,
 		/* Do the simple null-frac and width stats */
 		stats->stanullfrac = (double) null_cnt / (double) samplerows;
 		if (is_varwidth)
-			stats->stawidth = total_width / (double) nonnull_cnt;
+			stats->stawidth = (total_width + stats->totalwidelength) / (double) (nonnull_cnt + stats->widerow_num);
 		else
 			stats->stawidth = stats->attrtype->typlen;
 
@@ -3203,7 +3229,7 @@ compute_distinct_stats(VacAttrStatsP stats,
 			stats->stawidth = 0;	/* "unknown" */
 		else
 			stats->stawidth = stats->attrtype->typlen;
-		stats->stadistinct = 0.0;	/* "unknown" */
+		stats->stadistinct = 0.0;		/* "unknown" */
 	}
 
 	/* We don't need to bother cleaning up any of our temporary palloc's */
@@ -3414,7 +3440,7 @@ compute_scalar_stats(VacAttrStatsP stats,
 		/* Do the simple null-frac and width stats */
 		stats->stanullfrac = (double) null_cnt / (double) samplerows;
 		if (is_varwidth)
-			stats->stawidth = total_width / (double) nonnull_cnt;
+			stats->stawidth = (total_width + stats->totalwidelength) / (double) (nonnull_cnt + stats->widerow_num);
 		else
 			stats->stawidth = stats->attrtype->typlen;
 
@@ -3753,7 +3779,7 @@ compute_scalar_stats(VacAttrStatsP stats,
 		/* Do the simple null-frac and width stats */
 		stats->stanullfrac = (double) null_cnt / (double) samplerows;
 		if (is_varwidth)
-			stats->stawidth = total_width / (double) nonnull_cnt;
+			stats->stawidth = (total_width + stats->totalwidelength) / (double) (nonnull_cnt + stats->widerow_num);
 		else
 			stats->stawidth = stats->attrtype->typlen;
 		/* Assume all too-wide values are distinct, so it's a unique column */
