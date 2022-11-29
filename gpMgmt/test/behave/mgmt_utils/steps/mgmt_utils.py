@@ -3901,3 +3901,22 @@ def impl(context):
      cmd_str = "rm -f ~/.ssh/id_rsa ~/.ssh/id_rsa.pub ~/.ssh/known_hosts; $GPHOME/bin/gpssh-exkeys -h {}".format(hostname)
      cmd = Command(name='update ssh private keys', cmdStr=cmd_str)
      cmd.run(validateAfter=True)
+
+@then('verify replication slot {slot} is available on all the segments')
+@when('verify replication slot {slot} is available on all the segments')
+@given('verify replication slot {slot} is available on all the segments')
+def impl(context, slot):
+    gparray = GpArray.initFromCatalog(dbconn.DbURL())
+    segments = gparray.getDbList()
+    dbname = "template1"
+    query = "SELECT count(*) FROM pg_catalog.pg_replication_slots WHERE slot_name = '{}'".format(slot)
+
+    for seg in segments:
+        if seg.isSegmentPrimary():
+            host = seg.getSegmentHostName()
+            port = seg.getSegmentPort()
+            with closing(dbconn.connect(dbconn.DbURL(dbname=dbname, port=port, hostname=host),
+                                        utility=True, unsetSearchPath=False)) as conn:
+                result = dbconn.querySingleton(conn, query)
+                if result == 0:
+                    raise Exception("Slot does not exist for host:{}, port:{}".format(host, port))
