@@ -15,7 +15,7 @@ This topic is divided into the following sections:
 
 ## <a id="recovery_basics"></a>Segment Recovery Basics 
 
-If the master cannot connect to a segment instance, it marks that segment as down in the Greenplum Database `gp_segment_configuration` table. The segment instance remains offline until an administrator takes steps to bring the segment back online. The process for recovering a down segment instance or host depends on the cause of the failure and on whether or not mirroring is enabled. A segment instance can be marked as down for a number of reasons:
+If the coordinator cannot connect to a segment instance, it marks that segment as down in the Greenplum Database `gp_segment_configuration` table. The segment instance remains offline until an administrator takes steps to bring the segment back online. The process for recovering a down segment instance or host depends on the cause of the failure and on whether or not mirroring is enabled. A segment instance can be marked as down for a number of reasons:
 
 -   A segment host is unavailable; for example, due to network or hardware failures.
 -   A segment instance is not running; for example, there is no `postgres` database listener process.

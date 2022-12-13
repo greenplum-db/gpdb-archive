@@ -43,7 +43,7 @@ gpmt gp_log_collector [-failed-segs | -c <ID1,ID2,...>| -hostfile <file> | -h <h
 :   Answer Yes to all prompts.
 
 -skip-master
-:   When running `gp_log_collector`, the generated tarball can be very large. Use this option to skip Greenplum Master log collection when only Greenplum Segment logs are required.
+:   When running `gp_log_collector`, the generated tarball can be very large. Use this option to skip Greenplum Coordinator log collection when only Greenplum Segment logs are required.
 
 -with-gpbackup 
 :   Beginning with Greenplum 6.22, this option enables you to collect logs related to backup and restore. 
@@ -64,7 +64,7 @@ These are collected from the provided `--backup-dir` or default backup directory
 - `gprestore___report`
 - `gpbackup___report`
 
-Also, the `pg_log` file is collected from the master and segment hosts.
+Also, the `pg_log` file is collected from the coordinator and segment hosts.
 
 -with-gptext
 :   Collect all GPText logs along with Greenplum logs.
@@ -94,13 +94,13 @@ The tool also collects the following information:
 | Database-related files from all hosts | <ul><li>`$SEG_DIR/pg_hba.conf`</li><li>`$SEG_DIR/pg_log/`</li><li>`$SEG_DIRE/postgresql.conf`</li><li>`~/gpAdminLogs`</li></ul> |
 | GPText files | <ul><li>Installation configuration file: `$GPTXTHOME/lib/python/gptextlib/consts.py` </li><li>`gptext-state -D`</li><li>`<gptext data dir>/solr*/solr.in`</li><li>`<gptext data dir>/solr*/log4j.properties`</li><li>`<gptext data dir>/zoo*/logs/*`</li><li>`commands/bash/-c_echo $PATH`</li><li>`commands/bash/-c_ps -ef | grep solr`</li><li>`commands/bash/-c_ps -ef | grep zookeeper`</li></ul> |
 | PXF files | <ul><li>`pxf cluster status`</li><li>`pxf status`</li><li>PXF version</li><li>`Logs/`</li><li>`CONF/`</li><li>`Run/`</li></ul> |
-| gpupgrade files | <ul><li>`~/gpAdminLogs` on all hosts</li><li>`$HOME/gpupgrade` on master host</li><li>`$HOME/.gpupgrade` on all hosts</li><li>Source cluster's `pg_log` files located in `$MASTER_DATA_DIRECTORY/pg_log` on master host</li><li>Target cluster's `pg_log` files located in `$(gpupgrade config show --target-datadir)/pg_log` on master host</li><li>Target cluster's master data directory</li></ul> |
+| gpupgrade files | <ul><li>`~/gpAdminLogs` on all hosts</li><li>`$HOME/gpupgrade` on coordinator host</li><li>`$HOME/.gpupgrade` on all hosts</li><li>Source cluster's `pg_log` files located in `$MASTER_DATA_DIRECTORY/pg_log` on coordinator host</li><li>Target cluster's `pg_log` files located in `$(gpupgrade config show --target-datadir)/pg_log` on coordinator host</li><li>Target cluster's coordinator data directory</li></ul> |
 
 **NOTE**: Some commands might not be able to be run if user does not have the correct permissions.
 
 ## <a id="exs"></a>Examples 
 
-Collect Greenplum master and segment logs listed in a hostfile from today:
+Collect Greenplum coordinator and segment logs listed in a hostfile from today:
 
 ```
 gpmt gp_log_collector -hostfile ~/gpconfig/hostfile

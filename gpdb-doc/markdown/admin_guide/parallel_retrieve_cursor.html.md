@@ -276,7 +276,7 @@ The parallel retrieve cursor implementation has the following limitations:
 
 ## <a id="topic_addtldocs"></a>Additional Documentation
 
-Refer to the [README](https://github.com/greenplum-db/gpdb/tree/master/src/backend/cdb/endpoint/README) in the Greenplum Database `github` repository for additional information about the parallel retrieve cursor implementation.  You can also find parallel retrieve cursor [programming examples](https://github.com/greenplum-db/gpdb/tree/master/src/test/examples/) in the repository.
+Refer to the [README](https://github.com/greenplum-db/gpdb/tree/main/src/backend/cdb/endpoint/README) in the Greenplum Database `github` repository for additional information about the parallel retrieve cursor implementation.  You can also find parallel retrieve cursor [programming examples](https://github.com/greenplum-db/gpdb/tree/main/src/test/examples/) in the repository.
 
 
 ## <a id="topic_examples"></a>Example

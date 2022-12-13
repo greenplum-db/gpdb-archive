@@ -17,7 +17,7 @@ Configuration parameters affect categories of server behaviors, such as resource
 -   [Database Table Parameters](#topic46)
 -   [Past Version Compatibility Parameters](#topic48)
 -   [Greenplum Database Array Configuration Parameters](#topic49)
--   [Greenplum Mirroring Parameters for Master and Segments](#topic55)
+-   [Greenplum Mirroring Parameters for Coordinator and Segments](#topic55)
 -   [Greenplum PL/Java Parameters](#topic56)
 
 ## <a id="topic12"></a>Connection and Authentication Parameters 
@@ -285,7 +285,7 @@ These parameters control the server statistics collection feature. When statisti
 
 ## <a id="topic38"></a>Automatic Statistics Collection Parameters 
 
-When automatic statistics collection is enabled, you can run `ANALYZE` automatically in the same transaction as an `INSERT`, `UPDATE`, `DELETE`, `COPY` or `CREATE TABLE...AS SELECT` statement when a certain threshold of rows is affected \(`on_change`\), or when a newly generated table has no statistics \(`on_no_stats`\). To enable this feature, set the following server configuration parameters in your Greenplum Database master `postgresql.conf` file and restart Greenplum Database:
+When automatic statistics collection is enabled, you can run `ANALYZE` automatically in the same transaction as an `INSERT`, `UPDATE`, `DELETE`, `COPY` or `CREATE TABLE...AS SELECT` statement when a certain threshold of rows is affected \(`on_change`\), or when a newly generated table has no statistics \(`on_no_stats`\). To enable this feature, set the following server configuration parameters in your Greenplum Database coordinator `postgresql.conf` file and restart Greenplum Database:
 
 - [gp_autostats_allow_nonowner](guc-list.html#gp_autostats_allow_nonowner)
 - [gp_autostats_mode](guc-list.html#gp_autostats_mode)
@@ -431,7 +431,7 @@ The following parameters provide compatibility with older PostgreSQL and Greenpl
 
 ## <a id="topic49"></a>Greenplum Database Array Configuration Parameters 
 
-The parameters in this topic control the configuration of the Greenplum Database array and its components: segments, master, distributed transaction manager, master mirror, and interconnect.
+The parameters in this topic control the configuration of the Greenplum Database array and its components: segments, coordinator, distributed transaction manager, coordinator mirror, and interconnect.
 
 ### <a id="topic50"></a>Interconnect Configuration Parameters 
 
@@ -478,9 +478,9 @@ The parameters in this topic control the configuration of the Greenplum Database
 - [gp_server_version](guc-list.html#gp_server_version)
 - [gp_server_version_num](guc-list.html#gp_server_version_num)
 
-## <a id="topic55"></a>Greenplum Mirroring Parameters for Master and Segments 
+## <a id="topic55"></a>Greenplum Mirroring Parameters for Coordinator and Segments 
 
-These parameters control the configuration of the replication between Greenplum Database primary master and standby master.
+These parameters control the configuration of the replication between Greenplum Database primary coordinator and standby coordinator.
 
 - [repl_catchup_within_range](guc-list.html#repl_catchup_within_range)
 - [replication_timeout](guc-list.html#replication_timeout)

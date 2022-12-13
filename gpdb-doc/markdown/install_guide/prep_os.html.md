@@ -23,7 +23,7 @@ For information about running VMware Greenplum Database in the cloud see *Cloud 
 
 **Important:** When data loss is not acceptable for a Greenplum Database cluster, Greenplum coordinator and segment mirroring is recommended. If mirroring is not enabled then Greenplum stores only one copy of the data, so the underlying storage media provides the only guarantee for data availability and correctness in the event of a hardware failure.
 
-The VMware Greenplum on vSphere virtualized environment ensures the enforcement of anti-affinity rules required for Greenplum mirroring solutions and fully supports mirrorless deployments. Other virtualized or containerized deployment environments are generally not supported for production use unless both Greenplum master and segment mirroring are enabled.
+The VMware Greenplum on vSphere virtualized environment ensures the enforcement of anti-affinity rules required for Greenplum mirroring solutions and fully supports mirrorless deployments. Other virtualized or containerized deployment environments are generally not supported for production use unless both Greenplum coordinator and segment mirroring are enabled.
 
 **Note:** For information about upgrading VMware Greenplum from a previous version, see the *VMware Greenplum Database Release Notes* for the release that you are installing.
 
@@ -114,7 +114,7 @@ See the documentation for the firewall or your operating system for additional i
 
 ## <a id="topic3"></a>Recommended OS Parameters Settings 
 
-Greenplum requires that certain Linux operating system \(OS\) parameters be set on all hosts in your Greenplum Database system \(masters and segments\).
+Greenplum requires that certain Linux operating system \(OS\) parameters be set on all hosts in your Greenplum Database system \(coordinators and segments\).
 
 In general, the following categories of system parameters need to be altered:
 

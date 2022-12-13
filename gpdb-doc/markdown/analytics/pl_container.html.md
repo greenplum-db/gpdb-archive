@@ -34,7 +34,7 @@ Running UDFs inside the Docker container ensures that:
 
 **Example of the process flow**:
 
-Consider a query that selects table data using all available segments, and transforms the data using a PL/Container function. On the first call to a function in a segment container, the query executor on the master host starts the container on that segment host. It then contacts the running container to obtain the results. The container might respond with a Service Provider Interface \(SPI\) - a SQL query run by the container to get some data back from the database - returning the result to the query executor.
+Consider a query that selects table data using all available segments, and transforms the data using a PL/Container function. On the first call to a function in a segment container, the query executor on the coordinator host starts the container on that segment host. It then contacts the running container to obtain the results. The container might respond with a Service Provider Interface \(SPI\) - a SQL query run by the container to get some data back from the database - returning the result to the query executor.
 
 A container running in standby mode waits on the socket and does not consume any CPU resources. PL/Container memory consumption depends on the amount of data cached in global dictionaries.
 
@@ -152,7 +152,7 @@ For a list of observations while using Docker and PL/Container, see the [Notes](
 Install the PL/Container language extension using the `gppkg` utility.
 
 1.  Download the "PL/Container for RHEL 7" package that applies to your Greenplum Database version, from the [VMware Tanzu Network](https://network.pivotal.io/products/pivotal-gpdb/). PL/Container is listed under Greenplum Procedural Languages.
-2.  As `gpadmin`, copy the PL/Container language extension package to the master host.
+2.  As `gpadmin`, copy the PL/Container language extension package to the coordinator host.
 3.  Follow the instructions in [Verifying the Greenplum Database Software Download](../install_guide/verify_sw.html) to verify the integrity of the **Greenplum Procedural Languages PL/Container** software.
 4.  Run the package installation command:
 
@@ -247,7 +247,7 @@ Install the Docker images that PL/Container will use to create language-specific
     20200127:21:55:37:004607 plcontainer:mdw:gpadmin-[INFO]:-Removing temporary image files on all hosts...
     ```
 
-    By default, the `image-add` command copies the image to each Greenplum Database segment and standby master host, and installs the image. When you specify the `[-ulc | --use_local_copy]` option, `plcontainer` installs the image only on the host on which you run the command. Use this option when the PL/Container image already resides on disk on a host.
+    By default, the `image-add` command copies the image to each Greenplum Database segment and standby coordinator host, and installs the image. When you specify the `[-ulc | --use_local_copy]` option, `plcontainer` installs the image only on the host on which you run the command. Use this option when the PL/Container image already resides on disk on a host.
 
     For more information on `image-add` options, visit the [plcontainer](../utility_guide/ref/plcontainer.html) reference page.
 

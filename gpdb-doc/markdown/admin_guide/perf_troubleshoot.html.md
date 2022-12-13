@@ -77,7 +77,7 @@ When an out of memory event occurs during query execution, the Greenplum Databas
 
 ## <a id="topic8"></a>Investigating Error Messages 
 
-Greenplum Database log messages are written to files in the `log` directory within the master's or segment's data directory. Because the master log file contains the most information, you should always check it first. Log files roll over daily and use the naming convention: `gpdb-`*`YYYY`*`-`*`MM`*`-`*`DD_hhmmss.csv`*. To locate the log files on the master host:
+Greenplum Database log messages are written to files in the `log` directory within the coordinator's or segment's data directory. Because the coordinator log file contains the most information, you should always check it first. Log files roll over daily and use the naming convention: `gpdb-`*`YYYY`*`-`*`MM`*`-`*`DD_hhmmss.csv`*. To locate the log files on the coordinator host:
 
 ```
 $ cd $COORDINATOR_DATA_DIRECTORY/log
@@ -92,7 +92,7 @@ Log lines have the format of:
 
 ```
 
-You may want to focus your search for `WARNING`, `ERROR`, `FATAL` or `PANIC` log level messages. You can use the Greenplum utility `gplogfilter` to search through Greenplum Database log files. For example, when you run the following command on the master host, it checks for problem log messages in the standard logging locations:
+You may want to focus your search for `WARNING`, `ERROR`, `FATAL` or `PANIC` log level messages. You can use the Greenplum utility `gplogfilter` to search through Greenplum Database log files. For example, when you run the following command on the coordinator host, it checks for problem log messages in the standard logging locations:
 
 ```
 $ gplogfilter -t

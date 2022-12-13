@@ -195,7 +195,7 @@ This `SET` command sets the enabled drivers to the default for a session.
 SET postgis.gdal_enabled_drivers = default;
 ```
 
-To see the list of supported GDAL raster drivers for a Greenplum Database system, run the `raster2pgsql` utility with the `-G` option on the Greenplum Database master.
+To see the list of supported GDAL raster drivers for a Greenplum Database system, run the `raster2pgsql` utility with the `-G` option on the Greenplum Database coordinator.
 
 ```
 raster2pgsql -G 
