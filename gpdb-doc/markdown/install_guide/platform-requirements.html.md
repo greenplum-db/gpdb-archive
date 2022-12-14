@@ -24,20 +24,8 @@ This topic describes the Greenplum Database 6 platform and operating system soft
 Greenplum Database 6 runs on the following operating system platforms:
 
 -   Red Hat Enterprise Linux 64-bit 8.x (as of Greenplum Database version 6.20)
--   Red Hat Enterprise Linux 64-bit 7.x \(See the following [Note](#7x-issue).\)
--   Red Hat Enterprise Linux 64-bit 6.x
--   CentOS 64-bit 7.x
--   CentOS 64-bit 6.x
--   Ubuntu 18.04 LTS
--   Oracle Linux 64-bit 7, using the Red Hat Compatible Kernel \(RHCK\)
-
-**Important:** Significant Greenplum Database performance degradation has been observed when enabling resource group-based workload management on RedHat 6.x and CentOS 6.x systems. This issue is caused by a Linux cgroup kernel bug. This kernel bug has been fixed in CentOS 7.x and Red Hat 7.x/8.x systems.
-
-If you use RedHat 6 and the performance with resource groups is acceptable for your use case, upgrade your kernel to version 2.6.32-696 or higher to benefit from other fixes to the cgroups implementation.
-
-**Note:** For Greenplum Database that is installed on Red Hat Enterprise Linux 7.x or CentOS 7.x prior to 7.3, an operating system issue might cause Greenplum Database that is running large workloads to hang in the workload. The Greenplum Database issue is caused by Linux kernel bugs.
-
-RHEL 7.3 and CentOS 7.3 resolves the issue.
+-   Oracle Linux 64-bit 8, using the Red Hat Compatible Kernel \(RHCK\)
+-   Rocky Linux 8
 
 **Note:** Do not install anti-virus software on Greenplum Database hosts as the software might cause extra CPU and IO load that interferes with Greenplum Database operations.
 
@@ -45,7 +33,7 @@ Greenplum Database server supports TLS version 1.2 on RHEL/CentOS systems, and T
 
 ### <a id="topic_i4k_nlx_zgb"></a>Software Dependencies 
 
-Greenplum Database 6 requires the following software packages on RHEL/CentOS 6/7 systems which are installed automatically as dependencies when you install the Greenplum RPM package\):
+Greenplum Database 7 requires the following software packages on RHEL systems. The packages are installed automatically as dependencies when you install the Greenplum RPM package\):
 
 -   apr
 -   apr-util
@@ -70,40 +58,14 @@ Greenplum Database 6 requires the following software packages on RHEL/CentOS 6/7
 -   tar
 -   zip
 
-VMware Greenplum Database 6 client software requires these operating system packages:
+VMware Greenplum Database 7 client software requires these operating system packages:
 
 -   apr
 -   apr-util
 -   libyaml
 -   libevent
 
-On Ubuntu systems, Greenplum Database 6 requires the following software packages, which are installed automatically as dependencies when you install Greenplum Database with the Debian package installer:
-
--   libapr1
--   libaprutil1
--   bash
--   bzip2
--   krb5-multidev
--   libcurl3-gnutls
--   libcurl4
--   libevent-2.1-6
--   libxml2
--   libyaml-0-2
--   zlib1g
--   libldap-2.4-2
--   openssh-client
--   openssl
--   perl
--   readline
--   rsync
--   sed
--   tar
--   zip
--   net-tools
--   less
--   iproute2
-
-Greenplum Database 6 uses Python 2.7.12, which is included with the product installation \(and not installed as a package dependency\).
+Greenplum Database 7 uses Python 2.7.12, which is included with the product installation \(and not installed as a package dependency\).
 
 **Important:** SSL is supported only on the Greenplum Database coordinator host system. It cannot be used on the segment host systems.
 
@@ -111,7 +73,7 @@ Greenplum Database 6 uses Python 2.7.12, which is included with the product inst
 
 ### <a id="topic_xbl_mkx_zgb"></a>Java 
 
-Greenplum Databased 6 supports these Java versions for PL/Java and PXF:
+Greenplum Databased 7 supports these Java versions for PL/Java and PXF:
 
 -   Open JDK 8 or Open JDK 11, available from [AdoptOpenJDK](https://adoptopenjdk.net)
 -   Oracle JDK 8 or Oracle JDK 11
@@ -193,20 +155,18 @@ VMware Greenplum 6 supports Data Domain Boost for backup on Red Hat Enterprise L
 
 ### <a id="topic32"></a>Client Tools 
 
-VMware releases a Clients tool package on various platforms that can be used to access Greenplum Database from a client system. The Greenplum 6 Clients tool package is supported on the following platforms:
+VMware releases a Clients tool package on various platforms that can be used to access Greenplum Database from a client system. The Greenplum 7 Clients tool package is supported on the following platforms:
 
--   Red Hat Enterprise Linux x86\_64 6.x \(RHEL 6\)
--   Red Hat Enterprise Linux x86\_64 7.x \(RHEL 7\)
 -   Red Hat Enterprise Linux x86\_64 8.x \(RHEL 8\)
--   Ubuntu 18.04 LTS
--   SUSE Linux Enterprise Server x86\_64 12 \(SLES 12\)
--   Windows 10 \(32-bit and 64-bit\)
--   Windows 8 \(32-bit and 64-bit\)
--   Windows Server 2012 \(32-bit and 64-bit\)
--   Windows Server 2012 R2 \(32-bit and 64-bit\)
--   Windows Server 2008 R2 \(32-bit and 64-bit\)
+-   Oracle Linux 64-bit 8, using the Red Hat Compatible Kernel \(RHCK\)
+-   Rocky Linux 8
+-   Windows 10 \(64-bit\)
+-   Windows 8 \(64-bit\)
+-   Windows Server 2012 \(64-bit\)
+-   Windows Server 2012 R2 \(64-bit\)
+-   Windows Server 2008 R2 \(64-bit\)
 
-The Greenplum 6 Clients package includes the client and loader programs provided in the Greenplum 5 packages plus the addition of database/role/language commands and the Greenplum Streaming Server command utilities. Refer to [Greenplum Client and Loader Tools Package](/vmware/client_tool_guides/intro.html) for installation and usage details of the Greenplum 6 Client tools.
+The Greenplum 7 Clients package includes the client and loader programs plus database/role/language commands and the Greenplum Streaming Server command utilities. Refer to [Greenplum Client and Loader Tools Package](/vmware/client_tool_guides/intro.html) for installation and usage details of the Greenplum 7 Client tools.
 
 ### <a id="topic_eyc_l2h_zz"></a>Extensions 
 
