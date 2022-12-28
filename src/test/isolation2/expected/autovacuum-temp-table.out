@@ -1,0 +1,123 @@
+-- test that autovacuum cleans up orphaned temp table correctly
+
+-- speed up test
+1: alter system set autovacuum_naptime = 5;
+ALTER SYSTEM
+1: alter system set autovacuum_vacuum_threshold = 50;
+ALTER SYSTEM
+1: !\retcode gpstop -u;
+(exited with code 0)
+
+-- session 1 is going to panic on primary segment 0, creating orphaned temp table on all QEs;
+-- session 2 will remain, so the temp table on non-PANIC segment will remain too (until the session resets or exits)
+1: create temp table tt_av1(a int);
+CREATE TABLE
+2: create temp table tt_av2(a int);
+CREATE TABLE
+
+-- temp tables created in utility mode: the one on the PANIC segment will be gone, but not other segments.
+0U: create temp table ttu_av0(a int);
+CREATE TABLE
+1U: create temp table ttu_av1(a int);
+CREATE TABLE
+
+-- PANIC
+1: select gp_inject_fault('exec_mpp_query_start', 'panic', dbid) from gp_segment_configuration where content=0 and role='p';
+ gp_inject_fault 
+-----------------
+ Success:        
+(1 row)
+1: select * from tt_av1;
+ERROR:  fault triggered, fault name:'exec_mpp_query_start' fault type:'panic'  (seg0 slice1 127.0.1.1:7002 pid=21899)
+
+0Uq: ... <quitting>
+1q: ... <quitting>
+
+-- make sure the segment restarted,
+-- also served as a third test case.
+1: create temp table tt_av3(a int);
+CREATE TABLE
+
+-- make sure the autovacuum is run at least once,
+-- it might've been run already, which is fine.
+1: select gp_inject_fault('auto_vac_worker_after_report_activity', 'skip', '', '', 'pg_class', 1, 1, 0, dbid) from gp_segment_configuration where content=0 and role='p';
+ gp_inject_fault 
+-----------------
+ Success:        
+(1 row)
+1: begin;
+BEGIN
+1: create table bloat_tbl(i int, j int, k int, l int, m int, n int, o int, p int) distributed by (i) partition by range (j) (start (0) end (1000) every (1));
+CREATE TABLE
+1: abort;
+ROLLBACK
+-- wait for autovacuum to hit pg_class, triggering a fault
+1: select gp_wait_until_triggered_fault('auto_vac_worker_after_report_activity', 1, dbid) from gp_segment_configuration where content=0 and role='p';
+ gp_wait_until_triggered_fault 
+-------------------------------
+ Success:                      
+(1 row)
+-- clean up fault
+1: select gp_inject_fault('auto_vac_worker_after_report_activity', 'reset', dbid) from gp_segment_configuration where content=0 and role='p';
+ gp_inject_fault 
+-----------------
+ Success:        
+(1 row)
+
+-- the orphaned temp table on all QEs should be cleaned up
+0U: select count(*) from pg_class where relname = 'tt_av1';
+ count 
+-------
+ 0     
+(1 row)
+1U: select count(*) from pg_class where relname = 'tt_av1';
+ count 
+-------
+ 0     
+(1 row)
+
+-- the temp table that is associated with an existing session should be gone on the PANIC'ed
+-- segment (because the QE is killed), but not other segments where QE is still there.
+0U: select count(*) from pg_class where relname = 'tt_av2';
+ count 
+-------
+ 0     
+(1 row)
+1U: select count(*) from pg_class where relname = 'tt_av2';
+ count 
+-------
+ 1     
+(1 row)
+
+-- new temp table created is not affected
+0U: select count(*) from pg_class where relname = 'tt_av3';
+ count 
+-------
+ 1     
+(1 row)
+1U: select count(*) from pg_class where relname = 'tt_av3';
+ count 
+-------
+ 1     
+(1 row)
+
+-- the utility-mode temp table on the PANIC'ed segment will be gone (because the utility connection
+-- was killed), but not other segments where utility connection is still there.
+0U: select count(*) from pg_class where relname = 'ttu_av0';
+ count 
+-------
+ 0     
+(1 row)
+1U: select count(*) from pg_class where relname = 'ttu_av1';
+ count 
+-------
+ 1     
+(1 row)
+
+-- restore settings
+1: alter system reset autovacuum_naptime;
+ALTER SYSTEM
+1: alter system reset autovacuum_vacuum_threshold;
+ALTER SYSTEM
+1: !\retcode gpstop -u;
+(exited with code 0)

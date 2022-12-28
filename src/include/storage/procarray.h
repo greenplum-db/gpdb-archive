@@ -131,6 +131,7 @@ extern void XidCacheRemoveRunningXids(TransactionId xid,
 									  TransactionId latestXid);
 						  
 extern PGPROC *FindProcByGpSessionId(long gp_session_id);
+extern List *GetRunningProcSessionIds(void);
 extern void UpdateCommandIdInSnapshot(CommandId curcid);
 
 extern void updateSharedLocalSnapshot(struct DtxContextInfo *dtxContextInfo,

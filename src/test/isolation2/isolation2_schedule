@@ -263,6 +263,7 @@ test: segwalrep/die_commit_pending_replication
 test: enable_autovacuum
 test: idle_gang_cleaner
 # test idle_in_transaction_session_timeout
+test: autovacuum-temp-table
 
 test: copy_progress
 

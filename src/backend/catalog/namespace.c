@@ -55,6 +55,7 @@
 #include "parser/parse_func.h"
 #include "storage/ipc.h"
 #include "storage/lmgr.h"
+#include "storage/procarray.h"
 #include "storage/sinvaladt.h"
 #include "utils/acl.h"
 #include "utils/builtins.h"
@@ -3301,6 +3302,13 @@ isOtherTempNamespace(Oid namespaceId)
  * orphaned temporary tables or namespaces with a backend connected to a
  * given database.  The result may be out of date quickly, so the caller
  * must be careful how to handle this information.
+ *
+ * GPDB: we should not use the current version (same as upstream) of this
+ * function, as GPDB might have session ID instead of backend ID in the temp
+ * namespace name. We could check the running sessions just like checking the
+ * backends, but that would require frequently acquiring ProcArrayLock which we
+ * should avoid. Currently, we use an alternative isTempNamespaceMustBeIdle()
+ * for autovacuum which is the only use case of this function.
  */
 TempNamespaceStatus
 checkTempNamespaceStatus(Oid namespaceId)
@@ -3334,8 +3342,63 @@ checkTempNamespaceStatus(Oid namespaceId)
 }
 
 /*
+ * A GPDB alternative to current use case of checkTempNamespaceStatus (i.e.
+ * autovacuum). It has two differences:
+ *
+ * 1. consider session IDs as well as backend IDs in the namespace name, which
+ *    is passed in by the caller;
+ * 2. do not return exact status but only indicate whether the namespace *must*
+ *    be an idle temp namespace. See notes below.
+ *
+ * Note that, due to worry about holding ProcArrayLock for too long, we require
+ * the caller to take a snapshot of all procs and their session IDs beforehand.
+ * Therefore, we do not check proc->databaseId or proc->tempNamespaceId of those 
+ * procs, because we might be looking at some pretty outdated ones. As long as
+ * the session ID matches we think the temp namespace "might be" in-use, hence
+ * return false. The outcome is just to skip dropping the table this time, which
+ * is fine.
+ */
+bool
+isTempNamespaceMustBeIdle(Oid namespaceId, HTAB *aliveSessions)
+{
+	PGPROC 		*proc;
+	int 		suffix_id;
+
+	Assert(OidIsValid(MyDatabaseId));
+	Assert(aliveSessions);
+
+	/* Either backendId or gp_session_id */
+	suffix_id = GetTempNamespaceBackendId(namespaceId);
+
+	/* No such namespace, or its name shows it's not temp? */
+	if (suffix_id == InvalidBackendId)
+		return false;
+
+	/* Is it an alive session? */
+	if (hash_search(aliveSessions, &suffix_id, HASH_FIND, NULL))
+		return false;
+
+	/* Not an alive session ID, is it a valid backend? */
+	proc = BackendIdGetProc(suffix_id);
+	if (proc != NULL && suffix_id != MyBackendId) {
+		/*
+		 * Is the backend connected to the same database we are looking at?
+		 * and does the backend own the temporary namespace?
+		 */
+		if (proc->databaseId == MyDatabaseId && proc->tempNamespaceId == namespaceId)
+			return false;
+	}
+
+	/* Otherwise, the temp namespace must be idle */
+	return true;
+}
+
+/*
  * isTempNamespaceInUse - oversimplified, deprecated version of
  * checkTempNamespaceStatus
+ *
+ * GPDB: since checkTempNamespaceStatus is not usable, we should not use this 
+ * function as well (see comment for checkTempNamespaceStatus).
  */
 bool
 isTempNamespaceInUse(Oid namespaceId)
@@ -3349,12 +3412,7 @@ isTempNamespaceInUse(Oid namespaceId)
  * that owns it.  Temporary-toast-table namespaces are included, too.
  * If it isn't a temp namespace, return InvalidBackendId.
  *
- * FIXME: This function doesn't work or useful in GPDB (only useful for
- * utility mode temp tables which are none or rare). Since the temp namespace
- * for QD and QE is using gp_session_id as suffix instead of backendID.
- * Function needs to be modified to work for GPDB. Maybe checking if
- * gp_session_id is active in system or not currently. Only user of this
- * function is autovacuum process so far so the impact is low.
+ * GPDB: the number could be a session ID instead of a backend ID.
  */
 int
 GetTempNamespaceBackendId(Oid namespaceId)
