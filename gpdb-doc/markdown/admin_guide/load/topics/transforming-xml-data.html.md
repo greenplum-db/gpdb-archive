@@ -319,7 +319,7 @@ This setting specifies how to handle standard error output from the transformati
 
 ## <a id="topic91"></a>XML Transformation Examples 
 
-The following examples demonstrate the complete process for different types of XML data and STX transformations. Files and detailed instructions associated with these examples are in the GitHub repo `github.com://greenplum-db/gpdb` in the [gpMgmt/demo/gpfdist\_transform](https://github.com/greenplum-db/gpdb/blob/coordinator/gpMgmt/demo/gpfdist_transform) directory. Read the README file in the *Before You Begin* section before you run the examples. The README file explains how to download the example data file used in the examples.
+The following examples demonstrate the complete process for different types of XML data and STX transformations. Files and detailed instructions associated with these examples are in the GitHub repo `github.com://greenplum-db/gpdb` in the [gpMgmt/demo/gpfdist\_transform](https://github.com/greenplum-db/gpdb/blob/main/gpMgmt/demo/gpfdist_transform) directory. Read the README file in the *Before You Begin* section before you run the examples. The README file explains how to download the example data file used in the examples.
 
 ### <a id="topic32"></a>Command-based External Web Tables 
 
