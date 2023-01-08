@@ -430,12 +430,6 @@ resources:
     - gpdb-doc/*
     - README*
 
-- name: clang-toolchain
-  type: registry-image
-  source:
-    tag: 0.3
-    repository: gcr.io/data-orca/clang-toolchain
-
 - name: gpdb7-[[ os_type ]]-build
   type: registry-image
   source:
@@ -587,14 +581,12 @@ jobs:
   plan:
     - get: gpdb_src
       trigger: true
-    - get: clang-toolchain
     - task: check_format
       file: gpdb_src/concourse/tasks/check_format.yml
     - task: clang_tidy
-      image: clang-toolchain
       file: gpdb_src/concourse/tasks/clang_tidy.yml
       {% if use_ICW_workers %}
-      tags: [icw-[[ os_type ]]]
+      tags: [icw-worker]
       {% endif %}
 
 
@@ -711,7 +703,7 @@ jobs:
       - get: gpdb7-[[ os_type ]]-test
   - task: ic_gpdb
     {% if use_ICW_workers %}
-    tags: [icw-[[ os_type ]]]
+    tags: [icw-worker]
     {% endif %}
     file: gpdb_src/concourse/tasks/ic_gpdb.yml
     image: gpdb7-[[ os_type ]]-test
@@ -734,7 +726,7 @@ jobs:
       - get: gpdb7-[[ os_type ]]-test
   - task: ic_gpdb
     {% if use_ICW_workers %}
-    tags: [icw-[[ os_type ]]]
+    tags: [icw-worker]
     {% endif %}
     file: gpdb_src/concourse/tasks/ic_gpdb.yml
     image: gpdb7-[[ os_type ]]-test
@@ -757,7 +749,7 @@ jobs:
       - get: gpdb7-[[ os_type ]]-test
   - task: ic_gpdb
     {% if use_ICW_workers %}
-    tags: [icw-[[ os_type ]]]
+    tags: [icw-worker]
     {% endif %}
     file: gpdb_src/concourse/tasks/ic_gpdb.yml
     image: gpdb7-[[ os_type ]]-test
@@ -785,7 +777,7 @@ jobs:
       - get: gpdb7-[[ os_type ]]-test
   - task: ic_gpdb
     {% if use_ICW_workers %}
-    tags: [icw-[[ os_type ]]]
+    tags: [icw-worker]
     {% endif %}
     file: gpdb_src/concourse/tasks/ic_gpdb.yml
     image: gpdb7-[[ os_type ]]-test
@@ -808,7 +800,7 @@ jobs:
       - get: gpdb7-[[ os_type ]]-test
   - task: ic_gpdb
     {% if use_ICW_workers %}
-    tags: [icw-[[ os_type ]]]
+    tags: [icw-worker]
     {% endif %}
     file: gpdb_src/concourse/tasks/ic_gpdb.yml
     image: gpdb7-[[ os_type ]]-test
@@ -831,7 +823,7 @@ jobs:
       - get: gpdb7-[[ os_type ]]-test
   - task: ic_gpdb
     {% if use_ICW_workers %}
-    tags: [icw-[[ os_type ]]]
+    tags: [icw-worker]
     {% endif %}
     file: gpdb_src/concourse/tasks/ic_gpdb.yml
     image: gpdb7-[[ os_type ]]-test
@@ -854,7 +846,7 @@ jobs:
       - get: gpdb7-[[ os_type ]]-test
   - task: ic_gpdb
     {% if use_ICW_workers %}
-    tags: [icw-[[ os_type ]]]
+    tags: [icw-worker]
     {% endif %}
     file: gpdb_src/concourse/tasks/ic_gpdb.yml
     image: gpdb7-[[ os_type ]]-test
@@ -876,7 +868,7 @@ jobs:
       - get: gpdb7-[[ os_type ]]-test
   - task: ic_gpdb
     {% if use_ICW_workers %}
-    tags: [icw-[[ os_type ]]]
+    tags: [icw-worker]
     {% endif %}
     file: gpdb_src/concourse/tasks/ic_gpdb.yml
     image: gpdb7-[[ os_type ]]-test
