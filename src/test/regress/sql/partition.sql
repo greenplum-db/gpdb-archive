@@ -3936,6 +3936,7 @@ ALTER TABLE part_inherit ENABLE ROW LEVEL SECURITY;
 -- Check the current status 
 SELECT c.relname,
         c.reloptions,
+        c.relkind,
         a.amname as am,
         c.relhasindex as hasindex,
         r.rolname as owner,
@@ -3959,6 +3960,7 @@ CREATE TABLE part_inherit_partof PARTITION OF part_inherit FOR VALUES FROM (300)
 
 SELECT c.relname,
         c.reloptions,
+        c.relkind,
         a.amname as am,
         c.relhasindex as hasindex,
         r.rolname as owner,
@@ -3988,6 +3990,7 @@ ALTER TABLE part_inherit ATTACH PARTITION part_inherit_attach FOR VALUES FROM (4
 
 SELECT c.relname,
         c.reloptions,
+        c.relkind,
         a.amname as am,
         c.relhasindex as hasindex,
         r.rolname as owner,
@@ -4006,6 +4009,7 @@ ALTER TABLE part_inherit ADD PARTITION added START(500) END(600);
 
 SELECT c.relname,
         c.reloptions,
+        c.relkind,
         a.amname as am,
         c.relhasindex as hasindex,
         r.rolname as owner,
@@ -4035,6 +4039,7 @@ ALTER TABLE part_inherit_1_prt_l1_to_exchange EXCHANGE PARTITION l2_child WITH T
 
 SELECT c.relname,
         c.reloptions,
+        c.relkind,
         a.amname as am,
         c.relhasindex as hasindex,
         r.rolname as owner,
@@ -4053,6 +4058,7 @@ ALTER TABLE part_inherit_1_prt_l1_to_split SPLIT PARTITION l2_child AT (10150) I
 
 SELECT c.relname,
         c.reloptions,
+        c.relkind,
         a.amname as am,
         c.relhasindex as hasindex,
         r.rolname as owner,
@@ -4069,6 +4075,7 @@ WHERE c.relname LIKE 'part_inherit_1_prt_l1_to_split%' AND
 -- Now print everything for comparison
 SELECT c.relname,
         c.reloptions,
+        c.relkind,
         a.amname as am,
         c.relhasindex as hasindex,
         r.rolname as owner,
