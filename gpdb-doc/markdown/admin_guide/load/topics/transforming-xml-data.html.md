@@ -405,7 +405,7 @@ Load the data into Greenplum Database.
 
 This example demonstrates loading sample data describing an oil rig using a Joost STX transformation. The data is in the form of a complex XML file downloaded from energistics.org.
 
-The Wellsite Information Transfer Standard Markup Language \(WITSML™\) is an oil industry initiative to provide open, non-proprietary, standard interfaces for technology and software to share information among oil companies, service companies, drilling contractors, application vendors, and regulatory agencies. For more information about WITSML™, see [http://www.energistics.org/](http://www.energistics.org/).
+The Wellsite Information Transfer Standard Markup Language \(WITSML™\) is an oil industry initiative to provide open, non-proprietary, standard interfaces for technology and software to share information among oil companies, service companies, drilling contractors, application vendors, and regulatory agencies. For more information about WITSML™, see [https://www.energistics.org/](https://www.energistics.org/).
 
 The oil rig information consists of a top level `<rigs>` element with multiple child elements such as `<documentInfo>, <rig>`, and so on. The following excerpt from the file shows the type of information in the `<rig>` tag.
 
@@ -413,9 +413,9 @@ The oil rig information consists of a top level `<rigs>` element with multiple c
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="../stylesheets/rig.xsl" type="text/xsl" media="screen"?>
 <rigs 
- xmlns="http://www.energistics.org/schemas/131" 
- xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
- xsi:schemaLocation="http://www.energistics.org/schemas/131 ../obj_rig.xsd" 
+ xmlns="https://www.energistics.org/schemas/131" 
+ xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" 
+ xsi:schemaLocation="https://www.energistics.org/schemas/131 ../obj_rig.xsd" 
  version="1.3.1.1">
  <documentInfo>
  ... misc data ...
