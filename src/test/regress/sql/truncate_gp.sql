@@ -35,7 +35,7 @@ for dbid, datadir in db_instances.items():
     absolute_path_to_dboid_dir = '%s/base/%d' % (datadir, dboid)
     i = i+1
     try:
-        for relfilenode in os.listdir(absolute_path_to_dboid_dir):
+        for relfilenode in sorted(os.listdir(absolute_path_to_dboid_dir)):
             relfilenode_prefix = relfilenode.split('.')[0]
             if relfilenodes[i] != relfilenode_prefix:
                 continue
@@ -56,6 +56,9 @@ for dbid, datadir in db_instances.items():
         })
 return rows
 $fn$;
+
+-- switch to unaligned output mode
+\pset format unaligned
 
 -- test truncate table and create table are in the same transaction for ao table
 begin;
