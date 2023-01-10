@@ -438,12 +438,30 @@ def impl(context, content):
     dburl = dbconn.DbURL(hostname=host, port=port, dbname='template1')
     wait_for_desired_query_result(dburl, query, desired_result, utility=True)
 
+
+@given('the user just waits until recovery_progress.file is created in {logdir}')
+@when('the user just waits until recovery_progress.file is created in {logdir}')
+@then('the user just waits until recovery_progress.file is created in {logdir}')
+def impl(context, logdir):
+    attempt = 0
+    num_retries = 6000
+    log_dir = _get_gpAdminLogs_directory() if logdir == 'gpAdminLogs' else logdir
+    recovery_progress_file = '{}/recovery_progress.file'.format(log_dir)
+    while attempt < num_retries:
+        attempt += 1
+        if os.path.exists(recovery_progress_file):
+            return
+        time.sleep(0.1)
+        if attempt == num_retries:
+            raise Exception('Timed out after {} retries'.format(num_retries))
+
+
 @given('the user waits until recovery_progress.file is created in {logdir} and verifies its format')
 @when('the user waits until recovery_progress.file is created in {logdir} and verifies its format')
 @then('the user waits until recovery_progress.file is created in {logdir} and verifies its format')
 def impl(context, logdir):
     attempt = 0
-    num_retries = 60000
+    num_retries = 6000
     log_dir = _get_gpAdminLogs_directory() if logdir == 'gpAdminLogs' else logdir
     recovery_progress_file = '{}/recovery_progress.file'.format(log_dir)
     while attempt < num_retries:
@@ -459,7 +477,7 @@ def impl(context, logdir):
                     return
                 else:
                     raise Exception('File present but incorrect format line "{}"'.format(line))
-        time.sleep(0.01)
+        time.sleep(0.1)
         if attempt == num_retries:
             raise Exception('Timed out after {} retries'.format(num_retries))
 
@@ -3925,3 +3943,28 @@ def impl(context, slot):
                 result = dbconn.querySingleton(conn, query)
                 if result == 0:
                     raise Exception("Slot does not exist for host:{}, port:{}".format(host, port))
+
+
+@given('user waits until gp_stat_replication table has no pg_basebackup entries for content {contentids}')
+@when('user waits until gp_stat_replication table has no pg_basebackup entries for content {contentids}')
+@then('user waits until gp_stat_replication table has no pg_basebackup entries for content {contentids}')
+def impl(context, contentids):
+     retries = 600
+     content_ids = contentids.split(',')
+     content_ids = ', '.join(c for c in content_ids)
+     sql = "select count(*) from gp_stat_replication where application_name = 'pg_basebackup' and gp_segment_id in (%s)" %(content_ids)
+     no_basebackup = False
+
+     for i in range(retries):
+         try:
+             with closing(dbconn.connect(dbconn.DbURL())) as conn:
+                 res = dbconn.querySingleton(conn, sql)
+         except Exception as e:
+             raise Exception("Failed to query gp_stat_replication: %s" % str(e))
+         if res == 0:
+             no_basebackup = True
+             break
+         time.sleep(1)
+
+     if not no_basebackup:
+         raise Exception("pg_basebackup entry was found for contents %s in gp_stat_replication after %d retries" % (contentids, retries))
