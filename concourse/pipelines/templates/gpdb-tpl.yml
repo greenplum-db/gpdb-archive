@@ -1576,7 +1576,7 @@ jobs:
           outputs:
             - name: release_candidates
           params:
-            RC_BUILD_TYPE_GCS:
+            RC_BUILD_TYPE_GCS: ((rc-build-type-gcs))
           run:
             path: bash
             args:
