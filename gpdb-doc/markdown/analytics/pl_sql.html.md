@@ -92,7 +92,7 @@ $$ LANGUAGE plpgsql;
 
 You can run SQL commands with PL/pgSQL statements such as `EXECUTE`, `PERFORM`, and `SELECT ... INTO`. For information about the PL/pgSQL statements, see [https://www.postgresql.org/docs/9.4/plpgsql-statements.html](https://www.postgresql.org/docs/9.4/plpgsql-statements.html).
 
-**Note:** The PL/pgSQL statement `SELECT INTO` is not supported in the `EXECUTE` statement.
+> **Note** The PL/pgSQL statement `SELECT INTO` is not supported in the `EXECUTE` statement.
 
 ## <a id="topic67"></a>PL/pgSQL Plan Caching 
 
@@ -210,7 +210,7 @@ END;
 $$ LANGUAGE plpgsql VOLATILE;
 ```
 
-**Note:** The previous function is classified as a `VOLATILE` function because function values could change within a single table scan.
+> **Note** The previous function is classified as a `VOLATILE` function because function values could change within a single table scan.
 
 The following `SELECT` command uses the function.
 
@@ -218,7 +218,7 @@ The following `SELECT` command uses the function.
 select t1_calc( 'test1' );
 ```
 
-**Note:** The example PL/pgSQL function uses `SELECT` with the `INTO` clause. It is different from the SQL command `SELECT INTO`. If you want to create a table from a `SELECT` result inside a PL/pgSQL function, use the SQL command `CREATE TABLE AS`.
+> **Note** The example PL/pgSQL function uses `SELECT` with the `INTO` clause. It is different from the SQL command `SELECT INTO`. If you want to create a table from a `SELECT` result inside a PL/pgSQL function, use the SQL command `CREATE TABLE AS`.
 
 ### <a id="topic_lsh_5n5_2z1717"></a>Example: Using a Variable Number of Arguments 
 

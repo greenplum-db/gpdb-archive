@@ -15,7 +15,7 @@ Set these in your user's startup shell profile \(such as `~/.bashrc` or `~/.bash
 
 ## <a id="topic2"></a>Required Environment Variables 
 
-**Note:** `GPHOME`, `PATH` and `LD_LIBRARY_PATH` can be set by sourcing the `greenplum_path.sh` file from your Greenplum Database installation directory
+> **Note** `GPHOME`, `PATH` and `LD_LIBRARY_PATH` can be set by sourcing the `greenplum_path.sh` file from your Greenplum Database installation directory
 
 **Parent topic:** [Greenplum Environment Variables](env_var_ref.html)
 

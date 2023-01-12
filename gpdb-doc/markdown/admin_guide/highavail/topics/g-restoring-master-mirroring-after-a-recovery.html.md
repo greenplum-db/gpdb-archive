@@ -42,7 +42,7 @@ For information about the Greenplum Database utilities, see the *Greenplum Datab
 
 ## <a id="topic_dr3_ld4_npb"></a>To restore the coordinator and standby instances on original hosts \(optional\) 
 
-**Note:** Before performing the steps in this section, be sure you have followed the steps to restore coordinator mirroring after a recovery, as described in the [To restore the coordinator mirroring after a recovery](#topic_us3_md4_npb)previous section.
+> **Note** Before performing the steps in this section, be sure you have followed the steps to restore coordinator mirroring after a recovery, as described in the [To restore the coordinator mirroring after a recovery](#topic_us3_md4_npb)previous section.
 
 1.  Stop the Greenplum Database coordinator instance on the standby coordinator. For example:
 

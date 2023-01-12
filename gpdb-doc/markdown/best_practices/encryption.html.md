@@ -315,7 +315,7 @@ This section shows how to encrypt data inserted into a column using the PGP keys
     
     ```
 
-    **Note:** Different keys may have the same ID. This is rare, but is a normal event. The client application should try to decrypt with each one to see which fits — like handling `ANYKEY`. See [pgp\_key\_id\(\)](https://www.postgresql.org/docs/9.4/pgcrypto.html) in the pgcrypto documentation.
+    > **Note** Different keys may have the same ID. This is rare, but is a normal event. The client application should try to decrypt with each one to see which fits — like handling `ANYKEY`. See [pgp\_key\_id\(\)](https://www.postgresql.org/docs/9.4/pgcrypto.html) in the pgcrypto documentation.
 
 6.  Decrypt the data using the private key.
 

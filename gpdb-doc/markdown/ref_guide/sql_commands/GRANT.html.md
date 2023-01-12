@@ -166,7 +166,7 @@ REFERENCES
 TRIGGER
 :   Allows the creation of a trigger on the specified table.
 
-    **Note:** Greenplum Database does not support triggers.
+    > **Note** Greenplum Database does not support triggers.
 
 TRUNCATE
 :   Allows `TRUNCATE` of all rows from the specified table.

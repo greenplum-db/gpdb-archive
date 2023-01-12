@@ -109,7 +109,7 @@ BETWEEN DAY 'Monday' TIME '00:00' AND
 
 The last three statements are equivalent.
 
-**Note:** Intervals of days cannot wrap past Saturday.
+> **Note** Intervals of days cannot wrap past Saturday.
 
 The following syntax is not correct:
 

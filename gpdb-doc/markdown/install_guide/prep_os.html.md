@@ -25,9 +25,9 @@ For information about running VMware Greenplum Database in the cloud see *Cloud 
 
 The VMware Greenplum on vSphere virtualized environment ensures the enforcement of anti-affinity rules required for Greenplum mirroring solutions and fully supports mirrorless deployments. Other virtualized or containerized deployment environments are generally not supported for production use unless both Greenplum coordinator and segment mirroring are enabled.
 
-**Note:** For information about upgrading VMware Greenplum from a previous version, see the *VMware Greenplum Database Release Notes* for the release that you are installing.
+> **Note** For information about upgrading VMware Greenplum from a previous version, see the *VMware Greenplum Database Release Notes* for the release that you are installing.
 
-**Note:** Automating the configuration steps described in this topic and [Installing the Greenplum Database Software](install_gpdb.html) with a system provisioning tool, such as Ansible, Chef, or Puppet, can save time and ensure a reliable and repeatable Greenplum Database installation.
+> **Note** Automating the configuration steps described in this topic and [Installing the Greenplum Database Software](install_gpdb.html) with a system provisioning tool, such as Ansible, Chef, or Puppet, can save time and ensure a reliable and repeatable Greenplum Database installation.
 
 **Parent topic:** [Installing and Upgrading Greenplum](install_guide.html)
 
@@ -347,7 +347,7 @@ The XFS options can also be set in the `/etc/fstab` file. This example entry fro
 /dev/data /data xfs nodev,noatime,inode64 0 0
 ```
 
-**Note:** You must have root permission to edit the `/etc/fstab` file.
+> **Note** You must have root permission to edit the `/etc/fstab` file.
 
 ### <a id="disk_io_settings"></a>Disk I/O Settings 
 
@@ -379,7 +379,7 @@ The XFS options can also be set in the `/etc/fstab` file. This example entry fro
 
     See the manual page \(man\) for the `blockdev` command for more information about using that command \(`man blockdev` opens the man page\).
 
-    **Note:** The `blockdev --setra` command is not persistent. You must ensure the read-ahead value is set whenever the system restarts. How to set the value will vary based on your system.
+    > **Note** The `blockdev --setra` command is not persistent. You must ensure the read-ahead value is set whenever the system restarts. How to set the value will vary based on your system.
 
     One method to set the `blockdev` value at system startup is by adding the `/sbin/blockdev --setra` command in the `rc.local` file. For example, add this line to the `rc.local` file to set the read-ahead value for the disk `sdb`.
 
@@ -448,7 +448,7 @@ The XFS options can also be set in the `/etc/fstab` file. This example entry fro
     # echo deadline > /sys/block/sbd/queue/scheduler
     ```
 
-    **Note:** Using the `echo` command to set the disk I/O scheduler policy is not persistent; you must ensure that you run the command whenever the system reboots. How to run the command will vary based on your system.
+    > **Note** Using the `echo` command to set the disk I/O scheduler policy is not persistent; you must ensure that you run the command whenever the system reboots. How to run the command will vary based on your system.
 
     To specify the I/O scheduler at boot time on systems that use `grub2` such as RHEL 7.x or CentOS 7.x, use the system utility `grubby`. This command adds the parameter when run as `root`:
 
@@ -542,7 +542,7 @@ Certain Greenplum Database management utilities including `gpexpand`, `gpinitsys
 
 To increase this connection threshold for your Greenplum Database system, update the SSH `MaxStartups` and `MaxSessions` configuration parameters in one of the `/etc/ssh/sshd_config` or `/etc/sshd_config` SSH daemon configuration files.
 
-**Note:** You must have root permission to edit these two files.
+> **Note** You must have root permission to edit these two files.
 
 If you specify `MaxStartups` and `MaxSessions` using a single integer value, you identify the maximum number of concurrent unauthenticated connections \(`MaxStartups`\) and maximum number of open shell, login, or subsystem sessions permitted per network connection \(`MaxSessions`\). For example:
 
@@ -568,7 +568,7 @@ For detailed information about SSH configuration options, refer to the SSH docum
 
 <a id="grubby_note"></a>
 
-**Note:** If the `grubby` command does not update the kernels of a RHEL 7.x or CentOS 7.x system, you can manually update all kernels on the system. For example, to add the parameter `transparent_hugepage=never` to all kernels on a system.
+> **Note** If the `grubby` command does not update the kernels of a RHEL 7.x or CentOS 7.x system, you can manually update all kernels on the system. For example, to add the parameter `transparent_hugepage=never` to all kernels on a system.
 
 1.  Add the parameter to the `GRUB_CMDLINE_LINUX` line in the file parameter in `/etc/default/grub`.
 
@@ -582,7 +582,7 @@ For detailed information about SSH configuration options, refer to the SSH docum
                   GRUB_DISABLE_RECOVERY="true"
     ```
 
-    **Note:** You must have root permission to edit the `/etc/default/grub` file.
+    > **Note** You must have root permission to edit the `/etc/default/grub` file.
 
 2.  As root, run the `grub2-mkconfig` command to update the kernels.
 
@@ -641,11 +641,11 @@ You can optionally give the `gpadmin` user sudo privilege, so that you can easil
 
 The following steps show how to set up the `gpadmin` user on a host, set a password, create an SSH key pair, and \(optionally\) enable sudo capability. These steps must be performed as root on every Greenplum Database cluster host. \(For a large Greenplum Database cluster you will want to automate these steps using your system provisioning tools.\)
 
-**Note:** See [Example Ansible Playbook](ansible-example.html) for an example that shows how to automate the tasks of creating the `gpadmin` user and installing the Greenplum Database software on all hosts in the cluster.
+> **Note** See [Example Ansible Playbook](ansible-example.html) for an example that shows how to automate the tasks of creating the `gpadmin` user and installing the Greenplum Database software on all hosts in the cluster.
 
 1.  Create the `gpadmin` group and user.
 
-    **Note:** If you are installing Greenplum Database on RHEL 7.2 or CentOS 7.2 and want to deactivate IPC object removal by creating the `gpadmin` user as a system account, provide both the `-r` option \(create the user as a system account\) and the `-m` option \(create a home directory\) to the `useradd` command. On Ubuntu systems, you must use the `-m` option with the `useradd` command to create a home directory for a user.
+    > **Note** If you are installing Greenplum Database on RHEL 7.2 or CentOS 7.2 and want to deactivate IPC object removal by creating the `gpadmin` user as a system account, provide both the `-r` option \(create the user as a system account\) and the `-m` option \(create a home directory\) to the `useradd` command. On Ubuntu systems, you must use the `-m` option with the `useradd` command to create a home directory for a user.
 
     This example creates the `gpadmin` group, creates the `gpadmin` user as a system account with a home directory and as a member of the `gpadmin` group, and creates a password for the user.
 
@@ -657,9 +657,9 @@ The following steps show how to set up the `gpadmin` user on a host, set a passw
     Retype new password: <changeme>
     ```
 
-    **Note:** You must have root permission to create the `gpadmin` group and user.
+    > **Note** You must have root permission to create the `gpadmin` group and user.
 
-    **Note:** Make sure the `gpadmin` user has the same user id \(uid\) and group id \(gid\) numbers on each host to prevent problems with scripts or services that use them for identity or permissions. For example, backing up Greenplum databases to some networked filesy stems or storage appliances could fail if the `gpadmin` user has different uid or gid numbers on different segment hosts. When you create the `gpadmin` group and user, you can use the `groupadd -g` option to specify a gid number and the `useradd -u` option to specify the uid number. Use the command `id gpadmin` to see the uid and gid for the `gpadmin` user on the current host.
+    > **Note** Make sure the `gpadmin` user has the same user id \(uid\) and group id \(gid\) numbers on each host to prevent problems with scripts or services that use them for identity or permissions. For example, backing up Greenplum databases to some networked filesy stems or storage appliances could fail if the `gpadmin` user has different uid or gid numbers on different segment hosts. When you create the `gpadmin` group and user, you can use the `groupadd -g` option to specify a gid number and the `useradd -u` option to specify the uid number. Use the command `id gpadmin` to see the uid and gid for the `gpadmin` user on the current host.
 
 2.  Switch to the `gpadmin` user and generate an SSH key pair for the `gpadmin` user.
 

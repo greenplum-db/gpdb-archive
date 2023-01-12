@@ -50,7 +50,7 @@ Do not create more partitions than are needed. Creating too many partitions can 
 
 Partitioning does not improve query performance unless the query optimizer can eliminate partitions based on the query predicates. Queries that scan every partition run slower than if the table were not partitioned, so avoid partitioning if few of your queries achieve partition elimination. Check the explain plan for queries to make sure that partitions are eliminated. See [Query Profiling](../query/topics/query-profiling.html) for more about partition elimination.
 
-**Warning:** Be very careful with multi-level partitioning because the number of partition files can grow very quickly. For example, if a table is partitioned by both day and city, and there are 1,000 days of data and 1,000 cities, the total number of partitions is one million. Column-oriented tables store each column in a physical table, so if this table has 100 columns, the system would be required to manage 100 million files for the table, for each segment.
+> **Caution** Be very careful with multi-level partitioning because the number of partition files can grow very quickly. For example, if a table is partitioned by both day and city, and there are 1,000 days of data and 1,000 cities, the total number of partitions is one million. Column-oriented tables store each column in a physical table, so if this table has 100 columns, the system would be required to manage 100 million files for the table, for each segment.
 
 Before settling on a multi-level partitioning strategy, consider a single level partition with bitmap indexes. Indexes slow down data loads, so performance testing with your data and schema is recommended to decide on the best strategy.
 
@@ -141,7 +141,7 @@ PARTITION BY LIST (gender)
 
 ```
 
-**Note:** The current Postgres Planner allows list partitions with multi-column \(composite\) partition keys. A range partition only allows a single column as the partition key. GPORCA does not support composite keys, so you should not use composite partition keys.
+> **Note** The current Postgres Planner allows list partitions with multi-column \(composite\) partition keys. A range partition only allows a single column as the partition key. GPORCA does not support composite keys, so you should not use composite partition keys.
 
 For more information about default partitions, see [Adding a Default Partition](#topic80).
 
@@ -209,7 +209,7 @@ GRANT SELECT ON sales TO guest;
 
 ```
 
-**Note:** The `LIKE` clause does not copy over partition structures when creating a new table.
+> **Note** The `LIKE` clause does not copy over partition structures when creating a new table.
 
 ### <a id="topic72"></a>Limitations of Partitioned Tables 
 
@@ -382,7 +382,7 @@ ALTER TABLE sales ALTER PARTITION FOR (RANK(12))
 
 ```
 
-**Note:** You cannot add a partition to a partition design that has a default partition. You must split the default partition to add a partition. See [Splitting a Partition](#topic84).
+> **Note** You cannot add a partition to a partition design that has a default partition. You must split the default partition to add a partition. See [Splitting a Partition](#topic84).
 
 ### <a id="topic79"></a>Renaming a Partition 
 
@@ -432,7 +432,7 @@ sales_1_prt_jan16
 
 When altering partitioned tables with the `ALTER TABLE` command, always refer to the tables by their partition name \(*jan16*\) and not their full table name \(*sales\_1\_prt\_jan16*\).
 
-**Note:** The table name cannot be a partition name in an `ALTER TABLE` statement. For example, `ALTER TABLE sales...` is correct, `ALTER TABLE sales_1_part_jan16...` is not allowed.
+> **Note** The table name cannot be a partition name in an `ALTER TABLE` statement. For example, `ALTER TABLE sales...` is correct, `ALTER TABLE sales_1_part_jan16...` is not allowed.
 
 ### <a id="topic80"></a>Adding a Default Partition 
 
@@ -483,7 +483,7 @@ You can exchange a partition using the `ALTER TABLE` command. Exchanging a parti
 
 You cannot exchange a partition with a replicated table. Exchanging a partition with a partitioned table or a child partition of a partitioned table is not supported.
 
-**Warning:** If you specify the `WITHOUT VALIDATION` clause, you must ensure that the data in table that you are exchanging for an existing partition is valid against the constraints on the partition. Otherwise, queries against the partitioned table might return incorrect results.
+> **Caution** If you specify the `WITHOUT VALIDATION` clause, you must ensure that the data in table that you are exchanging for an existing partition is valid against the constraints on the partition. Otherwise, queries against the partitioned table might return incorrect results.
 
 ### <a id="topic84"></a>Splitting a Partition 
 
@@ -633,7 +633,7 @@ There are four leaf child partitions for the partitioned table. Each leaf child 
 
     The external table becomes the leaf child partition with the table name `sales_1_prt_yr_1` and the old leaf child partition becomes the table `sales_2010_ext`.
 
-    **Warning:** In order to ensure queries against the partitioned table return the correct results, the external table data must be valid against the `CHECK` constraints on the leaf child partition. In this case, the data was taken from the child leaf partition table on which the `CHECK` constraints were defined.
+    > **Caution** In order to ensure queries against the partitioned table return the correct results, the external table data must be valid against the `CHECK` constraints on the leaf child partition. In this case, the data was taken from the child leaf partition table on which the `CHECK` constraints were defined.
 
 6.  Drop the table that was rolled out of the partitioned table.
 

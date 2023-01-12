@@ -10,7 +10,7 @@ Run performance tests first on the new hosts and then all hosts. Run the tests o
 
 Generally, you should run performance tests when an administrator modifies host networking or other special conditions in the system. For example, if you will run the expanded system on two network clusters, run tests on each cluster.
 
-**Note:** Preparing host systems for use by a Greenplum Database system assumes that the new hosts' operating system has been properly configured to match the existing hosts, described in [Configuring Your Systems](../../install_guide/prep_os.html).
+> **Note** Preparing host systems for use by a Greenplum Database system assumes that the new hosts' operating system has been properly configured to match the existing hosts, described in [Configuring Your Systems](../../install_guide/prep_os.html).
 
 **Parent topic:** [Expanding a Greenplum System](../expand/expand-main.html)
 
@@ -24,7 +24,7 @@ First perform the process as `root`, for administration convenience, and then as
 2.  [To create the gpadmin user](#no160595)
 3.  [To exchange SSH keys as the gpadmin user](#sshexch_gpadmin)
 
-**Note:** The Greenplum Database segment host naming convention is `sdwN` where `sdw` is a prefix and `N` is an integer \( `sdw1`, `sdw2` and so on\). For hosts with multiple interfaces, the convention is to append a dash \(`-`\) and number to the host name. For example, `sdw1-1` and `sdw1-2` are the two interface names for host `sdw1`.
+> **Note** The Greenplum Database segment host naming convention is `sdwN` where `sdw` is a prefix and `N` is an integer \( `sdw1`, `sdw2` and so on\). For hosts with multiple interfaces, the convention is to append a dash \(`-`\) and number to the host name. For example, `sdw1-1` and `sdw1-2` are the two interface names for host `sdw1`.
 
 ### <a id="no160715"></a>To exchange SSH keys as root 
 

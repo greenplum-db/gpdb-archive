@@ -27,7 +27,7 @@ Greenplum Database 6 runs on the following operating system platforms:
 -   Oracle Linux 64-bit 8, using the Red Hat Compatible Kernel \(RHCK\)
 -   Rocky Linux 8
 
-**Note:** Do not install anti-virus software on Greenplum Database hosts as the software might cause extra CPU and IO load that interferes with Greenplum Database operations.
+> **Note** Do not install anti-virus software on Greenplum Database hosts as the software might cause extra CPU and IO load that interferes with Greenplum Database operations.
 
 Greenplum Database server supports TLS version 1.2 on RHEL/CentOS systems, and TLS version 1.3 on Ubuntu systems.
 
@@ -143,7 +143,7 @@ VMware Greenplum 6 supports Data Domain Boost for backup on Red Hat Enterprise L
 |---------------|-----------------|----|
 |6.x|3.3|6.1 \(all versions\), 6.0 \(all versions\)|
 
-**Note:** In addition to the DDOS versions listed in the previous table, VMware Greenplum supports all minor patch releases \(fourth digit releases\) later than the certified version.
+> **Note** In addition to the DDOS versions listed in the previous table, VMware Greenplum supports all minor patch releases \(fourth digit releases\) later than the certified version.
 
 ## <a id="topic31"></a>VMware Greenplum Tools and Extensions Compatibility 
 
@@ -258,7 +258,7 @@ These Greenplum Database extensions are installed with Greenplum Database
 
 -   Greenplum Platform Extension Framework \(PXF\) - PXF provides access to Hadoop, object store, and SQL external data stores. Refer to [Accessing External Data with PXF](../admin_guide/external/pxf-overview.html) in the *Greenplum Database Administrator Guide* for PXF configuration and usage information.
 
-    **Note:** VMware Greenplum Database versions starting with 6.19.0 no longer bundle a version of PXF. You can install PXF in your Greenplum cluster by installing [the independent distribution of PXF](https://docs.vmware.com/en/VMware-Tanzu-Greenplum-Platform-Extension-Framework/index.html) as described in the PXF documentation.
+    > **Note** VMware Greenplum Database versions starting with 6.19.0 no longer bundle a version of PXF. You can install PXF in your Greenplum cluster by installing [the independent distribution of PXF](https://docs.vmware.com/en/VMware-Tanzu-Greenplum-Platform-Extension-Framework/index.html) as described in the PXF documentation.
 -   Greenplum Streaming Server v1.5.3 - The VMware Greenplum Streaming Server is an ETL tool that provides high speed, parallel data transfer from Informatica, Kafka, Apache NiFi and custom client data sources to a VMware Greenplum cluster. Refer to the [VMware Greenplum Streaming Server](https://docs.vmware.com/en/VMware-Tanzu-Greenplum-Streaming-Server/index.html) Documentation for more information about this feature.
 -   Greenplum Streaming Server Kafka integration - The Kafka integration provides high speed, parallel data transfer from a Kafka cluster to a Greenplum Database cluster for batch and streaming ETL operations. It requires Kafka version 0.11 or newer for exactly-once delivery assurance. Refer to the [VMware Greenplum Streaming Server](https://docs.vmware.com/en/VMware-Tanzu-Greenplum-Streaming-Server/index.html) Documentation for more information about this feature.
 -   Greenplum Connector for Apache Spark v1.6.2 - The VMware Greenplum Connector for Apache Spark supports high speed, parallel data transfer between Greenplum and an Apache Spark cluster using Spark’s Scala API.
@@ -268,9 +268,9 @@ These Greenplum Database extensions are installed with Greenplum Database
 -   Progress DataDirect ODBC Drivers v7.1.6+7.16.389 - The Progress DataDirect ODBC drivers enable third party applications to connect via a common interface to the VMware Greenplum system.
 -   R2B X-LOG v5.x and v6.x - Real-time data replication solution that achieves high-speed database replication through the use of Redo Log Capturing method.
 
-**Note:** Greenplum 5.x clients (gpload, gpfdist) are supported with Greenplum 6.x Server and Informatica PowerCenter and PowerExchange 10.4.
+> **Note** Greenplum 5.x clients (gpload, gpfdist) are supported with Greenplum 6.x Server and Informatica PowerCenter and PowerExchange 10.4.
 
-**Note:** VMware Greenplum 6 does not support the ODBC driver for Cognos Analytics V11.
+> **Note** VMware Greenplum 6 does not support the ODBC driver for Cognos Analytics V11.
 
 Connecting to IBM Cognos software with an ODBC driver is not supported. Greenplum Database supports connecting to IBM Cognos software with the DataDirect JDBC driver for VMware Greenplum. This driver is available as a download from [VMware Tanzu Network](https://network.pivotal.io/products/pivotal-gpdb).
 
@@ -294,5 +294,5 @@ PXF can use Cloudera, Hortonworks Data Platform, MapR, and generic Apache Hadoop
 |5.8.2|2.x|1.x|1.3.2|
 |5.8.1|2.x|1.x|1.3.2|
 
-**Note:** If you plan to access JSON format data stored in a Cloudera Hadoop cluster, PXF requires a Cloudera version 5.8 or later Hadoop distribution.
+> **Note** If you plan to access JSON format data stored in a Cloudera Hadoop cluster, PXF requires a Cloudera version 5.8 or later Hadoop distribution.
 

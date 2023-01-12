@@ -55,7 +55,7 @@ FROM messages m, docs d
 WHERE mid = did AND mid = 12;
 ```
 
-**Note:**
+> **Note**
 
 In these example queries, `coalesce` should be used to prevent a single `NULL` attribute from causing a `NULL` result for the whole document.
 

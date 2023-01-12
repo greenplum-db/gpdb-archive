@@ -8,7 +8,7 @@ A function with the pseudo-type *record* as a return data type returns an unspec
 
 The pseudo-type *void* indicates that a function returns no value.
 
-**Note:** Greenplum Database does not support triggers and the pseudo-type *trigger*.
+> **Note** Greenplum Database does not support triggers and the pseudo-type *trigger*.
 
 The types *anyelement*, *anyarray*, *anynonarray*, and *anyenum* are pseudo-types called polymorphic types. Some procedural languages also support polymorphic functions using the types *anyarray*, *anyelement*, *anyenum*, and *anynonarray*.
 

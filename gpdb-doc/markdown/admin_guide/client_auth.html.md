@@ -178,7 +178,7 @@ This example shows how to edit the pg\_hba.conf file of the coordinator to allow
     ```
 
 
-**Note:** Note that you can also control database access by setting object privileges as described in [Managing Object Privileges](roles_privs.html). The pg\_hba.conf file just controls who can initiate a database session and how those connections are authenticated.
+> **Note** Note that you can also control database access by setting object privileges as described in [Managing Object Privileges](roles_privs.html). The pg\_hba.conf file just controls who can initiate a database session and how those connections are authenticated.
 
 ## <a id="topic4"></a>Limiting Concurrent Connections 
 
@@ -247,7 +247,7 @@ For information about `gpconfig`, see the *Greenplum Database Utility Guide*.
     ```
 
 
-**Note:** Raising the values of these parameters may cause Greenplum Database to request more shared memory. To mitigate this effect, consider decreasing other memory-related parameters such as `gp_cached_segworkers_threshold`.
+> **Note** Raising the values of these parameters may cause Greenplum Database to request more shared memory. To mitigate this effect, consider decreasing other memory-related parameters such as `gp_cached_segworkers_threshold`.
 
 ## <a id="topic5"></a>Encrypting Client/Server Connections 
 

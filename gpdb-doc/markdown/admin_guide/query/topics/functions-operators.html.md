@@ -43,7 +43,7 @@ In Greenplum Database, data is divided up across segments — each segment is a 
 
 A function can run read-only queries on replicated tables \(`DISTRIBUTED REPLICATED`\) on the segments, but any SQL command that modifies data must run on the coordinator instance.
 
-**Note:** The hidden system columns \(`ctid`, `cmin`, `cmax`, `xmin`, `xmax`, and `gp_segment_id`\) cannot be referenced in user queries on replicated tables because they have no single, unambiguous value. Greenplum Database returns a `column does not exist` error for the query.
+> **Note** The hidden system columns \(`ctid`, `cmin`, `cmax`, `xmin`, `xmax`, and `gp_segment_id`\) cannot be referenced in user queries on replicated tables because they have no single, unambiguous value. Greenplum Database returns a `column does not exist` error for the query.
 
 To ensure data consistency, you can safely use `VOLATILE` and `STABLE` functions in statements that are evaluated on and run from the coordinator. For example, the following statements run on the coordinator \(statements without a `FROM` clause\):
 
@@ -561,7 +561,7 @@ The following built-in window functions are Greenplum extensions to the PostgreS
 
 The following built-in advanced aggregate functions are Greenplum extensions of the PostgreSQL database. These functions are *immutable*.
 
-**Note:** The Greenplum MADlib Extension for Analytics provides additional advanced functions to perform statistical analysis and machine learning with Greenplum Database data. See [Greenplum MADlib Extension for Analytics](../../../analytics/madlib.html) in the *Greenplum Database Reference Guide*.
+> **Note** The Greenplum MADlib Extension for Analytics provides additional advanced functions to perform statistical analysis and machine learning with Greenplum Database data. See [Greenplum MADlib Extension for Analytics](../../../analytics/madlib.html) in the *Greenplum Database Reference Guide*.
 
 <table class="table" id="topic31__in2073121"><caption><span class="table--title-label">Table 5. </span><span class="title">Advanced Aggregate Functions</span></caption><colgroup><col style="width:23.00684070063499%"><col style="width:18.098714684499523%"><col style="width:31.2862357741035%"><col style="width:27.60820884076199%"></colgroup><thead class="thead">
                         <tr class="row">

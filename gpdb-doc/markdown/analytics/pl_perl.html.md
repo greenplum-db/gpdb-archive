@@ -41,7 +41,7 @@ PL/Perl has limitations with respect to communication between interpreters and t
 
 You must register the PL/Perl language with a database before you can create and run a PL/Perl user-defined function within that database. To remove PL/Perl support, you must explicitly remove the extension from each database in which it was registered. You must be a database superuser or owner to register or remove trusted languages in Greenplum databases.
 
-**Note:** Only database superusers may register or remove support for the *untrusted* PL/Perl language `plperlu`.
+> **Note** Only database superusers may register or remove support for the *untrusted* PL/Perl language `plperlu`.
 
 Before you enable or remove PL/Perl support in a database, ensure that:
 

@@ -8,7 +8,7 @@ All operations on a foreign table are handled through its foreign-data wrapper \
 
 The foreign-data wrappers included in the Greenplum Database open source github repository are good references when trying to write your own. You may want to examine the source code for the [file\_fdw](https://github.com/greenplum-db/gpdb/tree/main/contrib/file_fdw) and [postgres\_fdw](https://github.com/greenplum-db/gpdb/tree/main/contrib/postgres_fdw) modules in the `contrib/` directory. The [CREATE FOREIGN DATA WRAPPER](../../ref_guide/sql_commands/CREATE_FOREIGN_DATA_WRAPPER.html) reference page also provides some useful details.
 
-**Note:** The SQL standard specifies an interface for writing foreign-data wrappers. Greenplum Database does not implement that API, however, because the effort to accommodate it into Greenplum would be large, and the standard API hasn't yet gained wide adoption.
+> **Note** The SQL standard specifies an interface for writing foreign-data wrappers. Greenplum Database does not implement that API, however, because the effort to accommodate it into Greenplum would be large, and the standard API hasn't yet gained wide adoption.
 
 This topic includes the following sections:
 
@@ -348,7 +348,7 @@ Greenplum Database supports all `mpp_execute` settings for a scan.
 
 Greenplum Database supports parallel write when `mpp_execute 'all segments"` is set. For all other `mpp_execute` settings, Greenplum Database executes write/update operations initiated by a foreign data wrapper on the Greenplum coordinator node.
 
-**Note:** When `mpp_execute 'all segments'` is set, Greenplum Database creates the foreign table with a random partition policy. This enables a foreign data wrapper to write to a foreign table from all segments.
+> **Note** When `mpp_execute 'all segments'` is set, Greenplum Database creates the foreign table with a random partition policy. This enables a foreign data wrapper to write to a foreign table from all segments.
 
 The following scan code snippet probes the `mpp_execute` value associated with a foreign table:
 
@@ -385,7 +385,7 @@ You can use the PostgreSQL build extension infrastructure \(PGXS\) to build the 
 
 To use the PGXS infrastructure to generate a shared library for your FDW, create a simple `Makefile` that sets PGXS-specific variables.
 
-**Note:** Refer to [Extension Building Infrastructure](https://www.postgresql.org/docs/9.4/extend-pgxs.html) in the PostgreSQL documentation for information about the `Makefile` variables supported by PGXS.
+> **Note** Refer to [Extension Building Infrastructure](https://www.postgresql.org/docs/9.4/extend-pgxs.html) in the PostgreSQL documentation for information about the `Makefile` variables supported by PGXS.
 
 For example, the following `Makefile` generates a shared library in the current working directory named `base_fdw.so` from two C source files, base\_fdw\_1.c and base\_fdw\_2.c:
 
@@ -411,7 +411,7 @@ A description of the directives used in this `Makefile` follows:
 
 To package the foreign-data wrapper as a Greenplum Database extension, you create script \(`newfdw--version.sql`\) and control \(`newfdw.control`\) files that register the FDW *handler* and *validator* functions, create the foreign data wrapper, and identify the characteristics of the FDW shared library file.
 
-**Note:** [Packaging Related Objects into an Extension](https://www.postgresql.org/docs/9.4/extend-extensions.html) in the PostgreSQL documentation describes how to package an extension.
+> **Note** [Packaging Related Objects into an Extension](https://www.postgresql.org/docs/9.4/extend-extensions.html) in the PostgreSQL documentation describes how to package an extension.
 
 Example foreign-data wrapper extension script file named `base_fdw--1.0.sql`:
 

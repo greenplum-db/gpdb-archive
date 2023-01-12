@@ -64,7 +64,7 @@ Greenplum Database provides the following utility programs. Superscripts identif
 - [reindexdb](ref/reindexdb.html)
 - [vacuumdb](ref/vacuumdb.html)
 
-**Note:**
+> **Note**
 
 <sup>1</sup> The utility program can be obtained from the *Greenplum Backup and Restore* tile on [VMware Tanzu Network](https://network.pivotal.io/products/pivotal-gpdb-backup-restore).
 

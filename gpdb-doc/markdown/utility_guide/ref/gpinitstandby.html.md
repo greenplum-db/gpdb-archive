@@ -94,7 +94,7 @@ Start an existing standby coordinator instance and synchronize the data with the
 gpinitstandby -n
 ```
 
-**Note:** Do not specify the -n and -s options in the same command.
+> **Note** Do not specify the -n and -s options in the same command.
 
 Add a standby coordinator instance to your Greenplum Database system specifying a different port:
 

@@ -12,7 +12,7 @@ DROP EXTENSION [ IF EXISTS ] <name> [, ...] [ CASCADE | RESTRICT ]
 
 `DROP EXTENSION` removes extensions from the database. Dropping an extension causes its component objects to be dropped as well.
 
-**Note:** The required supporting extension files what were installed to create the extension are not deleted. The files must be manually removed from the Greenplum Database hosts.
+> **Note** The required supporting extension files what were installed to create the extension are not deleted. The files must be manually removed from the Greenplum Database hosts.
 
 You must own the extension to use `DROP EXTENSION`.
 

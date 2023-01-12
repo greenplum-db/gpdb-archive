@@ -133,7 +133,7 @@ psql [<option> ...] [<dbname> [<username>]]
 -w --no-password
 :   Never issue a password prompt. If the server requires password authentication and a password is not available by other means such as a .pgpass file, the connection attempt will fail. This option can be useful in batch jobs and scripts where no user is present to enter a password.
 
-:   **Note:** This option remains set for the entire session, and so it affects uses of the meta-command `\connect` as well as the initial connection attempt.
+:   > **Note** This option remains set for the entire session, and so it affects uses of the meta-command `\connect` as well as the initial connection attempt.
 
 ## <a id="section6"></a>Exit Status 
 
@@ -250,7 +250,7 @@ The following meta-commands are defined:
         <br/><br/>For append-optimized tables and column-oriented tables, `\d+` displays the storage options for a table. For append-optimized tables, the options are displayed for the table. For column-oriented tables, storage options are displayed for each column.
 
     -   By default, only user-created objects are shown; supply a pattern or the `S` modifier to include system objects.
-        <br/><br/>**Note:** If `\d` is used without a pattern argument, it is equivalent to `\dtvmsE` which will show a list of all visible tables, views, materialized views, sequences, and foreign tables.
+        <br/><br/>> **Note** If `\d` is used without a pattern argument, it is equivalent to `\dtvmsE` which will show a list of all visible tables, views, materialized views, sequences, and foreign tables.
 
 
 \\da\[S\] \[aggregate\_pattern\]
@@ -292,7 +292,7 @@ The following meta-commands are defined:
 \\deu\[+\] \[user\_mapping\_pattern\]
 :   Lists user mappings. If a pattern is specified, only those mappings whose user names match the pattern are listed. If the form `\deu+` is used, additional information about each mapping is shown.
 
-    **Warning:** `\deu+` might also display the user name and password of the remote user, so care should be taken not to disclose them.
+    > **Caution** `\deu+` might also display the user name and password of the remote user, so care should be taken not to disclose them.
 
 \\dew\[+\] \[foreign\_data\_wrapper\_pattern\]
 :   Lists foreign-data wrappers. If a pattern is specified, only those foriegn-data wrappers whose name matches the pattern are listed. If the form `\dew+` is used, the ACL, options, and description of the foreign-data wrapper are also shown.
@@ -317,7 +317,7 @@ The following meta-commands are defined:
 
 \\dl
 :   This is an alias for `\lo_list`, which shows a list of large objects.
-    <br/><br/>**Note:** Greenplum Database does not support the PostgreSQL [large object facility](https://www.postgresql.org/docs/9.4/largeobjects.html) for streaming user data that is stored in large-object structures.
+    <br/><br/>> **Note** Greenplum Database does not support the PostgreSQL [large object facility](https://www.postgresql.org/docs/9.4/largeobjects.html) for streaming user data that is stored in large-object structures.
 
 \\dL\[S+\] \[pattern\]
 :   Lists procedural languages. If a pattern is specified, only languages whose names match the pattern are listed. By default, only user-created languages are shown; supply the `S` modifier to include system objects. If `+` is appended to the command name, each language is listed with its call handler, validator, access privileges, and whether it is a system object.
@@ -354,7 +354,7 @@ The following meta-commands are defined:
 \\dy\[+\] \[pattern\]
 :   Lists event triggers. If a pattern is specified, only those triggers whose names match the pattern are listed. If `+` is appended to the command name, each object is listed with its associated description.
 
-    **Note:** Greenplum Database does not support user-defined triggers.
+    > **Note** Greenplum Database does not support user-defined triggers.
 
 \\e \| \\edit \[filename\] \[line\_number\]
 :   If filename is specified, the file is edited; after the editor exits, its content is copied back to the query buffer. If no filename is given, the current query buffer is copied to a temporary file which is then edited in the same fashion.
@@ -368,7 +368,7 @@ The following meta-commands are defined:
 \\echo text \[ ... \]
 :   Prints the arguments to the standard output, separated by one space and followed by a newline. This can be useful to intersperse information in the output of scripts. If the first argument is an unquoted `-n`, the trailing newline is not written.
 
-    **Note:** If you use the `\o` command to redirect your query output you might wish to use `\qecho` instead of this command.
+    > **Note** If you use the `\o` command to redirect your query output you might wish to use `\qecho` instead of this command.
 
 \\ef \[function\_description \[line\_number\]\]
 :   This command fetches and edits the definition of the named function, in the form of a `CREATE OR REPLACE FUNCTION` command. Editing is done in the same way as for `\edit`. After the editor exits, the updated command waits in the query buffer; type semicolon or `\g` to send it, or `\r` to cancel.
@@ -439,7 +439,7 @@ The following meta-commands are defined:
 \\lo\_export loid filename
 :   Reads the large object with OID loid from the database and writes it to filename. Note that this is subtly different from the server function `lo_export`, which acts with the permissions of the user that the database server runs as and on the server's file system. Use `\lo_list` to find out the large object's OID.
 
-    **Note:** Greenplum Database does not support the PostgreSQL [large object facility](https://www.postgresql.org/docs/9.4/largeobjects.html) for streaming user data that is stored in large-object structures.
+    > **Note** Greenplum Database does not support the PostgreSQL [large object facility](https://www.postgresql.org/docs/9.4/largeobjects.html) for streaming user data that is stored in large-object structures.
 
 \\lo\_import large\_object\_filename \[comment\]
 :   Stores the file into a large object. Optionally, it associates the given comment with the object. Example:
@@ -452,17 +452,17 @@ lo_import 152801
 
 The response indicates that the large object received object ID 152801 which one ought to remember if one wants to access the object ever again. For that reason it is recommended to always associate a human-readable comment with every object. Those can then be seen with the `\lo_list` command. Note that this command is subtly different from the server-side `lo_import` because it acts as the local user on the local file system, rather than the server's user and file system.
 
-**Note:** Greenplum Database does not support the PostgreSQL [large object facility](https://www.postgresql.org/docs/9.4/largeobjects.html) for streaming user data that is stored in large-object structures.
+> **Note** Greenplum Database does not support the PostgreSQL [large object facility](https://www.postgresql.org/docs/9.4/largeobjects.html) for streaming user data that is stored in large-object structures.
 
 \\lo\_list
 :   Shows a list of all large objects currently stored in the database, along with any comments provided for them.
 
-    **Note:** Greenplum Database does not support the PostgreSQL [large object facility](https://www.postgresql.org/docs/9.4/largeobjects.html) for streaming user data that is stored in large-object structures.
+    > **Note** Greenplum Database does not support the PostgreSQL [large object facility](https://www.postgresql.org/docs/9.4/largeobjects.html) for streaming user data that is stored in large-object structures.
 
 \\lo\_unlink largeobject\_oid
 :   Deletes the large object of the specified OID from the database. Use `\lo_list` to find out the large object's OID.
 
-    **Note:** Greenplum Database does not support the PostgreSQL [large object facility](https://www.postgresql.org/docs/9.4/largeobjects.html) for streaming user data that is stored in large-object structures.
+    > **Note** Greenplum Database does not support the PostgreSQL [large object facility](https://www.postgresql.org/docs/9.4/largeobjects.html) for streaming user data that is stored in large-object structures.
 
 \\o \| \\out \[ filename \]
 \\o \| \\out \[ `|` command \]
@@ -625,7 +625,7 @@ This works in both regular SQL commands and meta-commands; there is more detail 
 
 If you call `\set` without a second argument, the variable is set, with an empty string as value. To unset \(i.e., delete\) a variable, use the command `\unset`. To show the values of all variables, call `\set` without any argument.
 
-**Note:** The arguments of `\set` are subject to the same substitution rules as with other commands. Thus you can construct interesting references such as `\set :foo 'something'` and get 'soft links' or 'variable variables' of Perl or PHP fame, respectively. Unfortunately, there is no way to do anything useful with these constructs. On the other hand, `\set bar :foo` is a perfectly valid way to copy a variable.
+> **Note** The arguments of `\set` are subject to the same substitution rules as with other commands. Thus you can construct interesting references such as `\set :foo 'something'` and get 'soft links' or 'variable variables' of Perl or PHP fame, respectively. Unfortunately, there is no way to do anything useful with these constructs. On the other hand, `\set bar :foo` is a perfectly valid way to copy a variable.
 
 A number of these variables are treated specially by `psql`. They represent certain option settings that can be changed at run time by altering the value of the variable, or in some cases represent changeable state of `psql`. Although you can use these variables for other purposes, this is not recommended, as the program behavior might grow really strange really quickly. By convention, all specially treated variables' names consist of all upper-case ASCII letters \(and possibly digits and underscores\). To ensure maximum compatibility in the future, avoid using such variable names for your own purposes. A list of all specially treated variables follows.
 

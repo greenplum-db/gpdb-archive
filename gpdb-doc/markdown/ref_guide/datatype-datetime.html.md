@@ -11,11 +11,11 @@ Greenplum supports the full set of SQL date and time types, shown in [Table 1](#
 |time \[ \(p\) \] with time zone|12 bytes|times of day only, with time zone|00:00:00+1459|24:00:00-1459|1 microsecond / 14 digits|
 |interval \[ fields \] \[ \(p\) \]|16 bytes|time interval|-178000000 years|178000000 years|1 microsecond / 14 digits|
 
-**Note:** The SQL standard requires that writing just `timestamp` be equivalent to `timestamp without time zone`, and Greenplum honors that behavior. `timestamptz` is accepted as an abbreviation for `timestamp with time zone`; this is a PostgreSQL extension.
+> **Note** The SQL standard requires that writing just `timestamp` be equivalent to `timestamp without time zone`, and Greenplum honors that behavior. `timestamptz` is accepted as an abbreviation for `timestamp with time zone`; this is a PostgreSQL extension.
 
 `time`, `timestamp`, and `interval` accept an optional precision value p which specifies the number of fractional digits retained in the seconds field. By default, there is no explicit bound on precision. The allowed range of p is from 0 to 6 for the `timestamp` and `interval` types.
 
-**Note:** When `timestamp` values are stored as eight-byte integers \(currently the default\), microsecond precision is available over the full range of values. When `timestamp` values are stored as double precision floating-point numbers instead \(a deprecated compile-time option\), the effective limit of precision might be less than 6. `timestamp` values are stored as seconds before or after midnight 2000-01-01. When `timestamp` values are implemented using floating-point numbers, microsecond precision is achieved for dates within a few years of 2000-01-01, but the precision degrades for dates further away. Note that using floating-point datetimes allows a larger range of `timestamp` values to be represented than shown above: from 4713 BC up to 5874897 AD.
+> **Note** When `timestamp` values are stored as eight-byte integers \(currently the default\), microsecond precision is available over the full range of values. When `timestamp` values are stored as double precision floating-point numbers instead \(a deprecated compile-time option\), the effective limit of precision might be less than 6. `timestamp` values are stored as seconds before or after midnight 2000-01-01. When `timestamp` values are implemented using floating-point numbers, microsecond precision is achieved for dates within a few years of 2000-01-01, but the precision degrades for dates further away. Note that using floating-point datetimes allows a larger range of `timestamp` values to be represented than shown above: from 4713 BC up to 5874897 AD.
 
 The same compile-time option also determines whether `time` and `interval` values are stored as floating-point numbers or eight-byte integers. In the floating-point case, large `interval` values degrade in precision as the size of the interval increases.
 
@@ -174,7 +174,7 @@ The output format of the date/time types can be set to one of the four styles IS
 |`Postgres`|original style|`Wed Dec 17 07:37:16 1997 PST`|
 |`German`|regional style|`17.12.1997 07:37:16.00 PST`|
 
-**Note:** ISO 8601 specifies the use of uppercase letter `T` to separate the date and time. Greenplum accepts that format on input, but on output it uses a space rather than `T`, as shown above. This is for readability and for consistency with RFC 3339 as well as some other database systems.
+> **Note** ISO 8601 specifies the use of uppercase letter `T` to separate the date and time. Greenplum accepts that format on input, but on output it uses a space rather than `T`, as shown above. This is for readability and for consistency with RFC 3339 as well as some other database systems.
 
 In the SQL and POSTGRES styles, day appears before month if DMY field ordering has been specified, otherwise month appears before day. \(See [Table 2](#table_owm_dfr_qfb) for how this setting also affects interpretation of input values.\) [Table 7](#datatype-datetime-output2-table) shows examples.
 

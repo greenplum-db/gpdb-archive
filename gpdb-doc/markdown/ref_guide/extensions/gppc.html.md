@@ -6,7 +6,7 @@ Functions that you write to the GPPC API can be invoked using SQL in Greenplum D
 
 You compile the C/C++ functions that you develop with the GPPC API into a shared library. The GPPC functions are available to Greenplum Database users after the shared library is installed in the Greenplum Database cluster and the GPPC functions are registered as SQL UDFs.
 
-**Note:** The Greenplum Partner Connector is supported for Greenplum Database versions 4.3.5.0 and later.
+> **Note** The Greenplum Partner Connector is supported for Greenplum Database versions 4.3.5.0 and later.
 
 This topic contains the following information:
 
@@ -602,7 +602,7 @@ You can use the PostgreSQL build extension infrastructure \(PGXS\) to build the 
 
 To use the PGXS infrastructure to generate a shared library for functions that you create with the GPPC API, create a simple `Makefile` that sets PGXS-specific variables.
 
-**Note:** Refer to [Extension Building Infrastructure](https://www.postgresql.org/docs/9.4/extend-pgxs.html) in the PostgreSQL documentation for information about the `Makefile` variables supported by PGXS.
+> **Note** Refer to [Extension Building Infrastructure](https://www.postgresql.org/docs/9.4/extend-pgxs.html) in the PostgreSQL documentation for information about the `Makefile` variables supported by PGXS.
 
 For example, the following `Makefile` generates a shared library named `sharedlib_name.so` from two C source files named `src1.c` and `src2.c`:
 

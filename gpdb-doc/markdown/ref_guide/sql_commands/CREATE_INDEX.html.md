@@ -79,7 +79,7 @@ storage\_parameter
 
 :   `FASTUPDATE` - The GIN index method accepts the `FASTUPDATE` storage parameter. `FASTUPDATE` is a Boolean parameter that deactivates or enables the GIN index fast update technique. A value of ON enables fast update \(the default\), and OFF deactivates it. See [GIN fast update technique](https://www.postgresql.org/docs/9.4/gin-implementation.html#GIN-FAST-UPDATE) in the PostgreSQL documentation for more information.
 
-    **Note:** Turning `FASTUPDATE` off via `ALTER INDEX` prevents future insertions from going into the list of pending index entries, but does not in itself flush previous entries. You might want to VACUUM the table afterward to ensure the pending list is emptied.
+    > **Note** Turning `FASTUPDATE` off via `ALTER INDEX` prevents future insertions from going into the list of pending index entries, but does not in itself flush previous entries. You might want to VACUUM the table afterward to ensure the pending list is emptied.
 
 :   `pages_per_range` - The BRIN index method accepts this parameter. Defines the number of table blocks that make up one block range for each entry of a BRIN index. The default is 128. See [BRIN Indexes](https://www.postgresql.org/docs/12/brin.html) in the PostgreSQL documentation for more information.
 

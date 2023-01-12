@@ -78,7 +78,7 @@ Maintenance mode should only be used with direction from VMware Technical Suppor
     $ gpstart
     ```
 
-    **Warning:**
+    > **Caution**
 
     Incorrect use of maintenance mode connections can result in an inconsistent system state. Only Technical Support should perform this operation.
 
