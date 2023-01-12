@@ -126,7 +126,7 @@ The `gpadmin` user on each Greenplum host must be able to SSH from any host in t
 3.  Use the `ssh-copy-id` command to add the `gpadmin` user's public key to the `authorized_hosts` SSH file on every other host in the cluster.
 
     ```
-    $ ssh-copy-id smdw
+    $ ssh-copy-id scdw
     $ ssh-copy-id sdw1
     $ ssh-copy-id sdw2
     $ ssh-copy-id sdw3
@@ -136,18 +136,18 @@ The `gpadmin` user on each Greenplum host must be able to SSH from any host in t
     This enables 1-*n* passwordless SSH. You will be prompted to enter the `gpadmin` user's password for each host. If you have the `sshpass` command on your system, you can use a command like the following to avoid the prompt.
 
     ```
-    $ SSHPASS=<password> sshpass -e ssh-copy-id smdw
+    $ SSHPASS=<password> sshpass -e ssh-copy-id scdw
     ```
 
 4.  In the `gpadmin` home directory, create a file named `hostfile_exkeys` that has the machine configured host names and host addresses \(interface names\) for each host in your Greenplum system \(coordinator, standby coordinator, and segment hosts\). Make sure there are no blank lines or extra spaces. Check the `/etc/hosts` file on your systems for the correct host names to use for your environment. For example, if you have a coordinator, standby coordinator, and three segment hosts with two unbonded network interfaces per host, your file would look something like this:
 
     ```
-    mdw
-    mdw-1
-    mdw-2
-    smdw
-    smdw-1
-    smdw-2
+    cdw
+    cdw-1
+    cdw-2
+    scdw
+    scdw-1
+    scdw-2
     sdw1
     sdw1-1
     sdw1-2

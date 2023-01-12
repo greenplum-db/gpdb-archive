@@ -390,11 +390,11 @@ You can use `gpssh` to run the commands on the Greenplum Database hosts. This ex
 ```
 $ gpssh -s -f gpdb_hosts
 => python -m ensurepip --default-pip
-[centos6-mdw1] Ignoring indexes: https://pypi.python.org/simple
-[centos6-mdw1] Collecting setuptools
-[centos6-mdw1] Collecting pip
-[centos6-mdw1] Installing collected packages: setuptools, pip
-[centos6-mdw1] Successfully installed pip-8.1.1 setuptools-20.10.1
+[centos6-cdw1] Ignoring indexes: https://pypi.python.org/simple
+[centos6-cdw1] Collecting setuptools
+[centos6-cdw1] Collecting pip
+[centos6-cdw1] Installing collected packages: setuptools, pip
+[centos6-cdw1] Successfully installed pip-8.1.1 setuptools-20.10.1
 [centos6-sdw1] Ignoring indexes: https://pypi.python.org/simple
 [centos6-sdw1] Collecting setuptools
 [centos6-sdw1] Collecting pip
@@ -536,10 +536,10 @@ If `FAILURE` is returned, these are some possible causes:
 
 -   A problem accessing required libraries. For the NumPy example, a Greenplum Database might have a problem accessing the OpenBLAS libraries or the Python libraries on a segment host.
 
-    Make sure you get no errors when running command on the segment host as the `gpadmin` user. This `gpssh` command tests importing the numpy module on the segment host `mdw1`.
+    Make sure you get no errors when running command on the segment host as the `gpadmin` user. This `gpssh` command tests importing the numpy module on the segment host `cdw1`.
 
     ```
-    gpssh -s -h mdw1 python -c "import numpy"
+    gpssh -s -h cdw1 python -c "import numpy"
     ```
 
 -   If the Python `import` command does not return an error, environment variables might not be configured in the Greenplum Database environment. For example, the Greenplum Database might not have been restarted after installing the Python Package on the host system.

@@ -91,10 +91,10 @@ After installing the MADlib package, run the `madpack` command to add MADlib fun
 $ madpack [-s <schema_name>] -p greenplum -c <user>@<host>:<port>/<database> install
 ```
 
-For example, this command creates MADlib functions in the Greenplum database `testdb` running on server `mdw` on port `5432`. The `madpack` command logs in as the user `gpadmin` and prompts for password. The target schema is `madlib`.
+For example, this command creates MADlib functions in the Greenplum database `testdb` running on server `cdw` on port `5432`. The `madpack` command logs in as the user `gpadmin` and prompts for password. The target schema is `madlib`.
 
 ```
-$ madpack -s madlib -p greenplum -c gpadmin@mdw:5432/testdb install
+$ madpack -s madlib -p greenplum -c gpadmin@cdw:5432/testdb install
 ```
 
 After installing the functions, The Greenplum Database `gpadmin` superuser role should grant all privileges on the target schema \(in the example `madlib`\) to users who will be accessing MADlib functions. Users without access to the functions will get the error `ERROR: permission denied for schema MADlib`.
@@ -102,7 +102,7 @@ After installing the functions, The Greenplum Database `gpadmin` superuser role 
 The madpack `install-check` option runs test using Madlib modules to check the MADlib installation:
 
 ```
-$ madpack -s madlib -p greenplum -c gpadmin@mdw:5432/testdb install-check
+$ madpack -s madlib -p greenplum -c gpadmin@cdw:5432/testdb install-check
 ```
 
 **Note:** The command `madpack -h` displays information for the utility.
@@ -130,7 +130,7 @@ After you upgrade the MADlib package from one major version to another, run `mad
 This example command upgrades the MADlib functions in the schema `madlib` of the Greenplum Database `test`.
 
 ```
-madpack -s madlib -p greenplum -c gpadmin@mdw:5432/testdb upgrade
+madpack -s madlib -p greenplum -c gpadmin@cdw:5432/testdb upgrade
 ```
 
 ## <a id="topic6"></a>Uninstalling MADlib 
@@ -145,7 +145,7 @@ When you remove MADlib support from a database, routines that you created in the
 Use the `madpack uninstall` command to remove MADlib objects from a Greenplum database. For example, this command removes MADlib objects from the database `testdb`.
 
 ```
-$ madpack  -s madlib -p greenplum -c gpadmin@mdw:5432/testdb uninstall
+$ madpack  -s madlib -p greenplum -c gpadmin@cdw:5432/testdb uninstall
 ```
 
 ### <a id="topic8"></a>Uninstall the Greenplum Database MADlib Package 

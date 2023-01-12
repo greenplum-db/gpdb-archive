@@ -15,7 +15,7 @@ Perform the following tasks in order:
 
 Unless noted, these tasks should be performed for *all* hosts in your Greenplum Database array \(coordinator, standby coordinator, and segment hosts\).
 
-The Greenplum Database host naming convention for the coordinator host is `mdw` and for the standby coordinator host is `smdw`.
+The Greenplum Database host naming convention for the coordinator host is `cdw` and for the standby coordinator host is `scdw`.
 
 The segment host naming convention is sdwN where sdw is a prefix and N is an integer. For example, segment host names would be `sdw1`, `sdw2` and so on. NIC bonding is recommended for hosts with multiple interfaces, but when the interfaces are not bonded, the convention is to append a dash \(`-`\) and number to the host name. For example, `sdw1-1` and `sdw1-2` are the two interface names for host `sdw1`.
 
@@ -609,14 +609,14 @@ NTP on the segment hosts should be configured to use the coordinator host as the
 2.  On each segment host, log in as root and edit the `/etc/ntp.conf` file. Set the first `server` parameter to point to the coordinator host, and the second server parameter to point to the standby coordinator host. For example:
 
     ```
-    server mdw prefer
-    server smdw
+    server cdw prefer
+    server scdw
     ```
 
 3.  On the standby coordinator host, log in as root and edit the `/etc/ntp.conf` file. Set the first `server` parameter to point to the primary coordinator host, and the second server parameter to point to your data center's NTP time server. For example:
 
     ```
-    server mdw prefer
+    server cdw prefer
     server 10.6.220.20
     ```
 

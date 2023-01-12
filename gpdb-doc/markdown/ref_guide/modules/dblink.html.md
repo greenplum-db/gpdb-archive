@@ -97,10 +97,10 @@ testdb=# SELECT dblink_connect('host=remotehost port=5432 dbname=postgres user=g
 
 ### <a id="dblink_u"></a>Using dblink as a Non-Superuser 
 
-To make a connection to a database with `dblink_connect()`, non-superusers must include host, user, and password information in the connection string. The host, user, and password information must be included even when connecting to a local database. For example, the user `test_user` can create a `dblink` connection to the local system `mdw` with this command:
+To make a connection to a database with `dblink_connect()`, non-superusers must include host, user, and password information in the connection string. The host, user, and password information must be included even when connecting to a local database. For example, the user `test_user` can create a `dblink` connection to the local system `cdw` with this command:
 
 ```
-testdb=> SELECT dblink_connect('host=mdw port=5432 dbname=postgres user=test_user password=secret');
+testdb=> SELECT dblink_connect('host=cdw port=5432 dbname=postgres user=test_user password=secret');
 ```
 
 If non-superusers need to create `dblink` connections that do not require a password, they can use the `dblink_connect_u()` function. The `dblink_connect_u()` function is identical to `dblink_connect()`, except that it allows non-superusers to create connections that do not require a password.

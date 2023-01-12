@@ -25,7 +25,7 @@ The Greenplum `gpload` utility loads data using readable external tables and the
     VERSION: 1.0.0.1
     DATABASE: ops
     USER: gpadmin
-    HOST: mdw-1
+    HOST: cdw-1
     PORT: 5432
     GPLOAD:
        INPUT:

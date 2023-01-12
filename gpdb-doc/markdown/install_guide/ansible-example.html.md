@@ -19,7 +19,7 @@ Following are steps to use this Ansible playbook.
 3.  Create an Ansible inventory by creating a file called `hosts` with a list of the hosts that will comprise your Greenplum Database cluster. For example:
 
     ```
-    mdw
+    cdw
     sdw1
     sdw2
     ...

@@ -169,7 +169,7 @@ Or:
 
 local    all           gpadmin         ident 
 host     all           gpadmin         localhost      trust 
-host     all           gpadmin         mdw            trust 
+host     all           gpadmin         cdw            trust 
 local    replication   gpadmin         ident 
 host     replication   gpadmin         samenet       trust 
 host     all           all             0.0.0.0/0     md5

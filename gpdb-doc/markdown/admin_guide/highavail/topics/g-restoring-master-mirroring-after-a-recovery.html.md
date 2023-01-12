@@ -25,13 +25,13 @@ For information about the Greenplum Database utilities, see the *Greenplum Datab
 
     You can remove the backup directory once the standby is successfully configured.
 
-3.  Initialize a standby coordinator on the original coordinator host. For example, run this command from the current coordinator host, smdw:
+3.  Initialize a standby coordinator on the original coordinator host. For example, run this command from the current coordinator host, scdw:
 
     ```
-    $ gpinitstandby -s mdw
+    $ gpinitstandby -s cdw
     ```
 
-4.  After the initialization completes, check the status of standby coordinator, mdw. Run [gpstate](../../../utility_guide/ref/gpstate.html) with the `-f` option to check the standby coordinator status:
+4.  After the initialization completes, check the status of standby coordinator, cdw. Run [gpstate](../../../utility_guide/ref/gpstate.html) with the `-f` option to check the standby coordinator status:
 
     ```
     $ gpstate -f
@@ -50,7 +50,7 @@ For information about the Greenplum Database utilities, see the *Greenplum Datab
     $ gpstop -m
     ```
 
-2.  Run the `gpactivatestandby` utility from the original coordinator host, mdw, that is currently a standby coordinator. For example:
+2.  Run the `gpactivatestandby` utility from the original coordinator host, cdw, that is currently a standby coordinator. For example:
 
     ```
     $ gpactivatestandby -d $COORDINATOR_DATA_DIRECTORY
@@ -77,7 +77,7 @@ For information about the Greenplum Database utilities, see the *Greenplum Datab
 5.  After the original coordinator host runs the primary Greenplum Database coordinator, you can initialize a standby coordinator on the original standby coordinator host. For example:
 
     ```
-    $ gpinitstandby -s smdw
+    $ gpinitstandby -s scdw
     ```
 
     After the command completes, you can run the `gpstate -f` command on the primary coordinator host, to check the standby coordinator status.

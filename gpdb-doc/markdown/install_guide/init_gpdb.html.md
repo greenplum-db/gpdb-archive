@@ -96,7 +96,7 @@ Your Greenplum Database configuration file tells the [gpinitsystem](../utility_g
     SEG_PREFIX=gpseg
     PORT_BASE=6000 
     declare -a DATA_DIRECTORY=(/data1/primary /data1/primary /data1/primary /data2/primary /data2/primary /data2/primary)
-    MASTER_HOSTNAME=mdw 
+    MASTER_HOSTNAME=cdw 
     MASTER_DIRECTORY=/data/coordinator 
     MASTER_PORT=5432 
     TRUSTED SHELL=ssh

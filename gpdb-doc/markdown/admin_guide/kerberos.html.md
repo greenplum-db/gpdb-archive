@@ -46,14 +46,14 @@ Create a service principal for the Greenplum Database service and a Kerberos adm
 2.  Create a principal for the Greenplum Database service.
 
     ```
-    # kadmin.local -q "addprinc -randkey postgres/mdw@GPDB.KRB"
+    # kadmin.local -q "addprinc -randkey postgres/cdw@GPDB.KRB"
     ```
 
     The `-randkey` option prevents the command from prompting for a password.
 
     The `postgres` part of the principal names matches the value of the Greenplum Database `krb_srvname` server configuration parameter, which is `postgres` by default.
 
-    The host name part of the principal name must match the output of the `hostname` command on the Greenplum Database coordinator host. If the `hostname` command shows the fully qualified domain name \(FQDN\), use it in the principal name, for example `postgres/mdw.example.com@GPDB.KRB`.
+    The host name part of the principal name must match the output of the `hostname` command on the Greenplum Database coordinator host. If the `hostname` command shows the fully qualified domain name \(FQDN\), use it in the principal name, for example `postgres/cdw.example.com@GPDB.KRB`.
 
     The `GPDB.KRB` part of the principal name is the Kerberos realm name.
 
@@ -72,13 +72,13 @@ Create a service principal for the Greenplum Database service and a Kerberos adm
 4.  Create a keytab file with `kadmin.local`. The following example creates a keytab file `gpdb-kerberos.keytab` in the current directory with authentication information for the Greenplum Database service principal and the gpadmin/admin principal.
 
     ```
-    # kadmin.local -q "ktadd -k gpdb-kerberos.keytab postgres/mdw@GPDB.KRB gpadmin/admin@GPDB.KRB"
+    # kadmin.local -q "ktadd -k gpdb-kerberos.keytab postgres/cdw@GPDB.KRB gpadmin/admin@GPDB.KRB"
     ```
 
 5.  Copy the keytab file to the coordinator host.
 
     ```
-    # scp gpdb-kerberos.keytab gpadmin@mdw:~
+    # scp gpdb-kerberos.keytab gpadmin@cdw:~
     ```
 
 
@@ -157,7 +157,7 @@ Configure Greenplum Database to use Kerberos.
 8.  As a test, log in to the postgres database with the `gpadmin/admin` role:
 
     ```
-    $ psql -U "gpadmin/admin" -h mdw postgres
+    $ psql -U "gpadmin/admin" -h cdw postgres
     psql (9.4.20)
     Type "help" for help.
     
@@ -229,7 +229,7 @@ You can configure Greenplum Database to use Kerberos to run user-defined Java fu
 3.  Create a Java application that connects to Greenplum Database using Kerberos authentication. The following example database connection URL uses a PostgreSQL JDBC driver and specifies parameters for Kerberos authentication:
 
     ```
-    jdbc:postgresql://mdw:5432/mytest?kerberosServerName=postgres
+    jdbc:postgresql://cdw:5432/mytest?kerberosServerName=postgres
     &jaasApplicationName=pgjdbc&user=gpadmin/gpdb-kdc
     ```
 
