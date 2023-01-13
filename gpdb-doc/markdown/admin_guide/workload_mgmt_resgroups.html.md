@@ -607,9 +607,7 @@ Use this output to identify the process id \(`pid`\) of the transaction you want
 
 You can provide an optional message in a second argument to `pg_cancel_backend()` to indicate to the user why the process was cancelled.
 
-> **Note**
-
-Do not use an operating system `KILL` command to cancel any Greenplum Database process.
+> **Note** Do not use an operating system `KILL` command to cancel any Greenplum Database process.
 
 ## <a id="moverg"></a>Moving a Query to a Different Resource Group 
 

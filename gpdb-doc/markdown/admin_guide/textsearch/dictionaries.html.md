@@ -358,9 +358,7 @@ SELECT ts_lexize('norwegian_ispell', 'sjokoladefabrikk');
    {sjokoladefabrikk,sjokolade,fabrikk}
 ```
 
-> **Note**
-
-MySpell does not support compound words. Hunspell has sophisticated support for compound words. At present, Greenplum Database implements only the basic compound word operations of Hunspell.
+> **Note** MySpell does not support compound words. Hunspell has sophisticated support for compound words. At present, Greenplum Database implements only the basic compound word operations of Hunspell.
 
 ## <a id="section_xgc_2zw_4fb"></a>SnowBall Dictionary 
 

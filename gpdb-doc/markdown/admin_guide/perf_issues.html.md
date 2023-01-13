@@ -98,7 +98,5 @@ To help optimize database design, review the maximum limits that Greenplum Datab
 
 Dimensions listed as unlimited are not intrinsically limited by Greenplum Database. However, they are limited in practice to available disk space and memory/swap space. Performance may degrade when these values are unusually large.
 
-> **Note**
-
-There is a maximum limit on the number of objects \(tables, indexes, and views, but not rows\) that may exist at one time. This limit is 4294967296 \(2^32\).
+> **Note** There is a maximum limit on the number of objects \(tables, indexes, and views, but not rows\) that may exist at one time. This limit is 4294967296 \(2^32\).
 

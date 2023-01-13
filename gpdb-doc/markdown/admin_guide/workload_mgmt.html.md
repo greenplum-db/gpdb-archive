@@ -124,9 +124,7 @@ At runtime, the CPU share of active statements is determined by these priority s
 
 ![CPU share readjusted according to priority](graphics/gp_query_priority1.png "CPU share readjusted according to priority")
 
-> **Note**
-
-The percentages shown in these illustrations are approximate. CPU usage between high, low and maximum priority queues is not always calculated in precisely these proportions.
+> **Note** The percentages shown in these illustrations are approximate. CPU usage between high, low and maximum priority queues is not always calculated in precisely these proportions.
 
 When an executive query enters the group of running statements, CPU usage is adjusted to account for its maximum priority setting. It may be a simple query compared to the analyst and reporting queries, but until it is completed, it will claim the largest share of CPU.
 
