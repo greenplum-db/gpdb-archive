@@ -42,7 +42,7 @@ For the coordinator, standby coordinator, and segment instance, the first three 
 -   seg\_address is the IP address or hostname corresponding to the `address` column in the catalog table.
 -   port is the TCP/IP port for the segment instance proxy that you specify.
 
-**Important:** If a segment instance hostname is bound to a different IP address at runtime, you must run `gpstop -u` to re-load the `gp_interconnect_proxy_addresses` value.
+> **Important** If a segment instance hostname is bound to a different IP address at runtime, you must run `gpstop -u` to re-load the `gp_interconnect_proxy_addresses` value.
 
 This is an example PL/Python function that displays or sets the segment instance proxy port values for the `gp_interconnect_proxy_addresses` parameter. To create and run the function, you must enable PL/Python in the database with the `CREATE EXTENSION plpythonu` command.
 

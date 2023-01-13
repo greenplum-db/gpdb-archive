@@ -89,7 +89,7 @@ TIME '02:00 PM'  # 12-hour time specified by PM
 TIME '02:00'     # 24-hour time implied. This is equivalent to TIME '02:00 AM'. 
 ```
 
-**Important:** Time-based authentication is enforced with the server time. Timezones are disregarded.
+> **Important** Time-based authentication is enforced with the server time. Timezones are disregarded.
 
 To specify an interval of time during which access is denied, use two day/time specifications with the words `BETWEEN` and `AND`, as shown. `DAY` is always required.
 

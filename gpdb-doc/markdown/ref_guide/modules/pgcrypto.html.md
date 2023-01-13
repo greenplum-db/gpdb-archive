@@ -57,7 +57,7 @@ When this parameter is enabled, these changes occur:
     ALTER DATABASE testdb SET pgcrypto.fips TO on;
     ```
 
-    **Important:** You must use the `ALTER DATABASE` command to set the parameter. You cannot use the `SET` command that updates the parameter for a session, or use the `gpconfig` utility that updates `postgresql.conf` files.
+    > **Important** You must use the `ALTER DATABASE` command to set the parameter. You cannot use the `SET` command that updates the parameter for a session, or use the `gpconfig` utility that updates `postgresql.conf` files.
 
 5.  After setting the parameter, reconnect to the database to enable encryption support for a session. This example uses the `psql` meta command `\c` to connect to the `testdb` database.
 

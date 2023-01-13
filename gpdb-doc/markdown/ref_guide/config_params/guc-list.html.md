@@ -1019,7 +1019,7 @@ For the coordinator, standby coordinator, and segment instance, the first three 
 -   seg\_address is the IP address or hostname corresponding to tge `address` column in the catalog table.
 -   port is the TCP/IP port for the segment instance proxy that you specify.
 
-**Important:** If a segment instance hostname is bound to a different IP address at runtime, you must run `gpstop -U` to re-load the `gp_interconnect_proxy_addresses` value.
+> **Important** If a segment instance hostname is bound to a different IP address at runtime, you must run `gpstop -U` to re-load the `gp_interconnect_proxy_addresses` value.
 
 You must specify the value as a single-quoted string. This `gpconfig` command sets the value for `gp_interconnect_proxy_addresses` as a single-quoted string. The Greenplum system consists of a coordinator and a single segment instance.
 
@@ -2920,7 +2920,7 @@ When on, expressions of the form expr = NULL \(or NULL = expr\) are treated as e
 
 Specifies the directory of the UNIX-domain socket on which the server is to listen for connections from client applications. Multiple sockets can be created by listing multiple directories separated by commas.
 
-**Important:** Do not change the value of this parameter. The default location is required for Greenplum Database utilities.
+> **Important** Do not change the value of this parameter. The default location is required for Greenplum Database utilities.
 
 |Value Range|Default|Set Classifications|
 |-----------|-------|-------------------|

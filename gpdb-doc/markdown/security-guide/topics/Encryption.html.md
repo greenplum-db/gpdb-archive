@@ -36,7 +36,7 @@ When using gpfdists, the following client certificates must be located in the `$
 -   The client private key file, `client.key`
 -   The trusted certificate authorities, `root.crt`
 
-**Important:** Do not protect the private key with a passphrase. The server does not prompt for a passphrase for the private key, and loading data fails with an error if one is required.
+> **Important** Do not protect the private key with a passphrase. The server does not prompt for a passphrase for the private key, and loading data fails with an error if one is required.
 
 When using `gpload` with SSL you specify the location of the server certificates in the YAML control file. When using `gpfdist` with SSL, you specify the location of the server certificates with the --ssl option.
 

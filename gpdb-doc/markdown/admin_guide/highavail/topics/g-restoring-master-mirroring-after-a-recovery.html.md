@@ -8,7 +8,7 @@ You must initialize a new standby coordinator to continue providing coordinator 
 
 You can restore the primary and standby coordinator instances on the original hosts. This process swaps the roles of the primary and standby coordinator hosts, and it should be performed only if you strongly prefer to run the coordinator instances on the same hosts they occupied prior to the recovery scenario.
 
-**Important:** Restoring the primary and standby coordinator instances to their original hosts is not an online operation. The coordinator host must be stopped to perform the operation.
+> **Important** Restoring the primary and standby coordinator instances to their original hosts is not an online operation. The coordinator host must be stopped to perform the operation.
 
 For information about the Greenplum Database utilities, see the *Greenplum Database Utility Guide*.
 

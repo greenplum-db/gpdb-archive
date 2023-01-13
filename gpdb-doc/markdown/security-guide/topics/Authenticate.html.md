@@ -137,7 +137,7 @@ To edit `pg_hba.conf`:
 Trust
 :   Allows the connection unconditionally, without the need for a password or any other authentication. This entry is required for the `gpadmin` role, and for Greenplum utilities \(for example `gpinitsystem`, `gpstop`, or `gpstart` amongst others\) that need to connect between nodes without prompting for input or a password.
 
-:   **Important:** For a more secure system, remove records for remote connections that use `trust` authentication from the `pg_hba.conf` file. `trust` authentication grants any user who can connect to the server access to the database using any role they specify. You can safely replace `trust` authentication with `ident` authentication for local UNIX-socket connections. You can also use `ident` authentication for local and remote TCP clients, but the client host must be running an ident service and you must `trust` the integrity of that machine.
+:   > **Important** For a more secure system, remove records for remote connections that use `trust` authentication from the `pg_hba.conf` file. `trust` authentication grants any user who can connect to the server access to the database using any role they specify. You can safely replace `trust` authentication with `ident` authentication for local UNIX-socket connections. You can also use `ident` authentication for local and remote TCP clients, but the client host must be running an ident service and you must `trust` the integrity of that machine.
 
 Reject
 :   Reject the connections with the matching parameters. You should typically use this to restrict access from specific hosts or insecure connections.
@@ -544,7 +544,7 @@ Greenplum Database has native support for SSL connections between the client and
 
 To enable SSL requires that OpenSSL be installed on both the client and the coordinator server systems. Greenplum can be started with SSL enabled by setting the server configuration parameter `ssl=on` in the coordinator `postgresql.conf`. When starting in SSL mode, the server will look for the files `server.key` \(server private key\) and `server.crt` \(server certificate\) in the coordinator data directory. These files must be set up correctly before an SSL-enabled Greenplum system can start.
 
-**Important:** Do not protect the private key with a passphrase. The server does not prompt for a passphrase for the private key, and the database startup fails with an error if one is required.
+> **Important** Do not protect the private key with a passphrase. The server does not prompt for a passphrase for the private key, and the database startup fails with an error if one is required.
 
 A self-signed certificate can be used for testing, but a certificate signed by a certificate authority \(CA\) should be used in production, so the client can verify the identity of the server. Either a global or local CA can be used. If all the clients are local to the organization, a local CA is recommended. See [Creating a Self-Signed Certificate](#create_a_cert) for steps to create a self-signed certificate.
 

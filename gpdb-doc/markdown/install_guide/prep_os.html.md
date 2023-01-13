@@ -21,7 +21,7 @@ The segment host naming convention is sdwN where sdw is a prefix and N is an int
 
 For information about running VMware Greenplum Database in the cloud see *Cloud Services* in the [VMware Greenplum Partner Marketplace](https://pivotal.io/pivotal-greenplum/greenplum-partner-marketplace).
 
-**Important:** When data loss is not acceptable for a Greenplum Database cluster, Greenplum coordinator and segment mirroring is recommended. If mirroring is not enabled then Greenplum stores only one copy of the data, so the underlying storage media provides the only guarantee for data availability and correctness in the event of a hardware failure.
+> **Important** When data loss is not acceptable for a Greenplum Database cluster, Greenplum coordinator and segment mirroring is recommended. If mirroring is not enabled then Greenplum stores only one copy of the data, so the underlying storage media provides the only guarantee for data availability and correctness in the event of a hardware failure.
 
 The VMware Greenplum on vSphere virtualized environment ensures the enforcement of anti-affinity rules required for Greenplum mirroring solutions and fully supports mirrorless deployments. Other virtualized or containerized deployment environments are generally not supported for production use unless both Greenplum coordinator and segment mirroring are enabled.
 
@@ -631,7 +631,7 @@ NTP on the segment hosts should be configured to use the coordinator host as the
 
 Create a dedicated operating system user account on each node to run and administer Greenplum Database. This user account is named `gpadmin` by convention.
 
-**Important:** You cannot run the Greenplum Database server as `root`.
+> **Important** You cannot run the Greenplum Database server as `root`.
 
 The `gpadmin` user must have permission to access the services and directories required to install and run Greenplum Database.
 

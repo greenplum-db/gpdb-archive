@@ -262,7 +262,7 @@ To create the *executive* queue with maximum priority, an administrator would us
 
 When the query prioritization feature is enabled, resource queues are given a `MEDIUM` priority by default if not explicitly assigned. For more information on how priority settings are evaluated at runtime, see [How Priorities Work](#priorities).
 
-**Important:** In order for resource queue priority levels to be enforced on the active query workload, you must enable the query prioritization feature by setting the associated server configuration parameters. See [Configuring Resource Management](#topic9).
+> **Important** In order for resource queue priority levels to be enforced on the active query workload, you must enable the query prioritization feature by setting the associated server configuration parameters. See [Configuring Resource Management](#topic9).
 
 ## <a id="topic17"></a>Assigning Roles \(Users\) to a Resource Queue 
 
@@ -434,7 +434,7 @@ Use this output to identify the process id \(pid\) of the statement you want to 
 
 ```
 
-**Important:** Do not use the operating system `KILL` command.
+> **Important** Do not use the operating system `KILL` command.
 
 ### <a id="topic28"></a>Viewing the Priority of Active Statements 
 

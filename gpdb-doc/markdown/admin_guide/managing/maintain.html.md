@@ -32,7 +32,7 @@ Greenplum's MVCC transaction semantics depend on comparing transaction ID \(XID\
 
 Greenplum Database assigns XID values only to transactions that involve DDL or DML operations, which are typically the only transactions that require an XID.
 
-**Important:** Greenplum Database monitors transaction IDs. If you do not vacuum the database regularly, Greenplum Database will generate a warning and error.
+> **Important** Greenplum Database monitors transaction IDs. If you do not vacuum the database regularly, Greenplum Database will generate a warning and error.
 
 Greenplum Database issues the following warning when a significant portion of the transaction IDs are no longer available and before transaction ID wraparound occurs:
 
@@ -142,7 +142,7 @@ ANALYZE cust_info;
 VACUUM cust_info;
 ```
 
-**Important:** If you intend to run queries on partitioned tables with GPORCA enabled \(the default\), you must collect statistics on the partitioned table root partition with the ANALYZE command. For information about GPORCA, see [Overview of GPORCA](../query/topics/query-piv-opt-overview.html).
+> **Important** If you intend to run queries on partitioned tables with GPORCA enabled \(the default\), you must collect statistics on the partitioned table root partition with the ANALYZE command. For information about GPORCA, see [Overview of GPORCA](../query/topics/query-piv-opt-overview.html).
 
 > **Note** You can use the Greenplum Database utility analyzedb to update table statistics. Tables can be analyzed concurrently. For append optimized tables, analyzedb updates statistics only if the statistics are not current. See the [analyzedb](../../utility_guide/ref/analyzedb.html) utility.
 

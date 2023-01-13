@@ -23,7 +23,7 @@ gpaddmirrors --version
 
 The `gpaddmirrors` utility configures mirror segment instances for an existing Greenplum Database system that was initially configured with primary segment instances only. The utility will create the mirror instances and begin the online replication process between the primary and mirror segment instances. Once all mirrors are synchronized with their primaries, your Greenplum Database system is fully data redundant.
 
-**Important:** During the online replication process, Greenplum Database should be in a quiescent state, workloads and other queries should not be running.
+> **Important** During the online replication process, Greenplum Database should be in a quiescent state, workloads and other queries should not be running.
 
 By default, the utility will prompt you for the file system location\(s\) where it will create the mirror segment data directories. If you do not want to be prompted, you can pass in a file containing the file system locations using the `-m` option.
 

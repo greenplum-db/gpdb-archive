@@ -140,7 +140,7 @@ To ensure even distribution of hash-distributed data, choose a distribution key 
 `
 ```
 
-**Important:** If a primary key exists, it is the default distribution key for the table. If no primary key exists, but a unique key exists, this is the default distribution key for the table.
+> **Important** If a primary key exists, it is the default distribution key for the table. If no primary key exists, but a unique key exists, this is the default distribution key for the table.
 
 #### <a id="topic36"></a>Custom Distribution Key Hash Functions 
 

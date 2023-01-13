@@ -504,7 +504,7 @@ SUBPARTITION TEMPLATE
     The defaults can be set for the system, a database, or a user. For information about setting storage options, see the server configuration parameter [gp\_default\_storage\_options](../config_params/guc-list.html).
 
 
-**Important:** The current Postgres Planner allows list partitions with multi-column \(composite\) partition keys. GPORCA does not support composite keys, so using composite partition keys is not recommended.
+> **Important** The current Postgres Planner allows list partitions with multi-column \(composite\) partition keys. GPORCA does not support composite keys, so using composite partition keys is not recommended.
 
 ## <a id="section6"></a>Examples 
 

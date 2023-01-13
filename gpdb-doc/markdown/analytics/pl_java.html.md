@@ -620,7 +620,7 @@ After obtaining a connection, you can prepare and run statements similar to othe
 
 You can catch and handle an exception in the Greenplum Database backend just like any other exception. The backend ErrorData structure is exposed as a property in a class called `org.postgresql.pljava.ServerException` \(derived from `java.sql.SQLException`\) and the Java try/catch mechanism is synchronized with the backend mechanism.
 
-**Important:** You will not be able to continue running backend functions until your function has returned and the error has been propagated when the backend has generated an exception unless you have used a savepoint. When a savepoint is rolled back, the exceptional condition is reset and you can continue your execution.
+> **Important** You will not be able to continue running backend functions until your function has returned and the error has been propagated when the backend has generated an exception unless you have used a savepoint. When a savepoint is rolled back, the exceptional condition is reset and you can continue your execution.
 
 ## <a id="topic26"></a>Savepoints 
 
