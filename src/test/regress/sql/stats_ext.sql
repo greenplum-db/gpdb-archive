@@ -652,6 +652,7 @@ drop table if exists tbl_dependencies;
 create table tbl_dependencies(i int, ii pg_dependencies);
 insert into tbl_dependencies values (1, '{"1 => 2": 1.000000}');
 insert into tbl_dependencies values (2, '{"1 => 2": 2.000000, "1 => 3": 3.000000, "2 => 3": 2.000000, "1, 2 => 3": 3.000000}');
+insert into tbl_dependencies values (1, '{"1, 2, 3, 5 => 4": 3.000000}');
 
 select * from tbl_dependencies;
 

@@ -660,9 +660,9 @@ select count(*)=4 from pg_statistic_ext pge, pg_statistic_ext_data pgd where pge
 select stxname, stxdndistinct, stxddependencies, stxdmcv from pg_statistic_ext pge, pg_statistic_ext_data pgd where pge.oid = pgd.stxoid and pge.stxname in ('dep1', 'dep2', 'dist1', 'dist2');
  stxname | stxdndistinct |             stxddependencies             | stxdmcv 
 ---------+---------------+------------------------------------------+---------
- dep1    |               | {"1 => 2": 1.000000, "1 => 2": 1.000000} | 
+ dep1    |               | {"1 => 2": 1.000000, "2 => 1": 1.000000} | 
  dist1   | {"1, 2": 100} |                                          | 
- dep2    |               | {"1 => 2": 1.000000, "1 => 2": 1.000000} | 
+ dep2    |               | {"1 => 2": 1.000000, "2 => 1": 1.000000} | 
  dist2   | {"1, 2": 100} |                                          | 
 (4 rows)
 

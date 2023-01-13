@@ -44,7 +44,7 @@ static double estimate_ndistinct(double totalrows, int numrows, int d, int f1);
 static int	n_choose_k(int n, int k);
 static int	num_combinations(int n);
 
-extern void statistics_scanner_init(const char *query_string);
+extern void statistic_scanner_init(const char *query_string);
 
 /* size of the struct header fields (magic, type, nitems) */
 #define SizeOfHeader		(3 * sizeof(uint32))
@@ -353,7 +353,7 @@ pg_ndistinct_in(PG_FUNCTION_ARGS)
 	MVNDistinct	   *mvndistinct;
 	int				parse_rc;
 
-	statistics_scanner_init(str);
+	statistic_scanner_init(str);
 	parse_rc = statistic_yyparse();
 	if (parse_rc != 0)
 		ereport(ERROR,
