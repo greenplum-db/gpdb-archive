@@ -139,6 +139,9 @@ private:
 	static BOOL SetIndexVarAttnoWalker(
 		Node *node, SContextIndexVarAttno *ctxt_index_var_attno_walker);
 
+	// walker to set inner var to outer
+	static BOOL SetHashKeysVarnoWalker(Node *node, void *context);
+
 public:
 	// ctor
 	CTranslatorDXLToPlStmt(CMemoryPool *mp, CMDAccessor *md_accessor,
