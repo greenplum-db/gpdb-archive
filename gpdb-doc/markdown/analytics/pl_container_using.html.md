@@ -255,7 +255,7 @@ In the Python 2 language container, the module `plpy` is implemented. The module
 -   `plpy.warning(msg)` - Sends a WARNING message to the Greenplum Database log.
 -   `plpy.error(msg)` - Sends an ERROR message to the Greenplum Database log. An ERROR message raised in Greenplum Database causes the query execution process to stop and the transaction to rollback.
 -   `plpy.fatal(msg)` - Sends a FATAL message to the Greenplum Database log. A FATAL message causes Greenplum Database session to be closed and transaction to be rolled back.
--   `plpy.subtransaction()` - Manages `plpy.execute` calls in an explicit subtransaction. See [Explicit Subtransactions](https://www.postgresql.org/docs/9.4/plpython-subtransaction.html) in the PostgreSQL documentation for additional information about `plpy.subtransaction()`.
+-   `plpy.subtransaction()` - Manages `plpy.execute` calls in an explicit subtransaction. See [Explicit Subtransactions](https://www.postgresql.org/docs/12/plpython-subtransaction.html) in the PostgreSQL documentation for additional information about `plpy.subtransaction()`.
 
 If an error of level `ERROR` or `FATAL` is raised in a nested Python function call, the message includes the list of enclosing functions.
 
@@ -275,7 +275,7 @@ Also, the Python module has two global dictionary objects that retain the data b
 
 For information about PL/Python, see [PL/Python Language](pl_python.html).
 
-For information about the `plpy` methods, see [https://www.postgresql.org/docs/9.4/plpython-database.htm](https://www.postgresql.org/docs/9.4/plpython-database.html).
+For information about the `plpy` methods, see [https://www.postgresql.org/docs/12/plpython-database.htm](https://www.postgresql.org/docs/12/plpython-database.html).
 
 ### <a id="topic_plc_py3"></a>About PL/Python 3 Functions in PL/Container 
 

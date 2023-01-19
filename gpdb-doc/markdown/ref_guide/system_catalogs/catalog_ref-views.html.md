@@ -33,9 +33,9 @@ Greenplum Database provides the following system views not available in PostgreS
 
 For more information about the standard system views supported in PostgreSQL and Greenplum Database, see the following sections of the PostgreSQL documentation:
 
--   [System Views](https://www.postgresql.org/docs/9.4/views-overview.html)
--   [Statistics Collector Views](https://www.postgresql.org/docs/9.4/monitoring-stats.html#MONITORING-STATS-VIEWS-TABLE)
--   [The Information Schema](https://www.postgresql.org/docs/9.4/information-schema.html)
+-   [System Views](https://www.postgresql.org/docs/12/views-overview.html)
+-   [Statistics Collector Views](https://www.postgresql.org/docs/12/monitoring-stats.html#MONITORING-STATS-VIEWS-TABLE)
+-   [The Information Schema](https://www.postgresql.org/docs/12/information-schema.html)
 
 **Parent topic:** [System Catalogs](../system_catalogs/catalog_ref.html)
 

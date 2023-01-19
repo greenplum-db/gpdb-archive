@@ -128,7 +128,7 @@ MERGES
 
 Any functions used to implement the operator must be defined as `IMMUTABLE`.
 
-It is not possible to specify an operator's lexical precedence in `CREATE OPERATOR`, because the parser's precedence behavior is hard-wired. See [Operator Precedence](https://www.postgresql.org/docs/9.4/sql-syntax-lexical.html#SQL-PRECEDENCE) in the PostgreSQL documentation for precedence details.
+It is not possible to specify an operator's lexical precedence in `CREATE OPERATOR`, because the parser's precedence behavior is hard-wired. See [Operator Precedence](https://www.postgresql.org/docs/12/sql-syntax-lexical.html#SQL-PRECEDENCE) in the PostgreSQL documentation for precedence details.
 
 Use [DROP OPERATOR](DROP_OPERATOR.html) to delete user-defined operators from a database. Use [ALTER OPERATOR](ALTER_OPERATOR.html) to modify operators in a database.
 

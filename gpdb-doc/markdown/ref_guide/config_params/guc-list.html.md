@@ -76,7 +76,7 @@ Sets the time interval between optional checks that the client is still connecte
 
 ## <a id="client_encoding"></a>client\_encoding 
 
-Sets the client-side encoding \(character set\). The default is to use the same as the database encoding. See [Supported Character Sets](https://www.postgresql.org/docs/9.4/multibyte.html#MULTIBYTE-CHARSET-SUPPORTED) in the PostgreSQL documentation.
+Sets the client-side encoding \(character set\). The default is to use the same as the database encoding. See [Supported Character Sets](https://www.postgresql.org/docs/12/multibyte.html#MULTIBYTE-CHARSET-SUPPORTED) in the PostgreSQL documentation.
 
 |Value Range|Default|Set Classifications|
 |-----------|-------|-------------------|
@@ -1600,7 +1600,7 @@ Sets the display format for interval values. The value *sql\_standard* produces 
 
 The value *postgres\_verbose* produces output matching Greenplum releases prior to 3.3 when the [DateStyle](#DateStyle) parameter was set to non-ISO output.
 
-The value *iso\_8601* will produce output matching the time interval *format with designators* defined in section 4.4.3.2 of ISO 8601. See the [PostgreSQL 9.4 documentation](https://www.postgresql.org/docs/9.4/datatype-datetime.html) for more information.
+The value *iso\_8601* will produce output matching the time interval *format with designators* defined in section 4.4.3.2 of ISO 8601. See the [PostgreSQL 9.4 documentation](https://www.postgresql.org/docs/12/datatype-datetime.html) for more information.
 
 |Value Range|Default|Set Classifications|
 |-----------|-------|-------------------|
@@ -2845,7 +2845,7 @@ See also [default\_tablespace](#default_tablespace).
 
 ## <a id="TimeZone"></a>TimeZone 
 
-Sets the time zone for displaying and interpreting time stamps. The default is to use whatever the system environment specifies as the time zone. See [Date/Time Keywords](https://www.postgresql.org/docs/9.4/datetime-keywords.html) in the PostgreSQL documentation.
+Sets the time zone for displaying and interpreting time stamps. The default is to use whatever the system environment specifies as the time zone. See [Date/Time Keywords](https://www.postgresql.org/docs/12/datetime-keywords.html) in the PostgreSQL documentation.
 
 |Value Range|Default|Set Classifications|
 |-----------|-------|-------------------|
@@ -2994,7 +2994,7 @@ The estimated cost for vacuuming a buffer that has to be read from disk. This re
 
 Specifies the cutoff age \(in transactions\) that `VACUUM` should use to decide whether to replace transaction IDs with *FrozenXID* while scanning a table.
 
-For information about `VACUUM` and transaction ID management, see "Managing Data" in the *Greenplum Database Administrator Guide* and the [PostgreSQL documentation](https://www.postgresql.org/docs/9.4/routine-vacuuming.html#VACUUM-FOR-WRAPAROUND).
+For information about `VACUUM` and transaction ID management, see "Managing Data" in the *Greenplum Database Administrator Guide* and the [PostgreSQL documentation](https://www.postgresql.org/docs/12/routine-vacuuming.html#VACUUM-FOR-WRAPAROUND).
 
 |Value Range|Default|Set Classifications|
 |-----------|-------|-------------------|

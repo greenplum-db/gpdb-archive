@@ -183,7 +183,7 @@ SELECT * FROM composite_type_as_list();
 (1 row) 
 ```
 
-Refer to the PostgreSQL [Arrays, Lists](https://www.postgresql.org/docs/9.4/plpython-data.html#PLPYTHON-ARRAYS) documentation for additional information on PL/Python handling of arrays and composite types.
+Refer to the PostgreSQL [Arrays, Lists](https://www.postgresql.org/docs/12/plpython-data.html#PLPYTHON-ARRAYS) documentation for additional information on PL/Python handling of arrays and composite types.
 
 ### <a id="topic_setresult"></a>Set-Returning Functions 
 
@@ -217,7 +217,7 @@ select greet('hello');
 
 The PL/Python `plpy` module provides two Python functions to run an SQL query and prepare an execution plan for a query, `plpy.execute` and `plpy.prepare`. Preparing the execution plan for a query is useful if you run the query from multiple Python functions.
 
-PL/Python also supports the `plpy.subtransaction()` function to help manage `plpy.execute` calls in an explicit subtransaction. See [Explicit Subtransactions](https://www.postgresql.org/docs/9.4/plpython-subtransaction.html) in the PostgreSQL documentation for additional information about `plpy.subtransaction()`.
+PL/Python also supports the `plpy.subtransaction()` function to help manage `plpy.execute` calls in an explicit subtransaction. See [Explicit Subtransactions](https://www.postgresql.org/docs/12/plpython-subtransaction.html) in the PostgreSQL documentation for additional information about `plpy.subtransaction()`.
 
 #### <a id="topic_jnf_45f_zt"></a>plpy.execute 
 
@@ -257,7 +257,7 @@ rv = plpy.execute(plan, [ "Fred" ], 5)
 
 The third argument is the limit for the number of rows returned and is optional.
 
-When you prepare an execution plan using the PL/Python module the plan is automatically saved. See the Postgres Server Programming Interface \(SPI\) documentation for information about the execution plans [https://www.postgresql.org/docs/9.4/spi.html](https://www.postgresql.org/docs/9.4/spi.html).
+When you prepare an execution plan using the PL/Python module the plan is automatically saved. See the Postgres Server Programming Interface \(SPI\) documentation for information about the execution plans [https://www.postgresql.org/docs/12/spi.html](https://www.postgresql.org/docs/12/spi.html).
 
 To make effective use of saved plans across function calls you use one of the Python persistent storage dictionaries SD or GD.
 
@@ -661,7 +661,7 @@ $$ language plpythonu;
 
 For information about the Python language, see [https://www.python.org/](https://www.python.org/).
 
-For information about PL/Python see the PostgreSQL documentation at [https://www.postgresql.org/docs/9.4/plpython.html](https://www.postgresql.org/docs/9.4/plpython.html).
+For information about PL/Python see the PostgreSQL documentation at [https://www.postgresql.org/docs/12/plpython.html](https://www.postgresql.org/docs/12/plpython.html).
 
 For information about Python Package Index \(PyPI\), see [https://pypi.python.org/pypi](https://pypi.python.org/pypi).
 
