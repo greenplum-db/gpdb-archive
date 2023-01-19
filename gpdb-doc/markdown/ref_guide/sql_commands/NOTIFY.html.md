@@ -1,4 +1,4 @@
-# `NOTIFY` 
+# NOTIFY 
 
 Generates a notification.
 
