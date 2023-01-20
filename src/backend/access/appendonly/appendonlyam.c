@@ -2415,7 +2415,6 @@ appendonly_insert_init(Relation rel, int segno, int64 num_rows)
 	AppendOnlyStorageAttributes *attr;
 
 	StringInfoData titleBuf;
-	Oid segrelid;
 	int32 blocksize;
 	int32 safefswritesize;
 	int16 compresslevel;
@@ -2599,11 +2598,13 @@ appendonly_insert_init(Relation rel, int segno, int64 num_rows)
 	 */
 	Assert(aoInsertDesc->fsInfo->segno == segno);
 
-	GetAppendOnlyEntryAuxOids(aoInsertDesc->aoi_rel->rd_id, NULL, &segrelid,
+	GetAppendOnlyEntryAuxOids(aoInsertDesc->aoi_rel->rd_id, NULL, &aoInsertDesc->segrelid,
 			NULL, NULL, NULL, NULL);
 
-	firstSequence = GetFastSequences(segrelid, segno, num_rows);
+	firstSequence = GetFastSequences(aoInsertDesc->segrelid, segno, num_rows);
 	aoInsertDesc->numSequences = num_rows;
+
+	/* Set last_sequence value */
 	Assert(firstSequence > aoInsertDesc->rowCount);
 	aoInsertDesc->lastSequence = firstSequence - 1;
 
@@ -2830,16 +2831,9 @@ appendonly_insert(AppendOnlyInsertDesc aoInsertDesc,
 	 */
 	if (aoInsertDesc->numSequences == 0)
 	{
-		int64		firstSequence;
-		Oid segrelid;
-
-		GetAppendOnlyEntryAuxOids(aoInsertDesc->aoi_rel->rd_id, NULL,
-				&segrelid, NULL, NULL, NULL, NULL);
-
-		firstSequence =
-			GetFastSequences(segrelid,
-							 aoInsertDesc->cur_segno,
-							 NUM_FAST_SEQUENCES);
+		int64 firstSequence = GetFastSequences(aoInsertDesc->segrelid,
+											   aoInsertDesc->cur_segno,
+											   NUM_FAST_SEQUENCES);
 
 		Assert(firstSequence == aoInsertDesc->lastSequence + 1);
 		aoInsertDesc->numSequences = NUM_FAST_SEQUENCES;
