@@ -3,19 +3,20 @@
 //	Copyright (C) 2023 VMware Inc.
 //
 //	@filename:
-//		CParseHandlerExtStatsInfo.h
+//		CParseHandlerExtStatsNDistinctList.h
 //
 //	@doc:
-//		SAX parse handler class for parsing extended stats metadata object
+//		SAX parse handler class for parsing list of extended stats ndistinct
+//		objects
 //---------------------------------------------------------------------------
 
-#ifndef GPDXL_CParseHandlerExtStatsInfo_H
-#define GPDXL_CParseHandlerExtStatsInfo_H
+#ifndef GPDXL_CParseHandlerExtStatsNDistinctList_H
+#define GPDXL_CParseHandlerExtStatsNDistinctList_H
 
 #include "gpos/base.h"
 
 #include "naucrates/dxl/parser/CParseHandlerMetadataObject.h"
-#include "naucrates/md/CMDExtStatsInfo.h"
+#include "naucrates/md/CMDNDistinct.h"
 
 namespace gpdxl
 {
@@ -25,11 +26,11 @@ using namespace gpnaucrates;
 
 XERCES_CPP_NAMESPACE_USE
 
-class CParseHandlerExtStatsInfo : public CParseHandlerBase
+class CParseHandlerExtStatsNDistinctList : public CParseHandlerBase
 {
 private:
-	// extstat infos list
-	CMDExtStatsInfo *m_extinfo;
+	// dependency list values
+	CMDNDistinctArray *m_ndistincts;
 
 	// process the start of an element
 	void StartElement(
@@ -46,24 +47,23 @@ private:
 		const XMLCh *const element_qname		// element's qname
 		) override;
 
-	CMDExtStatsInfo::Estattype ParseStatKind(const Attributes &attrs) const;
-
 public:
-	CParseHandlerExtStatsInfo(const CParseHandlerExtStatsInfo &) = delete;
+	CParseHandlerExtStatsNDistinctList(
+		const CParseHandlerExtStatsNDistinctList &) = delete;
 
 	// ctor
-	CParseHandlerExtStatsInfo(CMemoryPool *mp,
-							  CParseHandlerManager *parse_handler_mgr,
-							  CParseHandlerBase *parse_handler_base);
+	CParseHandlerExtStatsNDistinctList(CMemoryPool *mp,
+									   CParseHandlerManager *parse_handler_mgr,
+									   CParseHandlerBase *parse_handler_base);
 
 	// dtor
-	~CParseHandlerExtStatsInfo() override;
+	~CParseHandlerExtStatsNDistinctList() override;
 
-	// returns the constructed bucket
-	CMDExtStatsInfo *GetInfo() const;
+	// returns the constructed list
+	CMDNDistinctArray *GetNDistinctList() const;
 };
 }  // namespace gpdxl
 
-#endif	// !GPDXL_CParseHandlerExtStatsInfo_H
+#endif	// !GPDXL_CParseHandlerExtStatsNDistinctList_H
 
 // EOF
