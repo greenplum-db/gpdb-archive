@@ -38,7 +38,7 @@ CTableDescriptor::CTableDescriptor(
 	CMemoryPool *mp, IMDId *mdid, const CName &name,
 	BOOL convert_hash_to_random, IMDRelation::Ereldistrpolicy rel_distr_policy,
 	IMDRelation::Erelstoragetype erelstoragetype, ULONG ulExecuteAsUser,
-	INT lockmode)
+	INT lockmode, ULONG assigned_query_id_for_target_rel)
 	: m_mp(mp),
 	  m_mdid(mdid),
 	  m_name(mp, name),
@@ -51,7 +51,8 @@ CTableDescriptor::CTableDescriptor(
 	  m_pdrgpulPart(nullptr),
 	  m_pdrgpbsKeys(nullptr),
 	  m_execute_as_user_id(ulExecuteAsUser),
-	  m_lockmode(lockmode)
+	  m_lockmode(lockmode),
+	  m_assigned_query_id_for_target_rel(assigned_query_id_for_target_rel)
 {
 	GPOS_ASSERT(nullptr != mp);
 	GPOS_ASSERT(mdid->IsValid());

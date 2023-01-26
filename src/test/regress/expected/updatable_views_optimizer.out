@@ -430,9 +430,9 @@ EXPLAIN (costs off) UPDATE rw_view1 SET a=6 WHERE a=5;
          ->  Sort
                Sort Key: (DMLAction)
                ->  Redistribute Motion 3:3  (slice1; segments: 3)
-                     Hash Key: base_tbl_1.a
+                     Hash Key: a
                      ->  Split
-                           ->  Index Scan using base_tbl_pkey on base_tbl base_tbl_1
+                           ->  Index Scan using base_tbl_pkey on base_tbl
                                  Index Cond: ((a = 5) AND (a > 0))
  Optimizer: Pivotal Optimizer (GPORCA) version 3.83.0
 (10 rows)
@@ -441,7 +441,7 @@ EXPLAIN (costs off) DELETE FROM rw_view1 WHERE a=5;
                          QUERY PLAN                          
 -------------------------------------------------------------
  Delete on base_tbl
-   ->  Index Scan using base_tbl_pkey on base_tbl base_tbl_1
+   ->  Index Scan using base_tbl_pkey on base_tbl
          Index Cond: ((a = 5) AND (a > 0))
  Optimizer: Pivotal Optimizer (GPORCA) version 3.83.0
 (4 rows)
@@ -509,9 +509,9 @@ EXPLAIN (costs off) UPDATE rw_view2 SET aaa=5 WHERE aaa=4;
          ->  Sort
                Sort Key: (DMLAction)
                ->  Redistribute Motion 3:3  (slice1; segments: 3)
-                     Hash Key: base_tbl_1.a
+                     Hash Key: a
                      ->  Split
-                           ->  Index Scan using base_tbl_pkey on base_tbl base_tbl_1
+                           ->  Index Scan using base_tbl_pkey on base_tbl
                                  Index Cond: ((a = 4) AND (a < 10) AND (a > 0))
  Optimizer: Pivotal Optimizer (GPORCA) version 3.83.0
 (10 rows)
@@ -520,7 +520,7 @@ EXPLAIN (costs off) DELETE FROM rw_view2 WHERE aaa=4;
                          QUERY PLAN                          
 -------------------------------------------------------------
  Delete on base_tbl
-   ->  Index Scan using base_tbl_pkey on base_tbl base_tbl_1
+   ->  Index Scan using base_tbl_pkey on base_tbl
          Index Cond: ((a = 4) AND (a < 10) AND (a > 0))
  Optimizer: Pivotal Optimizer (GPORCA) version 3.83.0
 (4 rows)
@@ -707,13 +707,13 @@ EXPLAIN (costs off) UPDATE rw_view2 SET a=3 WHERE a=2;
 -------------------------------------------------------------------------------
  Update on base_tbl
    ->  Hash Join
-         Hash Cond: (base_tbl_1.a = base_tbl_2.a)
-         ->  Index Scan using base_tbl_pkey on base_tbl base_tbl_1
+         Hash Cond: (base_tbl.a = base_tbl_1.a)
+         ->  Index Scan using base_tbl_pkey on base_tbl
                Index Cond: (a = 2)
          ->  Hash
                ->  Result
-                     Filter: ((base_tbl_2.a = 2) AND (base_tbl_2.a < 10))
-                     ->  Index Scan using base_tbl_pkey on base_tbl base_tbl_2
+                     Filter: ((base_tbl_1.a = 2) AND (base_tbl_1.a < 10))
+                     ->  Index Scan using base_tbl_pkey on base_tbl base_tbl_1
                            Index Cond: (a > 0)
  Optimizer: Pivotal Optimizer (GPORCA)
 (11 rows)
@@ -723,13 +723,13 @@ EXPLAIN (costs off) DELETE FROM rw_view2 WHERE a=2;
 -------------------------------------------------------------------------------
  Delete on base_tbl
    ->  Hash Join
-         Hash Cond: (base_tbl_1.a = base_tbl_2.a)
-         ->  Index Scan using base_tbl_pkey on base_tbl base_tbl_1
+         Hash Cond: (base_tbl.a = base_tbl_1.a)
+         ->  Index Scan using base_tbl_pkey on base_tbl
                Index Cond: (a = 2)
          ->  Hash
                ->  Result
-                     Filter: ((base_tbl_2.a = 2) AND (base_tbl_2.a < 10))
-                     ->  Index Scan using base_tbl_pkey on base_tbl base_tbl_2
+                     Filter: ((base_tbl_1.a = 2) AND (base_tbl_1.a < 10))
+                     ->  Index Scan using base_tbl_pkey on base_tbl base_tbl_1
                            Index Cond: (a > 0)
  Optimizer: Pivotal Optimizer (GPORCA) version 3.83.0
 (11 rows)
@@ -2347,7 +2347,7 @@ EXPLAIN (costs off) INSERT INTO rw_view1 VALUES (2, 'New row 2');
  Update on base_tbl
    ->  Nested Loop Semi Join
          Join Filter: true
-         ->  Index Scan using base_tbl_pkey on base_tbl base_tbl_2
+         ->  Index Scan using base_tbl_pkey on base_tbl
                Index Cond: (id = 2)
          ->  Materialize
                ->  Broadcast Motion 1:3  (slice1; segments: 1)

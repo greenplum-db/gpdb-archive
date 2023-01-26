@@ -520,6 +520,8 @@ CDXLTokens::Init(CMemoryPool *mp)
 		{EdxltokenIsNull, GPOS_WSZ_LIT("IsNull")},
 		{EdxltokenLintValue, GPOS_WSZ_LIT("LintValue")},
 		{EdxltokenDoubleValue, GPOS_WSZ_LIT("DoubleValue")},
+		{EdxltokenAssignedQueryIdForTargetRel,
+		 GPOS_WSZ_LIT("AssignedQueryIdForTargetRel")},
 
 		{EdxltokenRelTemporary, GPOS_WSZ_LIT("IsTemporary")},
 

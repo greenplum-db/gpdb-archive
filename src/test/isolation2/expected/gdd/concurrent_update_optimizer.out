@@ -171,7 +171,7 @@ UPDATE 1
 1: end;
 END
 2<:  <... completed>
-ERROR:  EvalPlanQual can not handle subPlan with Motion node  (seg1 127.0.1.1:7003 pid=34629)
+ERROR:  EvalPlanQual can not handle subPlan with Motion node
 2: end;
 END
 0: select * from tab_update_hashcol;
@@ -225,7 +225,7 @@ UPDATE 1
 1: end;
 END
 2<:  <... completed>
-ERROR:  EvalPlanQual can not handle subPlan with Motion node  (seg0 127.0.1.1:7002 pid=108407)
+ERROR:  EvalPlanQual can not handle subPlan with Motion node  (seg1 127.0.1.1:6003 pid=76275)
 2: end;
 END
 
@@ -306,7 +306,7 @@ BEGIN
 1: end;
 END
 2<:  <... completed>
-ERROR:  tuple to be locked was already moved to another partition or segment due to concurrent update  (seg1 127.0.1.1:7003 pid=34629)
+ERROR:  tuple to be locked was already moved to another partition or segment due to concurrent update  (seg1 127.0.1.1:6003 pid=76275)
 
 2: abort;
 ABORT
@@ -326,7 +326,7 @@ BEGIN
 1: end;
 END
 2<:  <... completed>
-ERROR:  tuple to be locked was already moved to another partition or segment due to concurrent update  (seg0 127.0.1.1:7002 pid=43842)
+ERROR:  tuple to be locked was already moved to another partition or segment due to concurrent update  (seg0 127.0.1.1:6002 pid=76337)
 
 2: abort;
 ABORT

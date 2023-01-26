@@ -2768,7 +2768,7 @@ update ab_a1 set b = 3 from ab_a2 where ab_a2.b = (select 1);
          ->  Split (actual rows=6 loops=1)
                ->  Nested Loop (actual rows=3 loops=1)
                      Join Filter: true
-                     ->  Dynamic Seq Scan on ab_a1 ab_a1_1 (actual rows=3 loops=1)
+                     ->  Dynamic Seq Scan on ab_a1 (actual rows=3 loops=1)
                            Number of partitions to scan: 3 (out of 3)
                            Partitions scanned:  Avg 3.0 x 3 workers.  Max 3 parts (seg0).
                      ->  Materialize (actual rows=1 loops=4)
@@ -3556,7 +3556,7 @@ explain (costs off) update pp_arrpart set a = a where a = '{1}';
                     QUERY PLAN                     
 ---------------------------------------------------
  Update on pp_arrpart
-   ->  Dynamic Seq Scan on pp_arrpart pp_arrpart_1
+   ->  Dynamic Seq Scan on pp_arrpart
          Number of partitions to scan: 1 (out of 2)
          Filter: (a = '{1}'::integer[])
  Optimizer: Pivotal Optimizer (GPORCA)
@@ -3566,7 +3566,7 @@ explain (costs off) delete from pp_arrpart where a = '{1}';
                     QUERY PLAN                     
 ---------------------------------------------------
  Delete on pp_arrpart
-   ->  Dynamic Seq Scan on pp_arrpart pp_arrpart_1
+   ->  Dynamic Seq Scan on pp_arrpart
          Number of partitions to scan: 1 (out of 2)
          Filter: (a = '{1}'::integer[])
  Optimizer: Pivotal Optimizer (GPORCA)
@@ -3729,7 +3729,7 @@ explain (costs off) update pp_lp set value = 10 where a = 1;
                 QUERY PLAN                
 ------------------------------------------
  Update on pp_lp
-   ->  Dynamic Seq Scan on pp_lp pp_lp_1
+   ->  Dynamic Seq Scan on pp_lp
          Number of partitions to scan: 1 (out of 2)
          Filter: (a = 1)
  Optimizer: Pivotal Optimizer (GPORCA)
@@ -3739,7 +3739,7 @@ explain (costs off) delete from pp_lp where a = 1;
                 QUERY PLAN                
 ------------------------------------------
  Delete on pp_lp
-   ->  Dynamic Seq Scan on pp_lp pp_lp_1
+   ->  Dynamic Seq Scan on pp_lp
          Number of partitions to scan: 1 (out of 2)
          Filter: (a = 1)
  Optimizer: Pivotal Optimizer (GPORCA)
@@ -3761,7 +3761,7 @@ explain (costs off) update pp_lp set value = 10 where a = 1;
                 QUERY PLAN                
 ------------------------------------------
  Update on pp_lp
-   ->  Dynamic Seq Scan on pp_lp pp_lp_1
+   ->  Dynamic Seq Scan on pp_lp
          Number of partitions to scan: 1 (out of 2)
          Filter: (a = 1)
  Optimizer: Pivotal Optimizer (GPORCA)
@@ -3771,7 +3771,7 @@ explain (costs off) delete from pp_lp where a = 1;
                 QUERY PLAN                
 ------------------------------------------
  Delete on pp_lp
-   ->  Dynamic Seq Scan on pp_lp pp_lp_1
+   ->  Dynamic Seq Scan on pp_lp
          Number of partitions to scan: 1 (out of 2)
          Filter: (a = 1)
  Optimizer: Pivotal Optimizer (GPORCA)
@@ -3792,7 +3792,7 @@ explain (costs off) update pp_lp set value = 10 where a = 1;
                 QUERY PLAN                
 ------------------------------------------
  Update on pp_lp
-   ->  Dynamic Seq Scan on pp_lp pp_lp_1
+   ->  Dynamic Seq Scan on pp_lp
          Number of partitions to scan: 1 (out of 2)
          Filter: (a = 1)
  Optimizer: Pivotal Optimizer (GPORCA)
@@ -3802,7 +3802,7 @@ explain (costs off) delete from pp_lp where a = 1;
                 QUERY PLAN                
 ------------------------------------------
  Delete on pp_lp
-   ->  Dynamic Seq Scan on pp_lp pp_lp_1
+   ->  Dynamic Seq Scan on pp_lp
          Number of partitions to scan: 1 (out of 2)
          Filter: (a = 1)
  Optimizer: Pivotal Optimizer (GPORCA)
@@ -4060,9 +4060,9 @@ explain (costs off) update listp1 set a = 1 where a = 2;
  Update on listp1
    ->  Result
          ->  Redistribute Motion 3:3  (slice1; segments: 3)
-               Hash Key: listp1_1.a
+               Hash Key: a
                ->  Split
-                     ->  Seq Scan on listp1 listp1_1
+                     ->  Seq Scan on listp1
                            Filter: (a = 2)
  Optimizer: Pivotal Optimizer (GPORCA)
 (8 rows)
@@ -4084,9 +4084,9 @@ explain (costs off) update listp1 set a = 1 where a = 2;
  Update on listp1
    ->  Result
          ->  Redistribute Motion 3:3  (slice1; segments: 3)
-               Hash Key: listp1_1.a
+               Hash Key: a
                ->  Split
-                     ->  Seq Scan on listp1 listp1_1
+                     ->  Seq Scan on listp1
                            Filter: (a = 2)
  Optimizer: Pivotal Optimizer (GPORCA)
 (8 rows)
