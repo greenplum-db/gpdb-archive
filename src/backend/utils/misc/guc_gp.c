@@ -39,6 +39,7 @@
 #include "optimizer/planmain.h"
 #include "pgstat.h"
 #include "parser/scansup.h"
+#include "postmaster/autovacuum.h"
 #include "postmaster/syslogger.h"
 #include "postmaster/fts.h"
 #include "replication/walsender.h"
@@ -545,6 +546,12 @@ static const struct config_enum_entry optimizer_join_order_options[] = {
 	{"greedy", JOIN_ORDER_GREEDY_SEARCH},
 	{"exhaustive", JOIN_ORDER_EXHAUSTIVE_SEARCH},
 	{"exhaustive2", JOIN_ORDER_EXHAUSTIVE2_SEARCH},
+	{NULL, 0}
+};
+
+static const struct config_enum_entry gp_autovacuum_scope_options[] = {
+	{"catalog", AV_SCOPE_CATALOG},
+	{"catalog_ao_aux", AV_SCOPE_CATALOG_AO_AUX},
 	{NULL, 0}
 };
 
@@ -4696,6 +4703,17 @@ struct config_enum ConfigureNamesEnum_gp[] =
 		},
 		&optimizer_join_order,
 		JOIN_ORDER_EXHAUSTIVE2_SEARCH, optimizer_join_order_options,
+		NULL, NULL, NULL
+	},
+
+	{
+		{"gp_autovacuum_scope", PGC_SIGHUP, AUTOVACUUM,
+		 gettext_noop("Sets which tables are eligible for autovacuum of dead tuples."),
+		 NULL,
+		 GUC_NO_RESET_ALL | GUC_REPORT | GUC_SUPERUSER_ONLY
+		},
+		&gp_autovacuum_scope,
+		AV_SCOPE_CATALOG, gp_autovacuum_scope_options,
 		NULL, NULL, NULL
 	},
 	/* End-of-list marker */
