@@ -3897,7 +3897,7 @@ def impl(context):
      cmd.run(validateAfter=True)
 
      # Update hostfile location
-     cmd = Command(name='update master hostname in config file',
+     cmd = Command(name='update coordinator hostname in config file',
                    cmdStr= "sed 's/MACHINE_LIST_FILE=.*/MACHINE_LIST_FILE=\/tmp\/hostfile--1/g' -i /tmp/clusterConfigFile-1")
      cmd.run(validateAfter=True)
 
