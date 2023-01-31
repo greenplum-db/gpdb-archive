@@ -4710,7 +4710,7 @@ struct config_enum ConfigureNamesEnum_gp[] =
 		{"gp_autovacuum_scope", PGC_SIGHUP, AUTOVACUUM,
 		 gettext_noop("Sets which tables are eligible for autovacuum of dead tuples."),
 		 NULL,
-		 GUC_NO_RESET_ALL | GUC_REPORT | GUC_SUPERUSER_ONLY
+		 GUC_REPORT | GUC_SUPERUSER_ONLY
 		},
 		&gp_autovacuum_scope,
 		AV_SCOPE_CATALOG, gp_autovacuum_scope_options,
