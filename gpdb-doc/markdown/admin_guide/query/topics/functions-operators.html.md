@@ -607,7 +607,7 @@ INSERT INTO mymatrix
    VALUES (array[[0,1],[1,0]]);
 SELECT sum(myvalue) FROM mymatrix;
  sum 
----------------
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
  {{1,3},{4,4}}</code></pre>
                             </td>
                             <td class="entry" headers="topic31__in2073121__entry__4">Performs matrix summation. Can take as input a
