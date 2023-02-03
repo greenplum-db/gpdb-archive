@@ -2961,6 +2961,16 @@ Enables updating of the process title every time a new SQL command is received b
 |-----------|-------|-------------------|
 |Boolean|on|local, session, reload|
 
+## <a id="vacuum_cleanup_index_scale_factor"></a>vacuum_cleanup_index_scale_factor
+
+Specifies the fraction of the total number of heap tuples counted in the previous statistics collection that can be inserted without incurring an index scan at the `VACUUM` cleanup stage. The purpose of this parameter is to minimize unnecessary vacuum index scans. This setting currently applies to B-tree indexes only. When its value is 0, `VACUUM` cleanup never skips index scans.
+
+If no tuples were deleted from the heap, B-tree indexes are still scanned at the `VACUUM` cleanup stage when at least one of the following conditions is met: the index statistics are stale, or the index contains deleted pages that can be recycled during cleanup. Index statistics are considered to be stale if the number of newly inserted tuples exceeds the `vacuum_cleanup_index_scale_factor` fraction of the total number of heap tuples detected by the previous statistics collection. The total number of heap tuples is stored in the index meta-page. Note that the meta-page does not include this data until `VACUUM` finds no dead tuples, so B-tree index scan at the cleanup stage can only be skipped if the second and subsequent `VACUUM` cycles detect no dead tuples.
+
+|Value Range|Default|Set Classifications|
+|-----------|-------|-------------------|
+|floating point 0 to 10000000000|0.1|local, session, reload|
+
 ## <a id="vacuum_cost_delay"></a>vacuum\_cost\_delay 
 
 The length of time that the process will sleep when the cost limit has been exceeded. 0 deactivates the cost-based vacuum delay feature.
