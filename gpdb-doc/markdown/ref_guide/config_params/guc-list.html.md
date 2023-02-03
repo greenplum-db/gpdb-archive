@@ -220,7 +220,10 @@ For each query run, prints the Greenplum query slice plan. *client\_min\_message
 
 ## <a id="default_statistics_target"></a>default\_statistics\_target 
 
-Sets the default statistics sampling target \(the number of values that are stored in the list of common values\) for table columns that have not had a column-specific target set via `ALTER TABLE SET STATISTICS`. Larger values may improve the quality of the Postgres Planner estimates, particularly for columns with irregular data distributions, at the expense of consuming more space in `pg_statistic` and slightly more time to compute the estimates. Conversely, a lower limit might be sufficient for columns with simple data distributions.
+Sets the default statistics sampling target \(the number of values that are stored in the list of common values\) for table columns that have not had a column-specific target set via `ALTER TABLE SET STATISTICS`. Larger values may improve the quality of the Postgres Planner estimates, particularly for columns with irregular data distributions, at the expense of consuming more space in `pg_statistic` and slightly more time to compute the estimates. Conversely, a lower limit might be sufficient for columns with simple data distributions. The default is 100.
+
+For more information on the use of statistics by the Postgres Planner, refer to [Statistics Used by the Planner](https://www.postgresql.org/docs/12/planner-stats.html) in the PostgreSQL documentation.
+
 
 |Value Range|Default|Set Classifications|
 |-----------|-------|-------------------|
@@ -416,6 +419,18 @@ The Postgres Planner will merge sub-queries into upper queries if the resulting 
 |Value Range|Default|Set Classifications|
 |-----------|-------|-------------------|
 |1-*n*|20|master, session, reload|
+
+## <a id="gin_pending_list_limit"></a>gin\_pending\_list\_limit
+
+Sets the maximum size of a GIN index's pending list, which is used when `fastupdate` is enabled. If the list grows larger than this maximum size, it is cleaned up by moving the entries in it to the index's main GIN data structure in bulk.
+
+A value specified without units is taken to be kilobytes. The default is four megabytes (4MB).
+
+You can override this setting for individual GIN indexes by changing index storage parameters.
+
+|Value Range|Default|Set Classifications|
+|-----------|-------|-------------------|
+|64 - `MAX_KILOBYTES` |4096|master, session, reload|
 
 ## <a id="gp_adjust_selectivity_for_outerjoins"></a>gp\_adjust\_selectivity\_for\_outerjoins 
 
