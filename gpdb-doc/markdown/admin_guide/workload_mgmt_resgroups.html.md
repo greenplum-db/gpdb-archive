@@ -282,6 +282,8 @@ If you use RedHat 6 and the performance with resource groups is acceptable for y
 
 Greenplum Database resource groups use Linux Control Groups \(cgroups\) to manage CPU resources. Greenplum Database also uses cgroups to manage memory for resource groups for external components. With cgroups, Greenplum isolates the CPU and external component memory usage of your Greenplum processes from other processes on the node. This allows Greenplum to support CPU and external component memory usage restrictions on a per-resource-group basis.
 
+> **Note** Redhat 8.x supports two versions of cgroups: cgroup v1 and cgroup v2. Greenplum Database only supports cgroup v1. Follow the steps below to make sure that your system is mounting the `cgroups-v1` filesystem at startup.
+
 For detailed information about cgroups, refer to the Control Groups documentation for your Linux distribution.
 
 Complete the following tasks on each node in your Greenplum Database cluster to set up cgroups for use with resource groups:
@@ -297,6 +299,28 @@ Complete the following tasks on each node in your Greenplum Database cluster to 
         ```
         sudo yum install libcgroup
         ```
+
+1. If you are using Redhat 8.x, make sure that you configured the system to mount the `cgroups-v1` filesystem by default during system boot by running the following command:
+
+    ```
+    stat -fc %T /sys/fs/cgroup/
+    ```
+
+    For cgroup v1, the output is `tmpfs`.  
+    If your output is `cgroup2fs`, configure the system to mount `cgroups-v1` by default during system boot by the `systemd` system and service manager:
+
+    ```
+    grubby --update-kernel=/boot/vmlinuz-$(uname -r) --args="systemd.unified_cgroup_hierarchy=0 systemd.legacy_systemd_cgroup_controller"
+    ```
+
+    To add the same parameters to all kernel boot entries:
+
+    ```
+    grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=0 systemd.legacy_systemd_cgroup_controller"
+    ```
+
+    Reboot the system for the changes to take effect.
+
 
 1.  Locate the cgroups configuration file `/etc/cgconfig.conf`. You must be the superuser or have `sudo` access to edit this file:
 
