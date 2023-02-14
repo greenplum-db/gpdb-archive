@@ -35,8 +35,8 @@ function remote_setup() {
     pushd gpdb_src
         GIT_URI=$(git config --get remote.origin.url)
         GIT_COMMIT=$(git rev-parse HEAD)
-        GIT_TAG=$(git describe --tags --abbrev=0 | grep -E -o '[0-9]\.[0-9]+\.[0-9]+')
         GPDB_VERSION=$(./getversion --short)
+        GIT_TAG=$(echo $GPDB_VERSION | grep -E -o '[0-9]\.[0-9]+\.[0-9]+')
     popd
 }
 
