@@ -547,8 +547,7 @@ aocs_beginscan_internal(Relation relation,
 								 &scan->checksum,
 								 NULL);
 
-	GetAppendOnlyEntryAuxOids(RelationGetRelid(relation),
-							  scan->appendOnlyMetaDataSnapshot,
+	GetAppendOnlyEntryAuxOids(relation,
 							  NULL, NULL, NULL,
 							  &visimaprelid, &visimapidxid);
 
@@ -840,8 +839,7 @@ aocs_insert_init(Relation rel, int segno, int64 num_rows)
                                  &nd);
     desc->compType = NameStr(nd);
 
-    GetAppendOnlyEntryAuxOids(rel->rd_id,
-                              desc->appendOnlyMetaDataSnapshot,
+    GetAppendOnlyEntryAuxOids(rel,
                               &desc->segrelid, &desc->blkdirrelid, NULL,
                               &desc->visimaprelid, &desc->visimapidxid);
 
@@ -1254,8 +1252,7 @@ aocs_fetch_init(Relation relation,
     bool checksum = true;
     Oid visimaprelid;
     Oid visimapidxid;
-    GetAppendOnlyEntryAuxOids(relation->rd_id,
-                              appendOnlyMetaDataSnapshot,
+    GetAppendOnlyEntryAuxOids(relation,
                               &aocsFetchDesc->segrelid, NULL, NULL,
                               &visimaprelid, &visimapidxid);
 
@@ -1624,8 +1621,7 @@ aocs_delete_init(Relation rel)
 
     Snapshot snapshot = GetCatalogSnapshot(InvalidOid);
 
-    GetAppendOnlyEntryAuxOids(rel->rd_id,
-                              snapshot,
+    GetAppendOnlyEntryAuxOids(rel,
                               NULL, NULL, NULL,
                               &visimaprelid, &visimapidxid);
 
