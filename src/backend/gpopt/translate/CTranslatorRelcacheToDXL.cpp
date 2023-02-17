@@ -943,6 +943,9 @@ CTranslatorRelcacheToDXL::RetrieveIndex(CMemoryPool *mp,
 		case BTREE_AM_OID:
 			index_type = IMDIndex::EmdindBtree;
 			break;
+		case HASH_AM_OID:
+			index_type = IMDIndex::EmdindHash;
+			break;
 		case BITMAP_AM_OID:
 			index_type = IMDIndex::EmdindBitmap;
 			break;
@@ -2701,6 +2704,7 @@ CTranslatorRelcacheToDXL::IsIndexSupported(Relation index_rel)
 		   gpdb::HeapAttIsNull(tup, Anum_pg_index_indpred) &&
 		   index_rel->rd_index->indisvalid &&
 		   (BTREE_AM_OID == index_rel->rd_rel->relam ||
+			HASH_AM_OID == index_rel->rd_rel->relam ||
 			BITMAP_AM_OID == index_rel->rd_rel->relam ||
 			GIST_AM_OID == index_rel->rd_rel->relam ||
 			GIN_AM_OID == index_rel->rd_rel->relam ||

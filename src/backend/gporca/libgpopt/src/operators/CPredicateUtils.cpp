@@ -1909,6 +1909,10 @@ CPredicateUtils::PexprIndexLookup(CMemoryPool *mp, CMDAccessor *md_accessor,
 								pmdindex->IndexType() == IMDIndex::EmdindBrin);
 
 	if (cmptype == IMDType::EcmptNEq || cmptype == IMDType::EcmptIDF ||
+		(pmdindex->IndexType() == IMDIndex::EmdindHash &&
+		 cmptype !=
+			 IMDType::
+				 EcmptEq) ||  // Hash indexes with only comparison type equals is ok
 		(cmptype == IMDType::EcmptOther &&
 		 !gin_or_gist_or_brin) ||  // only GIN/GiST/BRIN indexes with a comparison type other are ok
 		(gin_or_gist_or_brin &&

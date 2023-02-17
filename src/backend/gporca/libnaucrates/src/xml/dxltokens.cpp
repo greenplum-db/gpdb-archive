@@ -581,6 +581,7 @@ CDXLTokens::Init(CMemoryPool *mp)
 		{EdxltokenIndexTypeGist, GPOS_WSZ_LIT("Gist")},
 		{EdxltokenIndexTypeGin, GPOS_WSZ_LIT("Gin")},
 		{EdxltokenIndexTypeBrin, GPOS_WSZ_LIT("Brin")},
+		{EdxltokenIndexTypeHash, GPOS_WSZ_LIT("Hash")},
 		{EdxltokenIndexItemType, GPOS_WSZ_LIT("IndexItemType")},
 
 		{EdxltokenOpfamily, GPOS_WSZ_LIT("Opfamily")},

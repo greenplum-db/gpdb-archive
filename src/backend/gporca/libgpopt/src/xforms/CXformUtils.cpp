@@ -1919,8 +1919,9 @@ CXformUtils::FIndexApplicable(CMemoryPool *mp, const IMDIndex *pmdindex,
 	BOOL possible_ao_table = pmdrel->IsAORowOrColTable() ||
 							 pmdrel->RetrieveRelStorageType() ==
 								 IMDRelation::ErelstorageMixedPartitioned;
-	// GiST can match with either Btree or Bitmap indexes
+	// GiST and Hash can match with either Btree or Bitmap indexes
 	if (pmdindex->IndexType() == IMDIndex::EmdindGist ||
+		pmdindex->IndexType() == IMDIndex::EmdindHash ||
 		// GIN and BRIN can only match with Bitmap Indexes
 		(emdindtype == IMDIndex::EmdindBitmap &&
 		 (IMDIndex::EmdindGin == pmdindex->IndexType() ||
@@ -2432,7 +2433,8 @@ CXformUtils::PexprBuildBtreeIndexPlan(
 	IMdIdArray *partition_mdids = nullptr;
 
 	if (ptabdesc->RetrieveRelStorageType() != IMDRelation::ErelstorageHeap &&
-		pmdindex->IndexType() == IMDIndex::EmdindGist)
+		(pmdindex->IndexType() == IMDIndex::EmdindGist ||
+		 pmdindex->IndexType() == IMDIndex::EmdindHash))
 	{
 		// Non-heap tables not supported for GiST
 		return nullptr;
