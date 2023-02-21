@@ -1672,10 +1672,6 @@ transformGpPartitionDefinition(Oid parentrelid, const char *queryString,
 		}
 		else
 		{
-			/*
-			 * GPDB_12_MERGE_FIXME: can we optimize grammar to create separate lists
-			 * for elems and encoding in encClauses.
-			 */
 			Assert(IsA(newnode, ColumnReferenceStorageDirective));
 			encClauses = lappend(encClauses, newnode);
 		}
