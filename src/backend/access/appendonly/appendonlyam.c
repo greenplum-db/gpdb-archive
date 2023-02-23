@@ -2833,9 +2833,9 @@ appendonly_insert(AppendOnlyInsertDesc aoInsertDesc,
 	 */
 	if (aoInsertDesc->numSequences == 0)
 	{
-		int64 firstSequence = GetFastSequences(aoInsertDesc->segrelid,
-											   aoInsertDesc->cur_segno,
-											   NUM_FAST_SEQUENCES);
+		int64 firstSequence PG_USED_FOR_ASSERTS_ONLY = GetFastSequences(aoInsertDesc->segrelid,
+																		aoInsertDesc->cur_segno,
+																		NUM_FAST_SEQUENCES);
 
 		Assert(firstSequence == aoInsertDesc->lastSequence + 1);
 		aoInsertDesc->numSequences = NUM_FAST_SEQUENCES;

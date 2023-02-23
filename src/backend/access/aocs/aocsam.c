@@ -964,12 +964,9 @@ aocs_insert_values(AOCSInsertDesc idesc, Datum *d, bool *null, AOTupleId *aoTupl
 	 */
 	if (idesc->numSequences == 0)
 	{
-		int64		firstSequence;
-
-		firstSequence =
-			GetFastSequences(idesc->segrelid,
-							 idesc->cur_segno,
-							 NUM_FAST_SEQUENCES);
+		int64 firstSequence PG_USED_FOR_ASSERTS_ONLY = GetFastSequences(idesc->segrelid,
+																		idesc->cur_segno,
+																		NUM_FAST_SEQUENCES);
 
 		Assert(firstSequence == idesc->lastSequence + 1);
 		idesc->numSequences = NUM_FAST_SEQUENCES;
