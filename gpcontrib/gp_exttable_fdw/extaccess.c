@@ -255,8 +255,8 @@ external_beginscan(Relation relation, uint32 scancounter,
 	/*
 	 * pass external table's encoding to copy's options
 	 *
-	 * don't append to entry->options directly, we only store the encoding in
-	 * entry->encoding (and ftoptions)
+	 * don't append to extentry->options directly, we only store the encoding in
+	 * extentry->encoding (and ftoptions)
 	 */
 	if (fmttype_is_custom(fmtType))
 	{
@@ -610,12 +610,16 @@ external_insert_init(Relation rel)
 	/*
 	 * pass external table's encoding to copy's options
 	 *
-	 * don't append to entry->options directly, we only store the encoding in
-	 * entry->encoding (and ftoptions)
+	 * don't append to extentry->options directly, we only store the encoding in
+	 * extentry->encoding (and ftoptions)
 	 */
+	if (fmttype_is_custom(extentry->fmtcode))
+	{
+		copyFmtOpts = NIL;
+	}
 	copyFmtOpts = appendCopyEncodingOption(list_copy(extentry->options), extentry->encoding);
 
-	extInsertDesc->ext_pstate = BeginCopyToForeignTable(rel, (fmttype_is_custom(extentry->fmtcode) ? NIL : copyFmtOpts));
+	extInsertDesc->ext_pstate = BeginCopyToForeignTable(rel, copyFmtOpts);
 	InitParseState(extInsertDesc->ext_pstate,
 				   rel,
 				   true,
