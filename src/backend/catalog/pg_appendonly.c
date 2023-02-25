@@ -49,7 +49,8 @@ void
 InsertAppendOnlyEntry(Oid relid,
 					  Oid segrelid,
 					  Oid blkdirrelid,
-					  Oid visimaprelid)
+					  Oid visimaprelid,
+					  int16 version)
 {
 	Relation	pg_appendonly_rel;
 	HeapTuple	pg_appendonly_tuple = NULL;
@@ -70,6 +71,7 @@ InsertAppendOnlyEntry(Oid relid,
 	values[Anum_pg_appendonly_segrelid - 1] = ObjectIdGetDatum(segrelid);
 	values[Anum_pg_appendonly_blkdirrelid - 1] = ObjectIdGetDatum(blkdirrelid);
 	values[Anum_pg_appendonly_visimaprelid - 1] = ObjectIdGetDatum(visimaprelid);
+	values[Anum_pg_appendonly_version - 1] = Int16GetDatum(version);
 
 	/*
 	 * form the tuple and insert it
