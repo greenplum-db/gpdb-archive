@@ -1270,14 +1270,14 @@ INFO:  (slice 1) Dispatch command to SINGLE content
 explain (costs off) select gp_segment_id,  * from t1_varchar where col1_varchar = 'c'::char;
                           QUERY PLAN                          
 --------------------------------------------------------------
- Gather Motion 1:1  (slice1; segments: 1)
+ Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on t1_varchar
          Filter: ((col1_varchar)::bpchar = 'c'::character(1))
  Optimizer: Postgres query optimizer
 (4 rows)
 
 select gp_segment_id,  * from t1_varchar where col1_varchar = 'c'::char;
-INFO:  (slice 1) Dispatch command to SINGLE content
+INFO:  (slice 1) Dispatch command to ALL contents: 0 1 2
  gp_segment_id | col1_varchar | col2_int 
 ---------------+--------------+----------
              2 | c            |        3
@@ -1286,14 +1286,14 @@ INFO:  (slice 1) Dispatch command to SINGLE content
 explain (costs off) select gp_segment_id,  * from t1_varchar where col1_varchar = '2'::char;
                           QUERY PLAN                          
 --------------------------------------------------------------
- Gather Motion 1:1  (slice1; segments: 1)
+ Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on t1_varchar
          Filter: ((col1_varchar)::bpchar = '2'::character(1))
  Optimizer: Postgres query optimizer
 (4 rows)
 
 select gp_segment_id,  * from t1_varchar where col1_varchar = '2'::char;
-INFO:  (slice 1) Dispatch command to SINGLE content
+INFO:  (slice 1) Dispatch command to ALL contents: 0 1 2
  gp_segment_id | col1_varchar | col2_int 
 ---------------+--------------+----------
 (0 rows)
@@ -1359,14 +1359,14 @@ INFO:  Distributed transaction command 'Distributed Commit Prepared' to ALL cont
 explain (costs off) select LOWER(name) as aba FROM srt_dd WHERE name = 'ABA'::text;
                   QUERY PLAN                  
 ----------------------------------------------
- Gather Motion 1:1  (slice1; segments: 1)
+ Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on srt_dd
          Filter: ((name)::text = 'ABA'::text)
  Optimizer: Postgres query optimizer
 (4 rows)
 
 select LOWER(name) as aba FROM srt_dd WHERE name = 'ABA'::text;
-INFO:  (slice 1) Dispatch command to SINGLE content
+INFO:  (slice 1) Dispatch command to ALL contents: 0 1 2
  aba 
 -----
  aba
@@ -1382,8 +1382,9 @@ explain (costs off) delete from srt_dd where name='ABA'::text;
 (4 rows)
 
 delete from srt_dd where name='ABA'::text;
-INFO:  (slice 0) Dispatch command to SINGLE content
-INFO:  Distributed transaction command 'Distributed Commit (one-phase)' to SINGLE content
+INFO:  (slice 0) Dispatch command to ALL contents: 0 1 2
+INFO:  Distributed transaction command 'Distributed Prepare' to ALL contents: 0 1 2
+INFO:  Distributed transaction command 'Distributed Commit Prepared' to ALL contents: 0 1 2
 drop extension if exists citext cascade;
 NOTICE:  drop cascades to table srt_dd
 INFO:  Distributed transaction command 'Distributed Prepare' to ALL contents: 0 1 2
@@ -1602,6 +1603,80 @@ INFO:  Distributed transaction command 'Distributed Abort (No Prepared)' to ALL 
 -- cleanup
 set test_print_direct_dispatch_info=off;
 set allow_system_table_mods=off;
+-- https://github.com/greenplum-db/gpdb/issues/14887
+-- If opno of clause does not belong to opfamily of distributed key,
+-- do not use direct dispatch to resolve wrong result
+-- FIXME: orca still has wrong results
+create table t_14887(a varchar);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
+insert into t_14887 values('a   ');
+explain select * from t_14887 where a = 'a'::bpchar;
+                                   QUERY PLAN                                   
+--------------------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)  (cost=0.00..254.70 rows=53 width=32)
+   ->  Seq Scan on t_14887  (cost=0.00..254.00 rows=18 width=32)
+         Filter: ((a)::bpchar = 'a'::bpchar)
+ Optimizer: Postgres query optimizer
+(4 rows)
+
+select * from t_14887 where a = 'a'::bpchar;
+  a   
+------
+ a   
+(1 row)
+
+-- texteq does not belong to the hash opfamily of the table's citext distkey.
+-- But from the implementation can deduce: texteq ==> citext_eq, and we can
+-- do the direct dispatch.
+-- But we do not have the kind of implication rule in Postgres: texteq ==> citext_eq.
+-- Also partition table with citext as hash key and condition with text type
+-- does not do partition prune.
+CREATE EXTENSION if not exists citext;
+drop table t_14887;
+create table t_14887(a citext);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
+insert into t_14887 values('A'),('a');
+explain select * from t_14887 where a = 'a'::text;
+                                   QUERY PLAN                                   
+--------------------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)  (cost=0.00..254.70 rows=53 width=32)
+   ->  Seq Scan on t_14887  (cost=0.00..254.00 rows=18 width=32)
+         Filter: ((a)::text = 'a'::text)
+ Optimizer: Postgres query optimizer
+(4 rows)
+
+select * from t_14887 where a = 'a'::text;
+ a 
+---
+ a
+(1 row)
+
+drop table t_14887;
+create table t_14887 (a citext) partition by hash (a);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
+create table t0_14887 partition of t_14887 for values with (modulus 3,remainder 0);
+NOTICE:  table has parent, setting distribution columns to match parent table
+create table t1_14887 partition of t_14887 for values with (modulus 3,remainder 1);
+NOTICE:  table has parent, setting distribution columns to match parent table
+create table t2_14887 partition of t_14887 for values with (modulus 3,remainder 2);
+NOTICE:  table has parent, setting distribution columns to match parent table
+explain select * from t_14887 where a = 'a'::text;
+                                   QUERY PLAN                                    
+---------------------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)  (cost=0.00..764.38 rows=158 width=32)
+   ->  Append  (cost=0.00..762.26 rows=53 width=32)
+         ->  Seq Scan on t0_14887  (cost=0.00..254.00 rows=18 width=32)
+               Filter: ((a)::text = 'a'::text)
+         ->  Seq Scan on t1_14887  (cost=0.00..254.00 rows=18 width=32)
+               Filter: ((a)::text = 'a'::text)
+         ->  Seq Scan on t2_14887  (cost=0.00..254.00 rows=18 width=32)
+               Filter: ((a)::text = 'a'::text)
+ Optimizer: Postgres query optimizer
+(9 rows)
+
 begin;
 drop table if exists direct_test;
 drop table if exists direct_test_two_column;
@@ -1615,4 +1690,6 @@ drop table if exists MPP_22019_b;
 drop table if exists t_sql_value_function1;
 drop table if exists t_sql_value_function2;
 drop table if exists t_hash_partition;
+drop table if exists t_14887;
+drop extension if exists citext cascade;
 commit;

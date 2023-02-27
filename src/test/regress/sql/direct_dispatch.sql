@@ -595,6 +595,35 @@ abort;
 set test_print_direct_dispatch_info=off;
 set allow_system_table_mods=off;
 
+-- https://github.com/greenplum-db/gpdb/issues/14887
+-- If opno of clause does not belong to opfamily of distributed key,
+-- do not use direct dispatch to resolve wrong result
+-- FIXME: orca still has wrong results
+create table t_14887(a varchar);
+insert into t_14887 values('a   ');
+explain select * from t_14887 where a = 'a'::bpchar;
+select * from t_14887 where a = 'a'::bpchar;
+
+-- texteq does not belong to the hash opfamily of the table's citext distkey.
+-- But from the implementation can deduce: texteq ==> citext_eq, and we can
+-- do the direct dispatch.
+-- But we do not have the kind of implication rule in Postgres: texteq ==> citext_eq.
+-- Also partition table with citext as hash key and condition with text type
+-- does not do partition prune.
+CREATE EXTENSION if not exists citext;
+drop table t_14887;
+create table t_14887(a citext);
+insert into t_14887 values('A'),('a');
+explain select * from t_14887 where a = 'a'::text;
+select * from t_14887 where a = 'a'::text;
+
+drop table t_14887;
+create table t_14887 (a citext) partition by hash (a);
+create table t0_14887 partition of t_14887 for values with (modulus 3,remainder 0);
+create table t1_14887 partition of t_14887 for values with (modulus 3,remainder 1);
+create table t2_14887 partition of t_14887 for values with (modulus 3,remainder 2);
+explain select * from t_14887 where a = 'a'::text;
+
 begin;
 drop table if exists direct_test;
 drop table if exists direct_test_two_column;
@@ -611,5 +640,7 @@ drop table if exists t_sql_value_function1;
 drop table if exists t_sql_value_function2;
 
 drop table if exists t_hash_partition;
+drop table if exists t_14887;
+drop extension if exists citext cascade;
 
 commit;
