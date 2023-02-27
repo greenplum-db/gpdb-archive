@@ -1209,18 +1209,11 @@ setup_config(void)
 							  repltok);
 #endif
 
-#if 0
-/*
- * GPDB_12_MERGE_FIXME: the bgwriter section is missing from the sample
- * configuration used for this, should we keep that off the default config
- * or was it all an omission?
- */
 #if DEFAULT_BGWRITER_FLUSH_AFTER > 0
 	snprintf(repltok, sizeof(repltok), "#bgwriter_flush_after = %dkB",
 			 DEFAULT_BGWRITER_FLUSH_AFTER * (BLCKSZ / 1024));
 	conflines = replace_token(conflines, "#bgwriter_flush_after = 0",
 							  repltok);
-#endif
 #endif
 
 #if DEFAULT_CHECKPOINT_FLUSH_AFTER > 0
