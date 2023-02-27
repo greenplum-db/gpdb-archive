@@ -415,10 +415,13 @@ typedef struct ViewOptions
 
 #define InvalidRelation ((Relation) NULL)
 
-/* GPDB_12_MERGE_FIXME: I hope we don't need these macros anymore, now that
- * everything should go through the table access method API.
+/*
+ * CAUTION: this macro is a violation of the absraction that table AM and
+ * index AM interfaces provide.  Use of this macro is discouraged.  If
+ * table/index AM API falls short for your use case, consider enhancing the
+ * interface.
+ *
  */
-
 #define RelationIsHeap(relation) \
 	((relation)->rd_rel->relam == HEAP_TABLE_AM_OID)
 
