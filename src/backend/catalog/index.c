@@ -3040,11 +3040,11 @@ index_build(Relation heapRelation,
 									  RelationGetRelid(indexRelation));
 
 	/*
-	 * GPDB_12_MERGE_FIXME: Parallel CREATE INDEX temporarily disabled.
-	 * In the 'partition_prune' regression test, the parallel worker
-	 * blocked waiting for the main process. I believe there's something
-	 * broken in the lock manager in GPDB with parallel workers. Need
-	 * figure that out first.
+	 * GPDB_12_MERGE_FEATURE_NOT_SUPPORTED: Parallel CREATE INDEX temporarily
+	 * disabled.  In the 'partition_prune' regression test, the parallel
+	 * worker blocked waiting for the main process. I believe there's
+	 * something broken in the lock manager in GPDB with parallel
+	 * workers. Need figure that out first.
 	 */
 	indexInfo->ii_ParallelWorkers = 0;
 
