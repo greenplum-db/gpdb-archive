@@ -14,6 +14,7 @@
 #include "gpos/base.h"
 
 #include "gpopt/base/CDistributionSpecAny.h"
+#include "gpopt/base/CDistributionSpecNonSingleton.h"
 #include "gpopt/base/CDistributionSpecReplicated.h"
 #include "gpopt/base/CPartInfo.h"
 #include "gpopt/operators/CExpressionHandle.h"
@@ -120,6 +121,16 @@ CPhysicalFilter::PdsRequired(CMemoryPool *mp, CExpressionHandle &exprhdl,
 		// in this case, we impose no distribution requirements even with the presence of outer references,
 		// the reason is that the Filter must be the inner child of IndexNLJoin and
 		// we need to have outer references referring to join's outer child
+		pdsRequired->AddRef();
+		return pdsRequired;
+	}
+
+	if (CDistributionSpec::EdtNonSingleton == pdsRequired->Edt() &&
+		!CDistributionSpecNonSingleton::PdsConvert(pdsRequired)
+			 ->FAllowReplicated())
+	{
+		// this situation arises when we have Filter instead inlined CTE,
+		// in this case, we need to push down non-singleton with not allowed replicated through Filter
 		pdsRequired->AddRef();
 		return pdsRequired;
 	}
