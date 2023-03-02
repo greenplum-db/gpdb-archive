@@ -332,4 +332,7 @@ test: uao_dml/ao_unique_index_build_row uao_dml/ao_unique_index_build_column
 # test column projection for various operations
 test: aoco_projection
 
+# test dispatch and result handling of gp_log_memory_backend_contexts
+test: gp_log_mem_dispatch
+
 # end of tests

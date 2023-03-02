@@ -13,20 +13,40 @@
  *-------------------------------------------------------------------------
  */
 
+#include "c.h"
 #include "postgres.h"
 
+#include "fmgr.h"
 #include "funcapi.h"
-#include "miscadmin.h"
+#include "libpq-fe.h"
+#include "libpq-int.h"
 #include "mb/pg_wchar.h"
+#include "miscadmin.h"
+#include "nodes/pg_list.h"
+#include "pgstat.h"
 #include "storage/proc.h"
 #include "storage/procarray.h"
 #include "utils/builtins.h"
+
+#include "cdb/cdbdisp_query.h"
+#include "cdb/cdbdispatchresult.h"
+#include "cdb/cdbutil.h"
+#include "cdb/cdbvars.h"
+#include "utils/elog.h"
+#include "utils/palloc.h"
+
+/* ----------
+ * An error code for segments to indicate that dispatched
+ * memory context logging was not successful.
+ * ----------
+ */
+#define ERROR_DISPATCHING_LOG_MEMORY_CONTEXT -99
 
 /* ----------
  * The max bytes for showing identifiers of MemoryContext.
  * ----------
  */
-#define MEMORY_CONTEXT_IDENT_DISPLAY_SIZE	1024
+#define MEMORY_CONTEXT_IDENT_DISPLAY_SIZE 1024
 
 /*
  * PutMemoryContextsStatsTupleStore
@@ -174,10 +194,8 @@ pg_get_backend_memory_contexts(PG_FUNCTION_ARGS)
 Datum
 pg_log_backend_memory_contexts(PG_FUNCTION_ARGS)
 {
-	int			pid = PG_GETARG_INT32(0);
-	PGPROC	   *proc;
-
-	proc = BackendPidGetProc(pid);
+	int		pid = PG_GETARG_INT32(0);
+	PGPROC		*proc = BackendPidGetProc(pid);
 
 	/*
 	 * BackendPidGetProc returns NULL if the pid isn't valid; but by the time
@@ -208,4 +226,137 @@ pg_log_backend_memory_contexts(PG_FUNCTION_ARGS)
 	}
 
 	PG_RETURN_BOOL(true);
+}
+
+Datum
+gp_log_backend_memory_contexts(PG_FUNCTION_ARGS)
+{
+	int			targetContentId;
+	int			targetSessionId;
+	ListCell		*dispSeg;
+	ListCell		*retSeg;
+	MemoryContext	per_func_ctx;
+	MemoryContext	oldcontext;
+
+	char			cmd[255];
+	CdbPgResults	cdb_pgresults = {NULL, 0};
+	int32			resultCount = 0;
+	List			*dispatchedSegments = NIL;
+	List			*returnedSegments = NIL;
+
+	if (Gp_role == GP_ROLE_UTILITY)
+	{
+		ereport(ERROR,
+				(errmsg("this function does not work in utility mode")));
+		PG_RETURN_INT32(0);
+	}
+
+	per_func_ctx = AllocSetContextCreate(CurrentMemoryContext,
+									   "gp_log_backend_memory temporary context",
+									   ALLOCSET_DEFAULT_SIZES);
+	oldcontext = MemoryContextSwitchTo(per_func_ctx);
+
+	if (PG_NARGS() == 2)
+	{
+		targetSessionId = PG_GETARG_INT32(0);
+		targetContentId = PG_GETARG_INT32(1);
+	}
+	else {
+		targetSessionId = PG_GETARG_INT32(0);
+	}
+
+	if (Gp_role == GP_ROLE_DISPATCH)
+	{
+		if (PG_NARGS() == 2)
+		{
+			/* confirm that provided input is a valid segment */
+			CdbComponentDatabases *cdbs = cdbcomponent_getCdbComponents();
+			if (targetContentId < 0 || targetContentId >= cdbs->total_segments)
+			{
+				ereport(WARNING,
+						(errmsg("\"%i\" is not a valid content ID",
+								targetContentId)));
+				PG_RETURN_INT16(resultCount);
+			}
+
+			sprintf(cmd, "select gp_log_backend_memory_contexts(%d,%d)",
+					targetSessionId, targetContentId);
+			dispatchedSegments = list_make1_int(targetContentId);
+		}
+		else
+		{
+			sprintf(cmd, "select gp_log_backend_memory_contexts(%d)", targetSessionId);
+			dispatchedSegments = cdbcomponent_getCdbComponentsList();
+		}
+		CdbDispatchCommandToSegments(cmd, DF_NONE, dispatchedSegments, &cdb_pgresults);
+
+
+		/*
+		 * collect all results from dispatch, so we can check which segments
+		 * didn't report success
+		 */
+		for (int resultno = 0; resultno < cdb_pgresults.numResults; resultno++)
+		{
+			struct pg_result *pgresult = cdb_pgresults.pg_results[resultno];
+			if (PQresultStatus(pgresult) == PGRES_TUPLES_OK)
+			{
+				int retValue = pg_atoi(PQgetvalue(pgresult, 0, 0), sizeof(int), 0);
+				if (retValue != ERROR_DISPATCHING_LOG_MEMORY_CONTEXT)
+					returnedSegments = lappend_int(returnedSegments, retValue);
+			}
+		}
+
+		/* Warn for all segments where we didn't get a positive response */
+		foreach(dispSeg, dispatchedSegments)
+		{
+			bool foundResponse = false;
+			int dispSegNo = lfirst_int(dispSeg);
+			foreach(retSeg, returnedSegments)
+			{
+				int retSegNo = lfirst_int(retSeg);
+				if (dispSegNo == retSegNo)
+				{
+					foundResponse = true;
+					break;
+				}
+			}
+
+			if (!foundResponse)
+				ereport(WARNING,
+					(errmsg("unable to log memory contexts for session: \"%i\", on contentID: \"%i\"",
+							targetSessionId, dispSegNo)));
+			else
+				resultCount++;
+		}
+
+		cdbdisp_clearCdbPgResults(&cdb_pgresults);
+		MemoryContextSwitchTo(oldcontext);
+		PG_RETURN_INT16(resultCount);
+	}
+	else	/* Gp_role == EXECUTE */
+	{
+		Assert(Gp_role == GP_ROLE_EXECUTE);
+
+		int tot_backends = pgstat_fetch_stat_numbackends();
+		bool errorDetected = false;
+		int logsSignalled = 0;
+		for (int beid = 1; beid <= tot_backends; beid++)
+		{
+			PgBackendStatus *beentry = pgstat_fetch_stat_beentry(beid);
+			if (beentry && beentry->st_procpid >0 &&
+				beentry->st_session_id == targetSessionId)
+			{
+				bool success = DatumGetBool(DirectFunctionCall1(pg_log_backend_memory_contexts, beentry->st_procpid));
+				if (success)
+					logsSignalled++;
+				else
+					errorDetected = true;
+			}
+		}
+		MemoryContextSwitchTo(oldcontext);
+		if (errorDetected || logsSignalled == 0)
+			PG_RETURN_INT16(ERROR_DISPATCHING_LOG_MEMORY_CONTEXT);
+		else
+			PG_RETURN_INT16(GpIdentity.segindex);
+	}
 }
