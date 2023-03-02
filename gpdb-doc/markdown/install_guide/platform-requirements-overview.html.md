@@ -185,7 +185,7 @@ This table lists the versions of the Greenplum Extensions that are compatible wi
 </tr>
 <tr class="row">
 <td class="entry nocellnorowborder" style="vertical-align:top;" headers="d78288e683 "><a class="xref" href="../analytics/pl_r.html">PL/R</a></td>
-<td class="entry nocellnorowborder" style="vertical-align:top;" headers="d78288e686 ">3.0.3</td>
+<td class="entry nocellnorowborder" style="vertical-align:top;" headers="d78288e686 ">3.1.0</td>
 <td class="entry cell-norowborder" style="vertical-align:top;" headers="d78288e689 ">(CentOS) R 3.3.3<p class="p"> (Ubuntu) You install R 3.5.1+.</p>
 </td>
 </tr>

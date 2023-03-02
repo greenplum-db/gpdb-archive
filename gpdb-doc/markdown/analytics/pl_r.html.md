@@ -72,7 +72,7 @@ Before you install the PL/R extension, make sure that your Greenplum Database is
 4.  Install the software extension package by running the `gppkg` command. This example installs the PL/R extension on a Linux system:
 
     ```
-    $ gppkg -i plr-3.0.3-gp7-rhel8_x86_64.gppkg
+    $ gppkg -i plr-3.1.0-gp7-rhel8_x86_64.gppkg
     ```
 
 5.  Source the file `$GPHOME/greenplum_path.sh`.
@@ -113,10 +113,10 @@ The default command fails if any existing objects \(such as functions\) depend o
 
 #### <a id="topic8"></a>Uninstall the Extension Package 
 
-If no databases have PL/R as a registered language, uninstall the Greenplum PL/R extension with the `gppkg` utility. This example uninstalls PL/R package version 3.0.3.
+If no databases have PL/R as a registered language, uninstall the Greenplum PL/R extension with the `gppkg` utility. This example uninstalls PL/R package version 3.1.0.
 
 ```
-$ gppkg -r plr-3.0.3
+$ gppkg -r plr-3.1.0
 ```
 
 On RHEL/Oracle/Rocky systems, uninstalling the extension uninstalls the R software that was installed with the extension.
