@@ -37,6 +37,12 @@
 #define APPENDONLY_VISIMAP_MAX_BITMAP_SIZE 4096
 
 /*
+ * The max value of visiMapEntry->bitmap->nwords
+ */
+#define APPENDONLY_VISIMAP_MAX_BITMAP_WORD_COUNT \
+	(APPENDONLY_VISIMAP_MAX_BITMAP_SIZE / sizeof(bitmapword))
+
+/*
  * Data structure for the ao visibility map processing.
  *
  */
