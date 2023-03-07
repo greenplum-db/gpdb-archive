@@ -839,7 +839,7 @@ aoco_index_fetch_tuple(struct IndexFetchTableData *scan,
  * true and have the xwait machinery kick in.
  */
 static bool
-aoco_index_fetch_tuple_exists(Relation rel,
+aoco_index_unique_check(Relation rel,
 							  ItemPointer tid,
 							  Snapshot snapshot,
 							  bool *all_dead)
@@ -2249,7 +2249,7 @@ static const TableAmRoutine ao_column_methods = {
 	.index_fetch_reset = aoco_index_fetch_reset,
 	.index_fetch_end = aoco_index_fetch_end,
 	.index_fetch_tuple = aoco_index_fetch_tuple,
-	.index_fetch_tuple_exists = aoco_index_fetch_tuple_exists,
+	.index_unique_check = aoco_index_unique_check,
 
 	.dml_init = aoco_dml_init,
 	.dml_finish = aoco_dml_finish,

@@ -606,7 +606,7 @@ appendonly_index_fetch_tuple(struct IndexFetchTableData *scan,
  * true and have the xwait machinery kick in.
  */
 static bool
-appendonly_index_fetch_tuple_exists(Relation rel,
+appendonly_index_unique_check(Relation rel,
 									ItemPointer tid,
 									Snapshot snapshot,
 									bool *all_dead)
@@ -2038,7 +2038,7 @@ static const TableAmRoutine ao_row_methods = {
 	.index_fetch_reset = appendonly_index_fetch_reset,
 	.index_fetch_end = appendonly_index_fetch_end,
 	.index_fetch_tuple = appendonly_index_fetch_tuple,
-	.index_fetch_tuple_exists = appendonly_index_fetch_tuple_exists,
+	.index_unique_check = appendonly_index_unique_check,
 
 	.dml_init = appendonly_dml_init,
 	.dml_finish = appendonly_dml_finish,
