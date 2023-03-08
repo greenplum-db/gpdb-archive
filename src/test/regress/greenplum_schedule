@@ -315,6 +315,9 @@ test: create_extension_fail
 # test if motion sockets are created with the gp_segment_configuration.address
 test: motion_socket
 
+# test invalid connection to ic proxy when gp_interconnect_type='proxy'
+test: ic_proxy_socket
+
 # subtransaction overflow test
 test: subtrx_overflow
 
