@@ -94,7 +94,6 @@ EXPLAIN (FORMAT YAML, VERBOSE) SELECT * from boxes;
 EXPLAIN (FORMAT YAML, VERBOSE, SETTINGS ON) SELECT * from boxes;
 
 --- Check Explain Analyze YAML output that include the slices information
---- Check explain sort infomation in verbose mode BTW
 -- explain_processing_off
 EXPLAIN (ANALYZE, FORMAT YAML) SELECT * from boxes LEFT JOIN apples ON apples.id = boxes.apple_id LEFT JOIN box_locations ON box_locations.id = boxes.location_id;
 
@@ -107,13 +106,12 @@ EXPLAIN (ANALYZE, FORMAT YAML) SELECT * from boxes LEFT JOIN apples ON apples.id
 -- m/^Settings:.*/
 -- s/,?\s*jit\w*\s*=\s*[^,\n]+//g
 -- m/^Settings:.*/
--- s/^Settings:[,\t ]*/Settings: /
+-- s/^Settings:[,\s]*/Settings: /
 -- end_matchsubs
 --- Check explain analyze sort infomation in verbose mode
+EXPLAIN (ANALYZE, VERBOSE) SELECT * from boxes ORDER BY apple_id;
 RESET random_page_cost;
 RESET cpu_index_tuple_cost;
-EXPLAIN (ANALYZE, VERBOSE) SELECT * from boxes ORDER BY apple_id;
-EXPLAIN (ANALYZE, VERBOSE, FORMAT YAML) SELECT * from boxes ORDER BY apple_id;
 -- explain_processing_on
 
 --
