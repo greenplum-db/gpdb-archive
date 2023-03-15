@@ -1264,6 +1264,11 @@ _readAExpr(void)
 		local_node->kind = AEXPR_DISTINCT;
 		READ_NODE_FIELD(name);
 	}
+	else if (strncmp(token,"NOT_DISTINCT",length)==0)
+	{
+		local_node->kind = AEXPR_NOT_DISTINCT;
+		READ_NODE_FIELD(name);
+	}
 	else if (strncmp(token,"NULLIF",length)==0)
 	{
 		local_node->kind = AEXPR_NULLIF;
