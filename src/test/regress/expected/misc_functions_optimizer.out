@@ -150,7 +150,6 @@ SELECT pg_log_backend_memory_contexts(pg_backend_pid());
 (1 row)
 
 CREATE ROLE regress_log_memory;
-NOTICE:  resource queue required -- using default resource queue "pg_default"
 SELECT has_function_privilege('regress_log_memory',
   'pg_log_backend_memory_contexts(integer)', 'EXECUTE'); -- no
  has_function_privilege 
