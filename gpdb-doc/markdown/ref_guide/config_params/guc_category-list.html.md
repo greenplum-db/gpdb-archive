@@ -517,6 +517,7 @@ These parameters control the configuration of the replication between Greenplum 
 
 - [repl_catchup_within_range](guc-list.html#repl_catchup_within_range)
 - [replication_timeout](guc-list.html#replication_timeout)
+- [track_wal_io_timing](guc-list.html#track_wal_io_timing)
 - [wait_for_replication_threshold](guc-list.html#wait_for_replication_threshold)
 - [wal_keep_segments](guc-list.html#wal_keep_segments)
 - [wal_receiver_status_interval](guc-list.html#wal_receiver_status_interval)
