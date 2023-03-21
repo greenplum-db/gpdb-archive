@@ -3213,15 +3213,17 @@ If you set the value to 0, database performance issues might occur under heavy l
 |-----------|-------|-------------------|
 |0 - MAX-INT / 1024|1024|master, system, reload|
 
-## <a id="wal_keep_segments"></a>wal\_keep\_segments 
+## <a id="wal_keep_size"></a>wal_keep_size 
 
-For Greenplum Database coordinator mirroring, sets the maximum number of processed WAL segment files that are saved by the by the active Greenplum Database coordinator if a checkpoint operation occurs.
+Specifies the minimum size of past log file segments kept in the `pg_wal` directory, in case a standby coordinator or mirror segment instance needs to fetch them for streaming replication. If a standby coordinator or mirror segment instance connected to the sending server falls behind by more than `wal_keep_size` megabytes, the sending server might remove a WAL segment still needed by the standby coordinator or mirror segment instance, in which case the replication connection will be terminated. 
 
-The segment files are used to synchronize the active coordinator on the standby coordinator.
+This sets only the minimum size of segments retained in `pg_wal`; the system might need to retain more segments for WAL archival or to recover from a checkpoint. If `wal_keep_size` is zero (the default), the number of old WAL segments available to mirror servers is a function of the location of replication slot's `restart_lsn` and `max_slot_wal_keep_size` parameters, as well as the status of WAL archiving. 
+
+If this value is specified without units, it is taken as megabytes.
 
 |Value Range|Default|Set Classifications|
 |-----------|-------|-------------------|
-|integer|5|master, system, reload, superuser|
+|integer|5 times the default size of the write-ahead log file|master, system, reload, superuser|
 
 ## <a id="wal_receiver_status_interval"></a>wal\_receiver\_status\_interval 
 
