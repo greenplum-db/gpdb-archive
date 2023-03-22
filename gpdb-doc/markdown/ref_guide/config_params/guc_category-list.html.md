@@ -515,6 +515,7 @@ The parameters in this topic control the configuration of the Greenplum Database
 
 These parameters control the configuration of the replication between Greenplum Database primary coordinator and standby coordinator.
 
+- [max_slot_wal_keep_size](guc-list.html#max_slot_wal_keep_size)
 - [repl_catchup_within_range](guc-list.html#repl_catchup_within_range)
 - [replication_timeout](guc-list.html#replication_timeout)
 - [track_wal_io_timing](guc-list.html#track_wal_io_timing)
