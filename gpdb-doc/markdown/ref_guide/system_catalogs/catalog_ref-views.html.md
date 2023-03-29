@@ -18,8 +18,6 @@ Greenplum Database provides the following system views.
 -   [pg_cursors](pg_cursors.html)
 -   [pg_matviews](pg_matviews.html)
 -   [pg_max_external_files](pg_max_external_files.html)
--   [pg_partition_columns](pg_partition_columns.html)
--   [pg_partition_templates](pg_partition_templates.html)
 -   [pg_partitions](pg_partitions.html)
 -   [pg_policies](pg_policies.html)
 -   [pg_resqueue_attributes](pg_resqueue_attributes.html)
@@ -32,7 +30,7 @@ Greenplum Database provides the following system views.
 -   [pg_stat_wal](pg_stat_wal.html)
 -   [pg_stat_resqueues](pg_stats_resqueue.html)
 -   [pg_stats](pg_stats.html)
--   [pg_stats_ext](pg_stats_ext.html)
+-   [pg_stats\_ext](pg_stats_ext.html)
 -   session_level_memory_consumption (See [Monitoring a Greenplum System](../../admin_guide/managing/monitor.html#topic_slt_ddv_1q).)
 
 For more information about the standard system views supported in PostgreSQL and Greenplum Database, see the following sections of the PostgreSQL documentation:
