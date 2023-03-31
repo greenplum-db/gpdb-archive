@@ -738,6 +738,10 @@ jobs:
         skip_download: 'true'
       passed:
       - compile_gpdb_clients_windows
+    - get: server-build-[[ os_type ]]
+      params:
+        skip_download: 'true'
+      passed: [Publish Server Builds]
     {% endif %}
 
 {% if "ICW" in test_sections %}
@@ -761,6 +765,10 @@ jobs:
           params:
             skip_download: 'true'
           passed: [gate_compile_end]
+        - get: bin_gpdb_clients
+          params:
+            skip_download: 'true'
+          passed: [ gate_compile_end ]
 
 - name: gpdb_pitr_[[ os_type ]]
   plan:
@@ -980,6 +988,11 @@ jobs:
             trigger: true
             params:
               skip_download: "true"
+          - get: bin_gpdb_clients
+            passed: [ gate_icw_start ]
+            trigger: true
+            params:
+              skip_download: "true"
           - get: gpdb7-[[ os_type ]]-build
     - task: unit_tests_gporca
       file: gpdb_src/concourse/tasks/unit_tests_gporca.yml
@@ -1169,6 +1182,10 @@ jobs:
         - pg_upgrade_[[ os_type ]]
         - interconnect_[[ os_type ]]
         trigger: true
+      - get: bin_gpdb_clients
+        params:
+          skip_download: 'true'
+        passed: [unit_tests_gporca_[[ os_type ]]]
 {% if ("Release" in test_sections and os_type == default_os_type) %}
   - put: bin_gpdb_icw_green
     params:
@@ -1536,7 +1553,6 @@ jobs:
         - get: gpdb7-[[ os_type ]]-test
         - get: gpdb_src
           passed:
-            - gate_cli_start
             - cli_cross_subnet
             {% for test in CLI_BEHAVE_TESTS %}
             - [[ test.name ]]_[[ os_type ]]
@@ -1547,7 +1563,6 @@ jobs:
         - get: bin_gpdb
           trigger: true
           passed:
-            - gate_cli_start
             - cli_cross_subnet
           {% for test in CLI_BEHAVE_TESTS %}
             - [[ test.name ]]_[[ os_type ]]
@@ -1617,10 +1632,11 @@ jobs:
         - gate_icw_end
         - gate_cli_end
       - get: bin_gpdb_clients
+        trigger: true
         params:
           skip_download: 'true'
         passed:
-        - gate_compile_end
+        - gate_icw_end
 
 - name: Release_Candidate
   plan:
