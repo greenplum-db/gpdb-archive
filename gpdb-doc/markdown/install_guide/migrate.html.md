@@ -6,7 +6,7 @@ You can migrate data from Greenplum Database 4.3 or 5 to Greenplum 6 using the s
 
 > **Note** Open source Greenplum Database is available only for Greenplum Database 5 and later.
 
-> **Note** You can upgrade a Greenplum Database 5.28 system directly to Greenplum 6.9 or later using [gpupgrade](https://docs.vmware.com/en/VMware-Tanzu-Greenplum-Upgrade/index.html). You cannot upgrade a Greenplum Database 4.3 system directly to Greenplum 6.
+> **Note** You can upgrade a Greenplum Database 5.28.10 system directly to Greenplum 6.24.0 or later using [gpupgrade](https://docs.vmware.com/en/VMware-Tanzu-Greenplum-Upgrade/index.html). You cannot upgrade a Greenplum Database 4.3 system directly to Greenplum 6.
 
 This topic identifies known issues you may encounter when moving data from Greenplum 4.3 to Greenplum 6. You can work around these problems by making needed changes to your Greenplum 4.3 databases so that you can create backups that can be restored successfully to Greenplum 6.
 
