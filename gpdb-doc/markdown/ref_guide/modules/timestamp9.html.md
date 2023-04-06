@@ -2,7 +2,7 @@
 
 The `timestamp9` module provides an efficient, nanosecond-precision timestamp data type and related functions and operators.
 
-The Greenplum Database `timestamp9` module is based on version 1.2.0 of the [`timestamp9` module]((https://github.com/fvannee/timestamp9) ) used with PostgreSQL.
+The Greenplum Database `timestamp9` module is based on version 1.2.0 of the [`timestamp9` module](https://github.com/fvannee/timestamp9) used with PostgreSQL.
 
 ## <a id="topic_reg"></a>Installing and Registering the Module 
 
