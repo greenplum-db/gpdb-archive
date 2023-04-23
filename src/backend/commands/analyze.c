@@ -1665,18 +1665,6 @@ compare_rows(const void *a, const void *b)
 {
 	HeapTuple	ha = *(const HeapTuple *) a;
 	HeapTuple	hb = *(const HeapTuple *) b;
-
-	/*
-	 * For AO/AOCO tables, blocknumber does not have a meaning and is not set.
-	 * We leave this workaround here for legacy AO/CO analyze still working.
-	 * There should be no apparent and measurable perfomance hit from calling
-	 * this function.
-	 * 
-	 * The AO/CO Fast Analyze won't reach here anymore.
-	 */
-	if (!BlockNumberIsValid(ItemPointerGetBlockNumberNoCheck(&ha->t_self)))
-		return 0;
-
 	BlockNumber ba = ItemPointerGetBlockNumber(&ha->t_self);
 	OffsetNumber oa = ItemPointerGetOffsetNumber(&ha->t_self);
 	BlockNumber bb = ItemPointerGetBlockNumber(&hb->t_self);
