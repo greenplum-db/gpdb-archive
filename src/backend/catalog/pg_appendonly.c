@@ -308,7 +308,7 @@ RemoveAppendonlyEntry(Oid relid)
 	}
 
 	/* Piggyback here to remove gp_fastsequence entries */
-	RemoveFastSequenceEntry(aosegrelid);
+	RemoveFastSequenceEntry(relid, aosegrelid);
 
 	/*
 	 * Delete the appendonly table entry from the catalog (pg_appendonly).

@@ -1235,6 +1235,28 @@ swap_relation_files(Oid r1, Oid r2, bool target_is_pg_class,
 		elog(ERROR, "cache lookup failed for relation %u", r2);
 	relform2 = (Form_pg_class) GETSTRUCT(reltup2);
 
+	/* 
+	 * Swap/transfer pg_attribute_encoding entries for target table if it is CO.
+	 *
+	 * Note that because RemoveAttributeEncodingsByRelid increments command counter,
+	 * this has to happen before ATAOEntries (see the comments for that below).
+	 */
+	if (relform2->relam == AO_COLUMN_TABLE_AM_OID)
+	{
+		RemoveAttributeEncodingsByRelid(r1);
+		CloneAttributeEncodings(r2, r1, relform2->relnatts);
+	}
+	/* If we are rewriting an AO row table, remove all of its pg_attribute_encoding entries */
+	if (relform1->relam == AO_ROW_TABLE_AM_OID && relform2->relam == AO_ROW_TABLE_AM_OID)
+		RemoveAttributeEncodingsByRelid(r1);
+
+	/* 
+	 * Swap/transfer pg_appendonly entries.
+	 *
+	 * Note that, after this point an AO table could have inconsistency with its catalog, e.g.
+	 * it could be missing a pg_appendonly entry. Therefore, we can NOT increment command
+	 * counter until we've swapped pg_class.relam, which removes the inconsistency.
+	 */
 	if (relform1->relam == AO_ROW_TABLE_AM_OID || relform1->relam == AO_COLUMN_TABLE_AM_OID ||
 		relform2->relam == AO_ROW_TABLE_AM_OID || relform2->relam == AO_COLUMN_TABLE_AM_OID)
 		ATAOEntries(relform1, relform2);
@@ -1253,12 +1275,6 @@ swap_relation_files(Oid r1, Oid r2, bool target_is_pg_class,
 		reltup1 = heap_modify_tuple(reltup1, RelationGetDescr(relRelation),
 									val, null, repl);
 		relform1 = (Form_pg_class) GETSTRUCT(reltup1);
-	}
-
-	if (relform2->relam == AO_COLUMN_TABLE_AM_OID)
-	{
-		RemoveAttributeEncodingsByRelid(r1);
-		CloneAttributeEncodings(r2, r1, relform2->relnatts);
 	}
 
 	relfilenode1 = relform1->relfilenode;
@@ -1415,6 +1431,9 @@ swap_relation_files(Oid r1, Oid r2, bool target_is_pg_class,
 		CatalogTupleUpdateWithInfo(relRelation, &reltup2->t_self, reltup2,
 								   indstate);
 		CatalogCloseIndexes(indstate);
+
+		/* increment counter to reflect the changes */
+		CommandCounterIncrement();
 	}
 	else
 	{

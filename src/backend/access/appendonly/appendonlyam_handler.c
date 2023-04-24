@@ -1290,7 +1290,7 @@ appendonly_relation_copy_for_cluster(Relation OldHeap, Relation NewHeap,
 
 	SIMPLE_FAULT_INJECTOR("cluster_ao_seq_scan_begin");
 
-	mt_bind = create_memtuple_binding(oldTupDesc);
+	mt_bind = create_memtuple_binding(oldTupDesc, oldTupDesc->natts);
 
 	while (appendonly_getnextslot(aoscandesc, ForwardScanDirection, slot))
 	{

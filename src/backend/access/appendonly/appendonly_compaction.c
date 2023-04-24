@@ -433,7 +433,7 @@ AppendOnlySegmentFileFullCompaction(Relation aorel,
 	tupDesc = RelationGetDescr(aorel);
 	slot = MakeSingleTupleTableSlot(tupDesc, &TTSOpsVirtual);
 	slot->tts_tableOid = RelationGetRelid(aorel);
-	mt_bind = create_memtuple_binding(tupDesc);
+	mt_bind = create_memtuple_binding(tupDesc, tupDesc->natts);
 
 	/*
 	 * We need a ResultRelInfo and an EState so we can use the regular

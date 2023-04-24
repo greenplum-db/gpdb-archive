@@ -16,6 +16,8 @@
  */
 #include "postgres.h"
 
+
+#include "access/appendonlywriter.h"
 #include "access/genam.h"
 #include "access/heapam.h"
 #include "access/heapam_xlog.h"
@@ -999,7 +1001,7 @@ DefineRelation(CreateStmt *stmt, char relkind, Oid ownerId,
 	 * Analyze AOCS attribute encoding clauses.
 	 *
 	 * Ideally this could have happened even later confined in
-	 * AddRelationAttributeEncodings(). However, since this function can
+	 * AddCOAttributeEncodings(). However, since this function can
 	 * legitimately error out, it is prefered to call it before updating the
 	 * catalog in heap_create_with_catalog().
 	 *
@@ -1179,10 +1181,10 @@ DefineRelation(CreateStmt *stmt, char relkind, Oid ownerId,
 									&& !stmt->partbound && !stmt->partspec
 									/* errorOnEncodingClause */);
 
-		AddRelationAttributeEncodings(relationId, part_attr_encodings);
+		AddCOAttributeEncodings(relationId, part_attr_encodings);
 	}
 	else if (stmt->attr_encodings && RelationIsAoCols(rel))
-		AddRelationAttributeEncodings(relationId, stmt->attr_encodings);
+		AddCOAttributeEncodings(relationId, stmt->attr_encodings);
 
 	/*
 	 * Make column generation expressions visible for use by partitioning.
@@ -1830,7 +1832,7 @@ ao_aux_tables_safe_truncate(Relation rel)
 	 * This mimics the state of the gp_fastsequence row when an empty AO/AOCS
 	 * table is created.
 	 */
-	RemoveFastSequenceEntry(aoseg_relid);
+	RemoveFastSequenceEntry(RelationGetRelid(rel), aoseg_relid);
 	InsertInitialFastSequenceEntries(aoseg_relid);
 }
 
@@ -4433,7 +4435,7 @@ static void populate_rel_col_encodings(Relation rel, List *stenc, List *withOpti
 							NULL /*parent encoding*/,
 							false /*explicitOnly*/,
 							false /*errorOnEncodingClause*/);
-	AddRelationAttributeEncodings(RelationGetRelid(rel), attr_encodings);
+	AddCOAttributeEncodings(RelationGetRelid(rel), attr_encodings);
 }
 
 /*
@@ -8100,25 +8102,7 @@ ATExecAddColumn(List **wqueue, AlteredTableInfo *tab, Relation rel,
 		 * Did the request for a missing value work? If not we'll have to do a
 		 * rewrite
 		 */
-		/*
-		 * GPDB_12_MERGE_FIXME: This optimization to avoid rewriting a table
-		 * is based on the assumption that at the time of reading tuples from
-		 * this table, it is possible to determine if the tuple does not
-		 * contain the value for the new column being added.  In that case,
-		 * the missing value would be replaced with the default value from
-		 * pg_attrdef catalog table.
-		 *
-		 * The optimization cannot be applied to appendoptimized row-oriented
-		 * tables because the number of attributes is not recorded on disk.
-		 * MemTuples only record the tuple length followed by the tuple data.
-		 * This information is not sufficient to determine if the tuple
-		 * contains a missing column.
-		 *
-		 * A possible solution involves recoding the number of attributes for
-		 * each tuple or for each varblock, so that this optimization can be
-		 * applied on similar lines as heap_getattr.
-		 */
-		if (!rawEnt->missingMode || RelationIsAoRows(rel))
+		if (!rawEnt->missingMode)
 			tab->rewrite |= AT_REWRITE_DEFAULT_VAL;
 	}
 
@@ -8195,18 +8179,7 @@ ATExecAddColumn(List **wqueue, AlteredTableInfo *tab, Relation rel,
 		}
 
 		/*
-		 * Handling of default NULL for ao_row tables.
-		 *
-		 * Currently memtuples cannot deal with the scenario where the number of
-		 * attributes in the tuple data don't match the attnum. We will generate an
-		 * explicit NULL default value and force a rewrite of the table below.
-		 *
-		 * At one point there were plans to restructure memtuples so that this
-		 * rewrite did not have to occur. An optimization was added to
-		 * column-oriented tables to avoid the rewrite, but it does not apply to
-		 * row-oriented tables. Eventually it would be nice to remove this
-		 * workaround; see GitHub issue
-		 *     https://github.com/greenplum-db/gpdb/issues/3756
+		 * Handling of default NULL for ao_column tables.
 		 *
 		 * For ao_column tables, we won't rewrite the entire table but only the 
 		 * new column. However, we still need to generate a explicit NULL value so
@@ -8215,12 +8188,8 @@ ATExecAddColumn(List **wqueue, AlteredTableInfo *tab, Relation rel,
 		 * and do not write the column at all. 
 		 */
 
-		if (!defval && RelationIsAppendOptimized(rel))
-		{
+		if (!defval && RelationIsAoCols(rel))
 			defval = (Expr *) makeNullConst(typeOid, -1, collOid);
-			if (RelationIsAoRows(rel))
-				tab->rewrite |= AT_REWRITE_DEFAULT_VAL;
-		}
 
 		if (defval)
 		{
@@ -8287,11 +8256,31 @@ ATExecAddColumn(List **wqueue, AlteredTableInfo *tab, Relation rel,
 					NULL /* parent encodings */,
 					false /* explicitOnly */,
 					!RelationIsAoCols(rel) /* errorOnEncodingClause */);
+
+	/*
+	 * Add a pg_attribute_encoding entry for ao_row tables, containing the last row numbers of each segfile.
+	 */
+	if (RelationIsAoRows(rel) && rel->rd_rel->relkind != RELKIND_PARTITIONED_TABLE)
+	{
+		Oid 	segrelid;
+		int64 	lastrownums[MAX_AOREL_CONCURRENCY];
+		List 	*filenums = GetNextNAvailableFilenums(myrelid, 1);
+
+		GetAppendOnlyEntryAuxOids(rel, &segrelid, NULL, NULL);
+		ReadAllLastSequences(segrelid, lastrownums);
+
+		add_attribute_encoding_entry(myrelid, 
+									newattnum, 
+									linitial_int(filenums), 
+									transform_lastrownums(lastrownums), 
+									(Datum) 0/*attoptions (not used by ao_row)*/);
+	}
+
 	/* 
 	 * Store the encoding clause for AO/CO tables.
 	 */
 	if (RelationIsAoCols(rel))
-		AddRelationAttributeEncodings(myrelid, enc);
+		AddCOAttributeEncodings(myrelid, enc);
 
 	/* MPP-6929: metadata tracking */
 	if ((Gp_role == GP_ROLE_DISPATCH) && MetaTrackValidKindNsp(rel->rd_rel))
