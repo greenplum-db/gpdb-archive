@@ -9,7 +9,6 @@ Greenplum Database provides the following system views.
 -   [gp_resgroup_config](gp_resgroup_config.html)
 -   [gp_resgroup_status](gp_resgroup_status.html)
 -   [gp_resgroup_status_per_host](gp_resgroup_status_per_host.html)
--   [gp_resgroup_status_per_segment](gp_resgroup_status_per_segment.html)
 -   [gp_resqueue_status](gp_resqueue_status.html)
 -   [gp_segment_endpoints](gp_segment_endpoints.html)
 -   [gp_session_endpoints](gp_session_endpoints.html)

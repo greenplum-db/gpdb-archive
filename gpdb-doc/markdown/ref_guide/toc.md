@@ -233,7 +233,6 @@ Doc Index
             - [gp\_resgroup\_config](./system_catalogs/gp_resgroup_config.md)
             - [gp\_resgroup\_status](./system_catalogs/gp_resgroup_status.md)
             - [gp\_resgroup\_status\_per\_host](./system_catalogs/gp_resgroup_status_per_host.md)
-            - [gp\_resgroup\_status\_per\_segment](./system_catalogs/gp_resgroup_status_per_segment.md)
             - [gp\_resqueue\_status](./system_catalogs/gp_resqueue_status.md)
             - [gp\_segment\_configuration](./system_catalogs/gp_segment_configuration.md)
             - [gp\_segment\_endpoints](./system_catalogs/gp_segment_endpoints.md)

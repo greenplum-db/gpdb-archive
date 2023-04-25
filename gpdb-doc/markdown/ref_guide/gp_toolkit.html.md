@@ -545,7 +545,7 @@ For each resource group that you assign to an external component, the `memory_us
 "1":{"used":11, "limit_granted":15}
 ```
 
-> **Note** See the `gp_resgroup_status_per_host` and `gp_resgroup_status_per_segment` views, described below, for more user-friendly display of CPU and memory usage.
+> **Note** See the `gp_resgroup_status_per_host` view, described below, for more user-friendly display of CPU and memory usage.
 
 ### <a id="perhost"></a>gp\_resgroup\_status\_per\_host 
 
@@ -573,26 +573,6 @@ Sample output for the `gp_resgroup_status_per_host` view:
  default_group | 6437    | my-desktop | 0.00 | 0           | 816              | 0                 | 400                    | 0                  | 416                     
 (2 rows)
 ```
-
-### <a id="perseg"></a>gp\_resgroup\_status\_per\_segment 
-
-The [gp\_resgroup\_status\_per\_segment](system_catalogs/gp_resgroup_status_per_segment.html) view displays the real-time CPU and memory usage \(MBs\) for each resource group on a per-segment-instance and per-host basis. The view also displays available and granted group fixed and shared memory for each resource group and segment instance combination on the host.
-
-|Column|Description|
-|------|-----------|
-|`rsgname`|The name of the resource group.|
-|`groupid`|The ID of the resource group.|
-|`hostname`|The hostname of the segment host.|
-|`segment_id`|The content ID for a segment instance on the segment host.|
-|`cpu`|The real-time, per-segment instance CPU core usage by the resource group on the host. The value is the sum of the percentages \(as a decimal value\) of the CPU cores that are used by the resource group for the segment instance.|
-|`memory_used`|The real-time memory usage of the resource group for the segment instance on the host. This total includes resource group fixed and shared memory. It also includes global shared memory used by the resource group.|
-|`memory_available`|The unused fixed and shared memory for the resource group for the segment instance on the host.|
-|`memory_quota_used`|The real-time fixed memory usage for the resource group for the segment instance on the host.|
-|`memory_quota_available`|The fixed memory available to the resource group for the segment instance on the host.|
-|`memory_shared_used`|The group shared memory used by the resource group for the segment instance on the host.|
-|`memory_shared_available`|The amount of group shared memory available for the segment instance on the host. Resource group global shared memory is not included in this total.|
-
-Query output for this view is similar to that of the `gp_resgroup_status_per_host` view, and breaks out the CPU and memory \(used and available\) for each segment instance on each host.
 
 ## <a id="topic26"></a>Checking Resource Queue Activity and Status 
 

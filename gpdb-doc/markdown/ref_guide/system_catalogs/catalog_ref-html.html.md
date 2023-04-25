@@ -44,8 +44,6 @@ System catalog table and view definitions in alphabetical order.
 
 -   [gp\_resgroup\_status\_per\_host](../system_catalogs/gp_resgroup_status_per_host.html)  
 
--   [gp\_resgroup\_status\_per\_segment](../system_catalogs/gp_resgroup_status_per_segment.html)  
-
 -   [gp\_resqueue\_status](../system_catalogs/gp_resqueue_status.html)  
 
 -   [gp\_segment\_configuration](../system_catalogs/gp_segment_configuration.html)  
