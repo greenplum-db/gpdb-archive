@@ -3197,7 +3197,7 @@ The estimated cost for vacuuming a buffer that has to be read from disk. This re
 
 |Value Range|Default|Set Classifications|
 |-----------|-------|-------------------|
-|integer \> 0|10|local, session, reload|
+|integer \> 0|2|local, session, reload|
 
 ## <a id="vacuum_freeze_min_age"></a>vacuum\_freeze\_min\_age 
 
