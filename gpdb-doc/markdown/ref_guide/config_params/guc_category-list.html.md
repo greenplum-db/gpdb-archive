@@ -296,7 +296,11 @@ These configuration parameters control Greenplum Database logging.
 These parameters pertain to auto-vacuuming databases.
 
 - [autovacuum](guc-list.html#autovacuum)
+- [autovacuum_freeze_max_age](guc-list.html#autovacuum_freeze_max_age)
 - [autovacuum_naptime](guc-list.html#autovacuum_naptime)
+- [autovacuum_vacuum_cost_delay](guc-list.html#autovacuum_vacuum_cost_delay)
+- [autovacuum_vacuum_scale_factor](guc-list.html#autovacuum_vacuum_scale_factor)
+- [autovacuum_vacuum_threshold](guc-list.html#autovacuum_vacuum_threshold)
 - [gp_autovacuum_scope](guc-list.html#gp_autovacuum_scope)
 
 ## <a id="query-metrics"></a>Query Metrics Collection Parameters 

@@ -37,6 +37,14 @@ When enabled, Greenplum Database starts up the autovacuum daemon, which operates
 |-----------|-------|-------------------|
 |Boolean|on|coordinator, system, restart|
 
+## <a id="autovacuum_freeze_max_age"></a>autovacuum_freeze_max_age
+
+Specifies the maximum age at which to automatically vacuum a table to prevent transaction ID wraparound. Note that the system will launch autovacuum processes to prevent wraparound even when `autovacuum=off`. The default value is 200 million transactions. 
+
+|Value Range|Default|Set Classifications|
+|-----------|-------|-------------------|
+|100000 < integer < 2000000000|200000000|local, system, restart|
+
 ## <a id="autovacuum_naptime"></a>autovacuum\_naptime
 
 When `autovacuum=on` (the default), specifies the minimum delay between autovacuum runs. In each round, the daemon issues `VACUUM` and `ANALYZE` commands as needed for catalog (and possibly auxiliary) tables.
@@ -47,8 +55,33 @@ This parameter may be set only in the `postgresql.conf` file or on the server co
 
 |Value Range|Default|Set Classifications|
 |-----------|-------|-------------------|
-|1 - INT_MAX/1000 | 60 |coordinator, system, restart|
+|1 < integer < INT_MAX/1000 | 60 |coordinator, system, restart|
 
+## <a id="autovacuum_vacuum_cost_delay"></a>autovacuum_vacuum_cost_delay
+
+Specifies the cost delay value in milliseconds for automatic vacuum operations. If set to -1, the value of this parameter is the set by [`vacuum_cost_delay`](#vacuum_cost_delay).
+
+A value without units is taken to be milliseconds. The default is 2 milliseconds. This parameter may be set only in the `postgresql.conf` file or on the server command line.
+
+|Value Range|Default|Set Classifications|
+|-----------|-------|-------------------|
+| floating point < 100 | 2 |local, system, reload|
+
+## <a id="autovacuum_vacuum_scale_factor"></a>autovacuum_vacuum_scale_factor
+
+Specifies a fraction of the table size to add to [`autovacuum_vacuum_threshold`](#autovacuum_vacuum_threshold) when deciding whether to trigger a `VACUUM`. The default is 0.2 (20% of table size). This parameter may be set only in the `postgresql.conf` file or on the server command line.
+
+|Value Range|Default|Set Classifications|
+|-----------|-------|-------------------|
+| floating point (%) | 0.2 |local, system, reload|
+
+## <a id="autovacuum_vacuum_threshold"></a>autovacuum_vacuum_threshold
+
+Specifies the minimum number of updated or deleted tuples needed to trigger a `VACUUM` in any one table. The default is 50 tuples. This parameter can only be set in the postgresql.conf file or on the server command line.
+
+|Value Range|Default|Set Classifications|
+|-----------|-------|-------------------|
+| 0 < integer < INT_MAX | 50 |local, system, reload|
 
 ## <a id="backslash_quote"></a>backslash\_quote 
 
@@ -768,7 +801,7 @@ When set to `on`, the Postgres Planner plans single row inserts so that they are
 
 ## <a id="gp_enable_global_deadlock_detector"></a>gp\_enable\_global\_deadlock\_detector 
 
-Controls whether the Greenplum Database Global Deadlock Detector is enabled to manage concurrent `UPDATE` and `DELETE` operations on heap tables to improve performance. See [Inserting, Updating, and Deleting Data](../../admin_guide/dml.html#topic_gdd)in the *Greenplum Database Administrator Guide*. The default is `off`, the Global Deadlock Detector is deactivated.
+Controls whether the Greenplum Database Global Deadlock Detector is enabled to manage concurrent `UPDATE` and `DELETE` operations on heap tables to improve performance. See [Inserting, Updating, and Deleting Data](../../admin_guide/dml.html#topic_gdd) in the *Greenplum Database Administrator Guide*. The default is `off`, the Global Deadlock Detector is deactivated.
 
 If the Global Deadlock Detector is deactivated \(the default\), Greenplum Database runs concurrent update and delete operations on a heap table serially.
 
