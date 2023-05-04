@@ -498,6 +498,16 @@ class Rsync(Command):
 
         Command.__init__(self, name, cmdStr, ctxt, remoteHost)
 
+
+class RsyncFromFileList(Command):
+    def __init__(self, name, sync_list_file, local_base_dir, remote_basedir, dstHost=None, ctxt=LOCAL,
+                 remoteHost=None):
+        cmdStr = findCmdInPath('rsync') + " "
+        cmdStr += "--files-from=" + sync_list_file  + " " + local_base_dir + "/ "
+        if dstHost:
+            cmdStr += canonicalize(dstHost) + ":" + remote_basedir + "/"
+        Command.__init__(self, name, cmdStr, ctxt, remoteHost)
+
 # -------------create tar------------------
 class CreateTar(Command):
     def __init__(self, name, srcDirectory, dstTarFile, ctxt=LOCAL, remoteHost=None):
