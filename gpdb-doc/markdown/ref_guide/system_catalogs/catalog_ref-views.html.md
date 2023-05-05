@@ -359,7 +359,7 @@ The `gp_stat_activity` view is a cluster-wide view that displays the [`pg_stat_a
             <tr>
               <td class="catalog_table_entry">
                 <p class="column_definition"><code class="structfield">client_hostname</code> <code class="type">text</code></p>
-                <p>Host name of the connected client, as reported by a reverse DNS lookup of <code class="structfield">client_addr</code>. This field will only be non-null for IP connections, and only when <a class="xref" href="runtime-config-logging.html#GUC-LOG-HOSTNAME">log_hostname</a> is enabled.</p>
+                <p>Host name of the connected client, as reported by a reverse DNS lookup of <code class="structfield">client_addr</code>. This field will only be non-null for IP connections, and only when <a class="xref" href="../../security-guide/topics/Auditing.html">log_hostname</a> is enabled.</p>
               </td>
             </tr>
             <tr>
@@ -395,13 +395,13 @@ The `gp_stat_activity` view is a cluster-wide view that displays the [`pg_stat_a
             <tr>
               <td class="catalog_table_entry">
                 <p class="column_definition"><code class="structfield">wait_event_type</code> <code class="type">text</code></p>
-                <p>The type of event for which the backend is waiting, if any; otherwise NULL. See <a class="xref" href="monitoring-stats.html#WAIT-EVENT-TABLE" title="Table&nbsp;28.4.&nbsp;Wait Event Types">Table&nbsp;28.4</a>.</p>
+                <p>The type of event for which the backend is waiting, if any; otherwise NULL. See <a class="xref" href="https://www.postgresql.org/docs/12/monitoring-stats.html#WAIT-EVENT-TABLE" title="Table&nbsp;28.4.&nbsp;Wait Event Types">Table&nbsp;28.4</a>.</p>
               </td>
             </tr>
             <tr>
               <td class="catalog_table_entry">
                 <p class="column_definition"><code class="structfield">wait_event</code> <code class="type">text</code></p>
-                <p>Wait event name if backend is currently waiting, otherwise NULL. See <a class="xref" href="monitoring-stats.html#WAIT-EVENT-ACTIVITY-TABLE" title="Table&nbsp;28.5.&nbsp;Wait Events of Type Activity">Table&nbsp;28.5</a> through <a class="xref" href="monitoring-stats.html#WAIT-EVENT-TIMEOUT-TABLE" title="Table&nbsp;28.13.&nbsp;Wait Events of Type Timeout">Table&nbsp;28.13</a>.</p>
+                <p>Wait event name if backend is currently waiting, otherwise NULL. See <a class="xref" href="https://www.postgresql.org/docs/12/monitoring-stats.html#WAIT-EVENT-ACTIVITY-TABLE" title="Table&nbsp;28.5.&nbsp;Wait Events of Type Activity">Table&nbsp;28.5</a> through <a class="xref" href="https://www.postgresql.org/docs/12/monitoring-stats.html#WAIT-EVENT-TIMEOUT-TABLE" title="Table&nbsp;28.13.&nbsp;Wait Events of Type Timeout">Table&nbsp;28.13</a>.</p>
               </td>
             </tr>
             <tr>
@@ -426,7 +426,7 @@ The `gp_stat_activity` view is a cluster-wide view that displays the [`pg_stat_a
                       <p><code class="literal">fastpath function call</code>: The backend is executing a fast-path function.</p>
                     </li>
                     <li class="listitem">
-                      <p><code class="literal">disabled</code>: This state is reported if <a class="xref" href="runtime-config-statistics.html#GUC-TRACK-ACTIVITIES">track_activities</a> is disabled in this backend.</p>
+                      <p><code class="literal">disabled</code>: This state is reported if <a class="xref" href="#pg_stat_activity">track_activities</a> is disabled in this backend.</p>
                     </li>
                   </ul>
                 </div>
@@ -447,13 +447,13 @@ The `gp_stat_activity` view is a cluster-wide view that displays the [`pg_stat_a
             <tr>
               <td class="catalog_table_entry">
                 <p class="column_definition"><code class="structfield">query_id</code> <code class="type">bigint</code></p>
-                <p>Identifier of this backend's most recent query. If <code class="structfield">state</code> is <code class="literal">active</code> this field shows the identifier of the currently executing query. In all other states, it shows the identifier of last query that was executed. Query identifiers are not computed by default so this field will be null unless <a class="xref" href="runtime-config-statistics.html#GUC-COMPUTE-QUERY-ID">compute_query_id</a> parameter is enabled or a third-party module that computes query identifiers is configured.</p>
+                <p>Identifier of this backend's most recent query. If <code class="structfield">state</code> is <code class="literal">active</code> this field shows the identifier of the currently executing query. In all other states, it shows the identifier of last query that was executed. Query identifiers are not computed by default so this field will be null unless a third-party module that computes query identifiers is configured.</p>
               </td>
             </tr>
             <tr>
               <td class="catalog_table_entry">
                 <p class="column_definition"><code class="structfield">query</code> <code class="type">text</code></p>
-                <p>Text of this backend's most recent query. If <code class="structfield">state</code> is <code class="literal">active</code> this field shows the currently executing query. In all other states, it shows the last query that was executed. By default the query text is truncated at 1024 bytes; this value can be changed via the parameter <a class="xref" href="runtime-config-statistics.html#GUC-TRACK-ACTIVITY-QUERY-SIZE">track_activity_query_size</a>.</p>
+                <p>Text of this backend's most recent query. If <code class="structfield">state</code> is <code class="literal">active</code> this field shows the currently executing query. In all other states, it shows the last query that was executed. By default the query text is truncated at 1024 bytes; this value can be changed via the parameter <a class="xref" href="#pg_stat_activity">track_activity_query_size</a>.</p>
               </td>
             </tr>
             <tr>
