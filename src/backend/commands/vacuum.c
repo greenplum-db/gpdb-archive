@@ -1821,7 +1821,7 @@ vac_update_datfrozenxid(void)
 	/* chicken out if bogus data found */
 	if (bogus)
 	{
-		LockDatabaseFrozenIds(ExclusiveLock);
+		UnLockDatabaseFrozenIds(ExclusiveLock);
 		return;
 	}
 
