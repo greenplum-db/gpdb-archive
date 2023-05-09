@@ -227,6 +227,7 @@ insert into mtup1 values
 -- from exceeding the limit in GPDB7 with that plan(a MinimalTuple has a limit of 1600
 -- columns). So set the parameter to off to prevent error happens.
 set gp_enable_multiphase_agg=off;
+set optimizer_force_multistage_agg=off;
 
 
 select c0, c1, array_length(ARRAY[
@@ -1367,6 +1368,7 @@ select c0, c1, array_length(ARRAY[
  SUM(c4 % 5670), SUM(c4 % 5671)], 1)
 from mtup1 where c0 = 'foo' group by c0, c1 limit 10;
 
+reset optimizer_force_multistage_agg;
 reset gp_enable_multiphase_agg;
 
 -- MPP-29042 Multistage aggregation plans should have consistent targetlists in
