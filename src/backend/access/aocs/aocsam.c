@@ -326,7 +326,7 @@ initscan_with_colinfo(AOCSScanDesc scan)
 	MemoryContextSwitchTo(oldCtx);
 
 	scan->cur_seg = -1;
-	scan->cur_seg_row = 0;
+	scan->segrowsprocessed = 0;
 
 	ItemPointerSet(&scan->cdb_fake_ctid, 0, 0);
 
@@ -661,7 +661,7 @@ ReadNext:
 				scan->cur_seg = -1;
 				return false;
 			}
-			scan->cur_seg_row = 0;
+			scan->segrowsprocessed = 0;
 		}
 
 		Assert(scan->cur_seg >= 0);
@@ -709,10 +709,10 @@ ReadNext:
 			}
 		}
 
-		scan->cur_seg_row++;
+		scan->segrowsprocessed++;
 		if (rowNum == INT64CONST(-1))
 		{
-			AOTupleIdInit(&aoTupleId, curseginfo->segno, scan->cur_seg_row);
+			AOTupleIdInit(&aoTupleId, curseginfo->segno, scan->segrowsprocessed);
 		}
 		else
 		{
