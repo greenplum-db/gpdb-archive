@@ -370,7 +370,14 @@ standard_planner(Query *parse, int cursorOptions, ParamListInfo boundParams)
 		if (gp_log_optimization_time)
 			INSTR_TIME_SET_CURRENT(starttime);
 
+#ifdef USE_ORCA
 		result = optimize_query(parse, cursorOptions, boundParams);
+#else
+		/* Make sure this branch is not taken in builds using --disable-orca. */
+		Assert(false);
+		/* Keep compilers quiet in case the build used --disable-orca. */
+		result = NULL;
+#endif
 
 		/* decide jit state */
 		if (result)
