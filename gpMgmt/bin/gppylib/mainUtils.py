@@ -232,7 +232,7 @@ class ExceptionNoStackTraceNeeded(Exception):
 
 class UserAbortedException(Exception):
     """
-    UserAbortedException should be thrown when a user decides to stop the 
+    UserAbortedException should be thrown when a user decides to stop the
     program (at a y/n prompt, for example).
     """
     pass
@@ -462,4 +462,3 @@ def parseStatusLine(line, isStart = False, isStop = False):
     reasonArr = reasonArr[1:]
     reasonStr = ":".join(reasonArr)
     return reasonCode, reasonStr, started, dir
-
