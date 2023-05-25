@@ -2137,7 +2137,7 @@ def impl(context, filename, contain, output):
 def impl(context, filename):
     try:
         with dbconn.connect(dbconn.DbURL(dbname='template1'), unsetSearchPath=False) as conn:
-            curs = dbconn.execSQL(conn, "SELECT hostname, datadir FROM gp_segment_configuration WHERE content > -1;")
+            curs = dbconn.query(conn, "SELECT hostname, datadir FROM gp_segment_configuration WHERE content > -1;")
             result = curs.fetchall()
             segment_info = [(result[s][0], result[s][1]) for s in range(len(result))]
     except Exception as e:
