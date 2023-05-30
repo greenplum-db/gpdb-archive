@@ -161,6 +161,9 @@ test: vacuum_gp
 # background analyze may affect pgstat
 test: pg_stat
 test: bfv_partition qp_misc_rio
+# 'gp_covering_index' concurrent vacuum (e.g. autovacuum) can effect plan due
+# to race-condition fetching relallvisible.
+test: gp_covering_index
 test: pgstat_qd_tabstat
 # dispatch should always run seperately from other cases.
 test: dispatch
