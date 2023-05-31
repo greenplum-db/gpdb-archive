@@ -18167,6 +18167,7 @@ unreserved_keyword:
 			| LOCATION
 			| LOCK_P
 			| LOCKED
+            | LOG_P
 			| LOGGED
 			| MAPPING
 			| MASTER
@@ -18753,7 +18754,6 @@ type_func_name_keyword:
 			| JOIN
 			| LEFT
 			| LIKE
-			| LOG_P
 			| NATURAL
 			| NOTNULL
 			| OUTER_P
