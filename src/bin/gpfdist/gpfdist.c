@@ -308,10 +308,10 @@ struct request_t
 		int 	dbuftop; 	/* # bytes used in dbuf */
 		int 	dbufmax; 	/* size of dbuf[] */
 
-		char*  	wbuf;		/* data buf for decompressed data for writing into file,
+		char*  	wbuf;		/* data buf for decompressed data about writing into file,
 					         	its capacity equals to MAX_FRAME_SIZE. */
 		int 	wbuftop;	/* last index for decompressed data */
-		int 	woffset;		/* mark whether there is left data in compress ctx */
+		int 	woffset;	/* mark whether there is left data in compress ctx */
 	} in;
 
 	block_t	outblock;	/* next block to send out */
@@ -2604,9 +2604,6 @@ static int setup_write(request_t* r)
  * 1) a GET or PUT request. or,
  * 2) the body of a PUT request (the raw data from client).
  *
- * this is controller by 'is_request' as follows:
- * -- if set to true, use the callback function 'do_read_request'.
- * -- if set to false, use the callback function 'do_read_body'.
  */
 static int setup_read(request_t* r)
 {
@@ -3574,8 +3571,8 @@ static void handle_post_request(request_t *r, int header_end)
 			r->in.davailable -= n;
 			r->in.dbuftop += n;
 
-
-			/* success is a flag to check whether data is written into file successfully.
+			/* 
+			 * success is a flag to check whether data is written into file successfully.
 			 * There is no need to do anything when success is less than 0, since all
 			 * error handling has been done in 'check_output_to_file' function.
 			 */
@@ -4978,7 +4975,8 @@ static void delay_watchdog_timer()
 
 #ifdef USE_ZSTD
 
-/* decompress the data and write data to the file.
+/* 
+ * Decompress the data and write data to the file.
  * Finally, the function will check the write result,
  * and change the related value about data buffer.
  */
@@ -5023,13 +5021,13 @@ int decompress_write_loop(request_t *r)
 static int decompress_zstd(request_t* r, ZSTD_inBuffer* bin, ZSTD_outBuffer* bout)
 {
 	int ret;
-	/* The return code is zero if the frame is complete, but there may
-		* be multiple frames concatenated together. Zstd will automatically
-		* reset the context when a frame is complete. Still, calling
-		* ZSTD_DCtx_reset() can be useful to reset the context to a clean
-		* state, for instance if the last decompression call returned an
-		* error.
-		*/
+	/* 
+	 * The return code is zero if the frame is complete, but there may
+	 * be multiple frames concatenated together. Zstd will automatically
+	 * reset the context when a frame is complete. Still, calling
+	 * ZSTD_DCtx_reset() can be useful to reset the context to a clean
+	 * state, for instance if the last decompression call returned an error.
+	 */
 
 	ret = ZSTD_decompressStream(r->zstd_dctx, bout, bin);
 	size_t const err = ret;
@@ -5069,7 +5067,7 @@ static int decompress_data(request_t* r, zstd_buffer *in, zstd_buffer *out){
 }
 /*
  * compress_zstd
- * It is for compress data in buffer. Return is the length of data after compression.
+ * It is for compressing data in buffer. Return value is the length of data after compression.
  */
 
 static int compress_zstd(const request_t *r, block_t *blk, int buflen)
