@@ -403,31 +403,6 @@ AppendSeconds(char *cp, int sec, fsec_t fsec, int precision, bool fillzeros)
 {
 	Assert(precision >= 0);
 
-	/* GPDB_96_MERGE_FIXME: We had this faster version in GPDB. PostgreSQL
-	 * also added faster versions in commit aa2387e2fd. Performance test is
-	 * the old GPDB variants are even faster, or if we could drop the diff
-	 * and just use upstream code. For now, the GPDB version is disabled
-	 * and we use the upstream code.
-	 */
-#if 0
-		int			j = 0;
-
-		if (fillzeros || abs(sec)  > 9)
-			cp[j++] = abs(sec)  / 10 + '0';
-		cp[j++] = abs(sec)  % 10 + '0';
-		cp[j++] = '.';
-		cp[j++] =  ((int) Abs(fsec) )/ 100000 + '0';
-		cp[j++] = ((int) Abs(fsec) ) / 10000 % 10 + '0';
-		cp[j++] = ((int) Abs(fsec) ) / 1000 % 10 + '0';
-		cp[j++] = ((int) Abs(fsec) ) / 100 % 10 + '0';
-		cp[j++] = ((int) Abs(fsec) ) / 10 % 10 + '0';
-		cp[j++] = ((int) Abs(fsec) ) % 10 + '0';
-		cp[j] = '\0';
-
-#endif
-
-	/* fsec_t is just an int32 */
-
 	if (fillzeros)
 		cp = pg_ltostr_zeropad(cp, Abs(sec), 2);
 	else
@@ -3936,31 +3911,12 @@ EncodeDateOnly(struct pg_tm *tm, int style, char *str)
 		case USE_XSD_DATES:
 			/* compatible with ISO date formats */
 
-			/* GPDB_96_MERGE_FIXME: We had this faster version in GPDB. PostgreSQL
-			 * also added faster versions in commit aa2387e2fd. Performance test is
-			 * the old GPDB variants are even faster, or if we could drop the diff
-			 * and just use upstream code. For now, the GPDB version is disabled
-			 * and we use the upstream code.
-			 */
-#if 0
-			if (tm->tm_year > 0)
-			{
-				//				sprintf(str, "%04d-%02d-%02d",
-				//		tm->tm_year, tm->tm_mon, tm->tm_mday);
-				int j = 0;
-				fast_encode_date(tm, str, &j);
-			}
-			else
-				sprintf(str, "%04d-%02d-%02d %s",
-						-(tm->tm_year - 1), tm->tm_mon, tm->tm_mday, "BC");
-#else
 			str = pg_ltostr_zeropad(str,
 									(tm->tm_year > 0) ? tm->tm_year : -(tm->tm_year - 1), 4);
 			*str++ = '-';
 			str = pg_ltostr_zeropad(str, tm->tm_mon, 2);
 			*str++ = '-';
 			str = pg_ltostr_zeropad(str, tm->tm_mday, 2);
-#endif
 			break;
 
 		case USE_SQL_DATES:
@@ -4033,28 +3989,6 @@ EncodeDateOnly(struct pg_tm *tm, int style, char *str)
 void
 EncodeTimeOnly(struct pg_tm *tm, fsec_t fsec, bool print_tz, int tz, int style, char *str)
 {
-	/* GPDB_96_MERGE_FIXME: We had this faster version in GPDB. PostgreSQL
-	 * also added faster versions in commit aa2387e2fd. Performance test is
-	 * the old GPDB variants are even faster, or if we could drop the diff
-	 * and just use upstream code. For now, the GPDB version is disabled
-	 * and we use the upstream code.
-	 *
-	 * If we still need the old GPDB version, make sure it was actually correct.
-	 * It seems to ignore the 'print_tz' argument...
-	 */
-#if 0
-	str[0] = tm->tm_hour/10 + '0';
-	str[1] = tm->tm_hour % 10 + '0';
-	str[2] = ':';
-	str[3] = tm->tm_min/10 + '0';
-	str[4] = tm->tm_min % 10 + '0';
-	str[5] = ':';
-	str[6] = '\0';
-	str += strlen(str);
-
-	AppendSeconds(str, tm->tm_sec, fsec, MAX_TIME_PRECISION, true);
-#else
-
 	str = pg_ltostr_zeropad(str, tm->tm_hour, 2);
 	*str++ = ':';
 	str = pg_ltostr_zeropad(str, tm->tm_min, 2);
@@ -4063,7 +3997,6 @@ EncodeTimeOnly(struct pg_tm *tm, fsec_t fsec, bool print_tz, int tz, int style, 
 	if (print_tz)
 		str = EncodeTimezone(str, tz, style);
 	*str = '\0';
-#endif
 }
 
 
