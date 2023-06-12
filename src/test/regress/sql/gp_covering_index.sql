@@ -354,6 +354,48 @@ VACUUM ANALYZE test_combined_index_scan;
 EXPLAIN (ANALYZE, COSTS OFF, TIMING OFF, SUMMARY OFF)
 SELECT b FROM test_combined_index_scan WHERE a < 42 OR b < 42;
 
+-- Test UNIQUE constraint with INCLUDE clause
+--
+CREATE TABLE test_unique_index_include(a int, b int, c int) DISTRIBUTED BY (a);
+CREATE UNIQUE INDEX i_test_unique_index_include_a ON test_unique_index_include(a) INCLUDE (b);
+INSERT INTO test_unique_index_include SELECT i, i+i, i*i FROM generate_series(1, 10)i;
+INSERT INTO test_unique_index_include SELECT max(a)+1, max(b), max(c) FROM test_unique_index_include;
+ALTER TABLE test_unique_index_include add UNIQUE (b) INCLUDE (c);
+ALTER TABLE test_unique_index_include add UNIQUE (a) INCLUDE (c);
+VACUUM ANALYZE test_unique_index_include;
+
+-- KEYS: [a]    INCLUDED: [b]
+-- index-only scan using i_test_unique_index_include_a
+EXPLAIN (ANALYZE, COSTS OFF, TIMING OFF, SUMMARY OFF)
+SELECT b FROM test_unique_index_include WHERE a > 5;
+
+-- KEYS: [a]    INCLUDED: [c]
+-- index-only scan using test_unique_index_include_a_c_key
+EXPLAIN (ANALYZE, COSTS OFF, TIMING OFF, SUMMARY OFF)
+SELECT c FROM test_unique_index_include WHERE a > 5;
+
+-- KEYS: [a]
+-- index scan using i_test_unique_index_include_a
+EXPLAIN (ANALYZE, COSTS OFF, TIMING OFF, SUMMARY OFF)
+SELECT b, c FROM test_unique_index_include WHERE a > 5;
+
+-- Test drop behavior
+--
+CREATE TABLE test_cover_index_drop(a int, b int, c int);
+CREATE INDEX i_test_cover_index_drop ON test_cover_index_drop(a) INCLUDE (b);
+INSERT INTO test_cover_index_drop SELECT i, i+i, i*i FROM generate_series(1, 10)i;
+VACUUM ANALYZE test_cover_index_drop;
+
+-- before dropping column b, index-only scan
+EXPLAIN (ANALYZE, COSTS OFF, TIMING OFF, SUMMARY OFF)
+SELECT a FROM test_cover_index_drop WHERE a > 5;
+
+ALTER TABLE test_cover_index_drop DROP column b;
+
+-- after dropping column b, seqscan
+-- Index has been dropped as a result of dropping the column.
+EXPLAIN (ANALYZE, COSTS OFF, TIMING OFF, SUMMARY OFF)
+SELECT a FROM test_cover_index_drop WHERE a > 5;
 
 reset optimizer_trace_fallback;
 reset enable_seqscan;
