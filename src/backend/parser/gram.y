@@ -706,7 +706,7 @@ static void check_expressions_in_partition_key(PartitionSpec *spec, core_yyscan_
 
 /* ordinary key words in alphabetical order */
 %token <keyword> ABORT_P ABSOLUTE_P ACCESS ACTION ADD_P ADMIN AFTER
-	AGGREGATE ALL ALSO ALTER ALWAYS ANALYSE ANALYZE AND ANY ARRAY AS ASC
+	AGGREGATE ALL ALSO ALTER ALWAYS AM ANALYSE ANALYZE AND ANY ARRAY AS ASC
 	ASSERTION ASSIGNMENT ASYMMETRIC AT ATTACH ATTRIBUTE AUTHORIZATION
 
 	BACKWARD BEFORE BEGIN_P BETWEEN BIGINT BINARY BIT
@@ -769,7 +769,7 @@ static void check_expressions_in_partition_key(PartitionSpec *spec, core_yyscan_
 	QUOTE
 
 	RANGE READ REAL REASSIGN RECHECK RECURSIVE REF REFERENCES REFERENCING
-	REFRESH REINDEX RELATIVE_P RELEASE RENAME REPEATABLE REPLACE REPLICA
+	REFRESH REINDEX RELATIVE_P RELEASE RELOPT RENAME REPEATABLE REPLACE REPLICA
 	RESET RESTART RESTRICT RETRIEVE RETURNING RETURNS REVOKE RIGHT ROLE ROLLBACK ROLLUP
 	ROUTINE ROUTINES ROW ROWS RULE
 
@@ -917,6 +917,7 @@ static void check_expressions_in_partition_key(PartitionSpec *spec, core_yyscan_
 			%nonassoc AGGREGATE
 			%nonassoc ALSO
 			%nonassoc ALTER
+			%nonassoc AM
 			%nonassoc AO_AUX_ONLY
 			%nonassoc ASSERTION
 			%nonassoc ASSIGNMENT
@@ -1107,6 +1108,7 @@ static void check_expressions_in_partition_key(PartitionSpec *spec, core_yyscan_
 			%nonassoc REJECT_P
 			%nonassoc RELATIVE_P
 			%nonassoc RELEASE
+			%nonassoc RELOPT
 			%nonassoc RENAME
 			%nonassoc REPEATABLE
 			%nonassoc REPLACE
@@ -5125,6 +5127,9 @@ TableLikeOption:
 				| INDEXES			{ $$ = CREATE_TABLE_LIKE_INDEXES; }
 				| STATISTICS		{ $$ = CREATE_TABLE_LIKE_STATISTICS; }
 				| STORAGE			{ $$ = CREATE_TABLE_LIKE_STORAGE; }
+				| ENCODING			{ $$ = CREATE_TABLE_LIKE_ENCODING; }
+				| RELOPT			{ $$ = CREATE_TABLE_LIKE_RELOPT; }
+				| AM				{ $$ = CREATE_TABLE_LIKE_AM; }
 				| ALL				{ $$ = CREATE_TABLE_LIKE_ALL; }
 		;
 
@@ -18049,6 +18054,7 @@ unreserved_keyword:
 			| ALSO
 			| ALTER
 			| ALWAYS
+			| AM
 			| ASSERTION
 			| ASSIGNMENT
 			| AT
@@ -18277,6 +18283,7 @@ unreserved_keyword:
 			| REJECT_P /* gp */
 			| RELATIVE_P
 			| RELEASE
+			| RELOPT
 			| RENAME
 			| REPEATABLE
 			| REPLACE
@@ -18421,6 +18428,7 @@ PartitionIdentKeyword: ABORT_P
 			| AFTER
 			| AGGREGATE
 			| ALSO
+			| AM
 			| AO_AUX_ONLY
 			| ASSERTION
 			| ASSIGNMENT
@@ -18600,6 +18608,7 @@ PartitionIdentKeyword: ABORT_P
 			| REINDEX
 			| RELATIVE_P
 			| RELEASE
+			| RELOPT
 			| RENAME
 			| REPEATABLE
 			| REPLACE
@@ -19818,7 +19827,6 @@ isSetWithReorganize(List **options)
 	}
 	return false;
 }
-
 
 /*
  * Greenplum: a thin wax off layer to keep compatibility with the legacy syntax
