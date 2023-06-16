@@ -5,7 +5,7 @@
 --          number of output rows from each query.
 --          Does the plan use index-scan, index-only-scan, or seq-scan?
 --
--- N.B. "VACUUM ANALZE" is to update relallvisible used to determine cost of an
+-- N.B. "VACUUM ANALYZE" is to update relallvisible used to determine cost of an
 --      index-only scan.
 -- start_matchsubs
 -- m/Memory: \d+kB/
