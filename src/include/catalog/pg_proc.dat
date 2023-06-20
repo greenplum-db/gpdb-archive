@@ -10851,11 +10851,7 @@
 { oid => 7154, descr => 'terminate a server process',
    proname => 'pg_terminate_backend', provolatile => 'v', prorettype => 'bool', proargtypes => 'int4 text', prosrc => 'pg_terminate_backend_msg' },
 
-{ oid => 6064, descr => 'move query to a resource group',
-   proname => 'pg_resgroup_move_query', provolatile => 'v', proparallel => 'r',
-   prorettype => 'bool',
-   proargtypes => 'int4 text',
-   prosrc => 'pg_resgroup_move_query' },
+{ oid => 6064, descr => 'move query to a resource group', proname => 'pg_resgroup_move_query', provolatile => 'v', proparallel => 'r', prorettype => 'bool', proargtypes => 'int4 text', prosrc => 'pg_resgroup_move_query' },
 
 { oid => 6065, descr => 'statistics: information about resource groups in key-value style',
    proexeclocation => 'i',
@@ -11014,7 +11010,7 @@
    proname => 'gp_get_segment_endpoints', prorows => '1000', proretset => 't', provolatile => 'v', proparallel => 'u', prorettype => 'record', proargtypes => '', proallargtypes => '{text,oid,int4,int4,text,int4,int4,text,text,text}', proargmodes => '{o,o,o,o,o,o,o,o,o,o}', proargnames => '{auth_token,databaseid,senderpid,receiverpid,state,gp_segment_id,sessionid,username,endpointname,cursorname}', prosrc => 'gp_get_segment_endpoints' },
 
 { oid => 7182, descr => 'wait until all endpoint of this parallel retrieve cursor has been retrieved finished',
-   proname => 'gp_wait_parallel_retrieve_cursor', prorows => '1000', proretset => 't', 
+   proname => 'gp_wait_parallel_retrieve_cursor', prorows => '1000', proretset => 't',
    provolatile => 'v', proparallel => 'u', prorettype => 'bool', proargtypes => 'text int4', proallargtypes => '{text,int4,bool}', proargmodes => '{i,i,o}', proargnames => '{cursorname,timeout_sec,finished}', prosrc => 'gp_wait_parallel_retrieve_cursor', proexeclocation => 'c' },
 
 { oid => 7183, descr => 'debugging information for segment backends',
@@ -11162,7 +11158,7 @@
    proname => 'gp_remove_segment', proisstrict => 'f', provolatile => 'v', proparallel => 'r', prorettype => 'bool', proargtypes => 'int2', prosrc => 'gp_remove_segment' },
 
 { oid => 5035, descr => 'Request a FTS probe scan and wait for response',
-   proname => 'gp_request_fts_probe_scan', prorows => '1000', proretset => 't', 
+   proname => 'gp_request_fts_probe_scan', prorows => '1000', proretset => 't',
    proisstrict => 'f', provolatile => 'v', prorettype => 'bool', proargtypes => '', prosrc => 'gp_request_fts_probe_scan', proexeclocation => 'c' },
 
 
