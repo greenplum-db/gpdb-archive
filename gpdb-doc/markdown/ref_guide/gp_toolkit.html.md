@@ -521,7 +521,6 @@ You can use the `gp_resgroup_config` view to check the configuration of each res
 -   [gp\_resgroup\_config](#topic27x)
 -   [gp\_resgroup\_status](#topic31x)
 -   [gp\_resgroup\_status\_per\_host](#perhost)
--   [gp\_resgroup\_status\_per\_segment](#perseg)
 
 **Parent topic:** [The gp\_toolkit Administrative Schema](gp_toolkit.html)
 
