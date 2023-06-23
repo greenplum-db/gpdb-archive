@@ -240,6 +240,9 @@ Control the query plan execution.
 - [jit_profiling_support](guc-list.html#jit_profiling_support)
 - [jit_provider](guc-list.html#jit_provider)
 - [jit_tuple_deforming](guc-list.html#jit_tuple_deforming)
+- [optimizer_jit_above_cost](guc-list.html#optimizer_jit_above_cost)
+- [optimizer_jit_inline_above_cost](guc-list.html#optimizer_jit_inline_above_cost)
+- [optimizer_jit_optimize_above_cost](guc-list.html#optimizer_jit_optimize_above_cost)
 
 ## <a id="topic29"></a>Error Reporting and Logging Parameters 
 
