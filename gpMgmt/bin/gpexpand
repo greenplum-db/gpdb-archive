@@ -10,6 +10,7 @@ import copy
 import datetime
 import os
 import random
+import re
 import sys
 import json
 import shutil
@@ -1381,7 +1382,7 @@ class gpexpand:
         dbconn.execSQL(self.conn, "CHECKPOINT")
         self.conn.close()
 
-        # increase expand version 
+        # increase expand version
         self.conn = dbconn.connect(self.dburl, utility=True, encoding='UTF8')
         dbconn.execSQL(self.conn, "select gp_expand_bump_version()")
         self.conn.close()
@@ -1760,7 +1761,7 @@ class gpexpand:
             FROM
                 pg_inherits a,
                 pg_partitioned_table b,
-                pg_class c, 
+                pg_class c,
                 pg_class d,
                 pg_namespace n
             WHERE
@@ -2072,8 +2073,17 @@ class ExpandTable():
 
         # check is atomic in python
         if not cancel_flag:
-            dbconn.execSQL(table_conn, sql)
-            # the ALTER TABLE command requires a commit to execute
+            try:
+                dbconn.execSQL(table_conn, sql)
+            except DatabaseError as e:
+                if re.search('DETAIL:\s*table has already been expanded', str(e)):
+                    logger.info('Table %s.%s seems to be already expanded, marking as done' % (self.dbname, self.fq_name))
+                elif re.search('\s*could not open relation with (OID \d+ )?', str(e)):
+                    logger.warning('Encountered unexpected issue when expanding table %s.%s, skipping' % (self.dbname, self.fq_name))
+                    table_conn.rollback()
+                    return False
+                else:
+                    raise
             table_conn.commit()
             if self.options.analyze:
                 sql = 'ANALYZE %s' % (self.fq_name)

@@ -2927,6 +2927,7 @@ def _gpexpand_redistribute(context, duration=False, endtime=False):
     gpexpand = Gpexpand(context, working_directory=context.working_directory)
     context.command = gpexpand
     ret_code, std_err, std_out = gpexpand.redistribute(duration, endtime)
+    context.stdout_message = std_out
     if duration or endtime:
         if ret_code != 0:
             # gpexpand exited on time, it's expected
@@ -3257,6 +3258,23 @@ def impl(context):
             raise Exception("table %s has not finished expanding" % row[0])
     finally:
         conn.close()
+
+
+@then('table "{table_name}" {expansion_state} be marked as expanded')
+def impl(context, table_name, expansion_state):
+    dbname = 'postgres'
+    conn = dbconn.connect(dbconn.DbURL(dbname=dbname), unsetSearchPath=False)
+    try:
+        query = """select status from gpexpand.status_detail where fq_name='public.{0}'""".format(table_name)
+        result = dbconn.querySingleton(conn, query)
+
+        if result == 'NOT STARTED' and expansion_state == "should":
+            raise Exception("table {0} is not marked as expanded".format(table_name))
+        if result == "COMPLETED" and expansion_state == "should not":
+            raise Exception("table {0} is marked as expanded".format(table_name))
+    finally:
+        conn.close()
+
 
 @given('an FTS probe is triggered')
 @when('an FTS probe is triggered')
