@@ -180,8 +180,6 @@ InitPgFdwOptions(void)
 		/* fetch_size is available on both server and table */
 		{"fetch_size", ForeignServerRelationId, false},
 		{"fetch_size", ForeignTableRelationId, false},
-		/* num_segments is available on server only */
-		{"num_segments", ForeignServerRelationId, false},
 		{NULL, InvalidOid, false}
 	};
 

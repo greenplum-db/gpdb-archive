@@ -94,6 +94,8 @@ CREATE FOREIGN TABLE gp_ft1 (
 	f3 text
 ) SERVER loopback OPTIONS (schema_name 'postgres_fdw_gp', table_name 'GP 1', mpp_execute 'all segments');
 
+CREATE FOREIGN TABLE gp_ft2 ( f1 int ) SERVER loopback OPTIONS (num_segments '3');
+
 -- ===================================================================
 -- validate parallel writes (mpp_execute set to all segments)
 -- ===================================================================

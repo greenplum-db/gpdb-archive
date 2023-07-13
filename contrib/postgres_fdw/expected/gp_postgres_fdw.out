@@ -81,6 +81,9 @@ CREATE FOREIGN TABLE gp_ft1 (
 	f2 text,
 	f3 text
 ) SERVER loopback OPTIONS (schema_name 'postgres_fdw_gp', table_name 'GP 1', mpp_execute 'all segments');
+CREATE FOREIGN TABLE gp_ft2 ( f1 int ) SERVER loopback OPTIONS (num_segments '3');
+ERROR:  invalid option "num_segments"
+HINT:  Valid options in this context are: schema_name, table_name, use_remote_estimate, updatable, fetch_size
 -- ===================================================================
 -- validate parallel writes (mpp_execute set to all segments)
 -- ===================================================================
