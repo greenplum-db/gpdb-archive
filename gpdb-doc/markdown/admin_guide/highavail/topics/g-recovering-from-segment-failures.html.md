@@ -135,7 +135,7 @@ Follow these steps for incremental recovery:
 
 Follow these steps for differential recovery: 
 
-1. Run `gprecoverseg -F --differential`
+1. Run `gprecoverseg --differential`
 
 
 ### <a id="different_host"></a>Recover to A Different Host within the Cluster 
