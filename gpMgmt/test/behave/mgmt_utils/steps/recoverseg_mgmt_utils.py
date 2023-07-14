@@ -752,5 +752,7 @@ def impl(context, filename):
 def get_host_address(hostname):
     cmd = Command("get the address of the host", cmdStr="hostname -I", ctxt=REMOTE, remoteHost=hostname)
     cmd.run(validateAfter=True)
-    return cmd.get_stdout().strip()
+    host_address = cmd.get_stdout().strip().split(' ')
+    return host_address[0]
+
 
