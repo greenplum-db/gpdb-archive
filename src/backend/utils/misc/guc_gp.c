@@ -421,7 +421,7 @@ char	   *gp_default_storage_options = NULL;
 /* Fall back to using zstd if quicklz compresstpye specified */
 bool		gp_quicklz_fallback = false;
 
-int			writable_external_table_bufsize = 64;
+int			writable_external_table_bufsize = 1024;
 
 bool		gp_external_enable_filter_pushdown = true;
 
@@ -3010,7 +3010,7 @@ struct config_int ConfigureNamesInt_gp[] =
 			GUC_UNIT_KB | GUC_NOT_IN_SAMPLE
 		},
 		&writable_external_table_bufsize,
-		64, 32, 131072,
+		1024, 32, 131072,
 		NULL, NULL, NULL
 	},
 
