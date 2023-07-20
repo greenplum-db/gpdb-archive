@@ -3371,6 +3371,7 @@ _outTruncateStmt(StringInfo str, const TruncateStmt *node)
 	WRITE_NODE_TYPE("TRUNCATESTMT");
 
 	WRITE_NODE_FIELD(relations);
+	WRITE_BOOL_FIELD(restart_seqs);
 	WRITE_ENUM_FIELD(behavior, DropBehavior);
 }
 

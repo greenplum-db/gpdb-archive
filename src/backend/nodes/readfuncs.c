@@ -848,6 +848,7 @@ _readTruncateStmt(void)
 	READ_LOCALS(TruncateStmt);
 
 	READ_NODE_FIELD(relations);
+	READ_BOOL_FIELD(restart_seqs);
 	READ_ENUM_FIELD(behavior,DropBehavior);
 
 	READ_DONE();
