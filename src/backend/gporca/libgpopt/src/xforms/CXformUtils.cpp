@@ -2396,13 +2396,11 @@ CXformUtils::FProcessGPDBAntiSemiHashJoin(
 //
 //---------------------------------------------------------------------------
 CExpression *
-CXformUtils::PexprBuildBtreeIndexPlan(CMemoryPool *mp, CMDAccessor *md_accessor,
-									  CExpression *pexprGet, ULONG ulOriginOpId,
-									  CExpressionArray *pdrgpexprConds,
-									  CColRefSet *pcrsScalarExpr,
-									  CColRefSet *outer_refs,
-									  const IMDIndex *pmdindex,
-									  const IMDRelation *pmdrel)
+CXformUtils::PexprBuildBtreeIndexPlan(
+	CMemoryPool *mp, CMDAccessor *md_accessor, CExpression *pexprGet,
+	ULONG ulOriginOpId, CExpressionArray *pdrgpexprConds,
+	CColRefSet *pcrsScalarExpr, CColRefSet *outer_refs,
+	const IMDIndex *pmdindex, const IMDRelation *pmdrel, BOOL indexForOrderBy)
 {
 	GPOS_ASSERT(nullptr != pexprGet);
 	GPOS_ASSERT(nullptr != pdrgpexprConds);
@@ -2481,7 +2479,11 @@ CXformUtils::PexprBuildBtreeIndexPlan(CMemoryPool *mp, CMDAccessor *md_accessor,
 	// expression must include outer references for it to be an alternative
 	// worth considering. Otherwise it has the same effect as a regular NLJ
 	// with an index lookup.
-	if (0 == pdrgpexprIndex->Size() || outer_refs_in_index_get->Size() == 0)
+	//
+	// Both (1) and (2) doesn't apply if index is used for ORDER BY. Because
+	// a query with just order by doesn't have index-able predicates.
+	if ((0 == pdrgpexprIndex->Size() || outer_refs_in_index_get->Size() == 0) &&
+		!indexForOrderBy)
 	{
 		// clean up
 		GPOS_DELETE(alias);

@@ -2088,9 +2088,8 @@ explain (costs off)
  Limit
    ->  Gather Motion 3:1  (slice1; segments: 3)
          Merge Key: b, i
-         ->  Limit
-               ->  Index Scan using boolindex_b_i_key on boolindex
- Optimizer: Postgres query optimizer
+         ->  Index Scan using boolindex_b_i_key on boolindex
+ Optimizer: Pivotal Optimizer (GPORCA)
 (6 rows)
 
 -- In PostgreSQL, this uses an Index Scan. In GPDB, the logic to deduce

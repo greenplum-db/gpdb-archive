@@ -160,6 +160,7 @@ test: bfv_partition qp_misc_rio
 # 'gp_covering_index' concurrent vacuum (e.g. autovacuum) can effect plan due
 # to race-condition fetching relallvisible.
 test: gp_covering_index
+test: qp_indexscan
 test: pgstat_qd_tabstat
 # dispatch should always run seperately from other cases.
 test: dispatch
