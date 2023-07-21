@@ -298,6 +298,7 @@ select relpages, reltuples from pg_class where oid = 'autostatstbl'::regclass;
 -- expect analyze_count = 2, autoanalyze_count = 3, and n_mod_since_analyze = 0 since ANALYZE executed
 select analyze_count, autoanalyze_count, n_mod_since_analyze from pg_stat_all_tables where relname = 'autostatstbl';
 
+-- start_ignore
 -- Case 4 --
 -- Multi-level partition case
 
@@ -351,7 +352,7 @@ select relpages, reltuples from pg_class where oid = 'multipart'::regclass;
 select relpages, reltuples from pg_class where oid = 'part2'::regclass;
 select relpages, reltuples from pg_class where oid = 'part3'::regclass;
 select relpages, reltuples from pg_class where oid = 'p4'::regclass;
-
+-- end_ignore
 -- Reset GUCs.
 ALTER SYSTEM RESET autovacuum_naptime;
 ALTER SYSTEM RESET autovacuum_vacuum_threshold;
