@@ -91,8 +91,9 @@ class DifferentialRecovery(Command):
         self.era = era
         self.logger = logger
         self.error_type = RecoveryErrorType.DEFAULT_ERROR
+        self.replication_slot_name = 'internal_wal_replication_slot'
         self.replication_slot = PgReplicationSlot(self.recovery_info.source_hostname, self.recovery_info.source_port,
-                                                  'internal_wal_replication_slot')
+                                                  self.replication_slot_name)
 
     @set_recovery_cmd_results
     def run(self):
@@ -234,6 +235,7 @@ class DifferentialRecovery(Command):
                            self.recovery_info.source_hostname,
                            str(self.recovery_info.source_port),
                            writeconffilesonly=True,
+                           replication_slot_name=self.replication_slot_name,
                            target_gp_dbid=self.recovery_info.target_segment_dbid,
                            recovery_mode=False)
         self.logger.debug("Running pg_basebackup to only write configuration files")

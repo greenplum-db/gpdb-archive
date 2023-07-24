@@ -335,6 +335,7 @@ class PgBaseBackup(Command):
         # and internal.auto.conf files to target data directory.
         if writeconffilesonly:
             cmd_tokens.append('--write-conf-files-only')
+            cmd_tokens.extend(self._xlog_arguments(replication_slot_name))
         else:
 
             # if there is already slot present and create-slot arg is true it will give error,
