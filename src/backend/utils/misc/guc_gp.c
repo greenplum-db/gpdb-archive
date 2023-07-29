@@ -4414,7 +4414,7 @@ struct config_string ConfigureNamesString_gp[] =
 			gettext_noop("Valid values are DISPATCH, EXECUTE, and UTILITY."),
 			GUC_NOT_IN_SAMPLE | GUC_DISALLOW_IN_FILE
 		},
-		&gp_role_string,
+		&gp_session_role_string,
 		"undefined",
 		check_gp_role, assign_gp_role, show_gp_role
 	},
