@@ -102,10 +102,6 @@ SELECT n_live_tup, n_dead_tup, last_vacuum is not null as has_last_vacuum, vacuu
 -- Current behavior is it will clear previous compact phase num_dead_tuples in post-cleanup
 -- phase (at injecting point vacuum_ao_post_cleanup_end), which is different from above case
 -- in which vacuum worker isn't changed.
-ALTER SYSTEM SET gp_fts_mark_mirror_down_grace_period to 10;
-ALTER SYSTEM SET gp_fts_probe_interval to 10;
-SELECT gp_segment_id, pg_reload_conf() FROM gp_id UNION SELECT gp_segment_id, pg_reload_conf() FROM gp_dist_random('gp_id');
-
 DROP TABLE IF EXISTS vacuum_progress_ao_column;
 CREATE TABLE vacuum_progress_ao_column(i int, j int);
 CREATE INDEX on vacuum_progress_ao_column(i);
@@ -176,6 +172,3 @@ select relid::regclass as relname, phase, heap_blks_total, heap_blks_scanned, he
 SELECT gp_inject_fault_infinite('all', 'reset', dbid) FROM gp_segment_configuration;
 reset Debug_appendonly_print_compaction;
 reset default_table_access_method;
-ALTER SYSTEM RESET gp_fts_mark_mirror_down_grace_period;
-ALTER SYSTEM RESET gp_fts_probe_interval;
-SELECT gp_segment_id, pg_reload_conf() FROM gp_id UNION SELECT gp_segment_id, pg_reload_conf() FROM gp_dist_random('gp_id');
