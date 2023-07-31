@@ -460,7 +460,9 @@ class GpExpandStatus():
         cpCmd = Rsync('gpexpand copying status file to coordinator mirror',
                     srcFile=self._status_filename,
                     dstFile=self._status_standby_filename,
-                    dstHost=self._coordinator_mirror.getSegmentHostName())
+                    dstHost=self._coordinator_mirror.getSegmentHostName(),
+                    ignore_times=True,
+                    whole_file=True)
         cpCmd.run(validateAfter=True)
 
     def set_status(self, status, status_info=None, force=False):
@@ -530,7 +532,9 @@ class GpExpandStatus():
             cpCmd = Rsync('gpexpand copying segment configuration backup file to coordinator mirror',
                         srcFile=self._gp_segment_configuration_backup,
                         dstFile=self._segment_configuration_standby_filename,
-                        dstHost=self._coordinator_mirror.getSegmentHostName())
+                        dstHost=self._coordinator_mirror.getSegmentHostName(),
+                        ignore_times=True,
+                        whole_file=True)
             cpCmd.run(validateAfter=True)
 
     def get_temp_dir(self):
@@ -775,7 +779,9 @@ class SegmentTemplate:
             cpCmd = Rsync(name='gpexpand distribute tar file to new hosts',
                         srcFile=self.schema_tar_file,
                         dstFile=self.segTarDir,
-                        dstHost=host)
+                        dstHost=host,
+                        ignore_times=True,
+                        whole_file=True)
             self.pool.addCommand(cpCmd)
 
         self.pool.join()
@@ -863,7 +869,7 @@ class SegmentTemplate:
                   % (self.srcSegHostname, self.srcSegDataDir)
         cpCmd = Rsync(name=cmdName, srcFile=self.srcSegDataDir + '/postgresql.conf',
             dstFile=self.tempDir, dstHost=localHostname, ctxt=REMOTE,
-            remoteHost=self.srcSegHostname)
+            remoteHost=self.srcSegHostname, ignore_times=True, whole_file=True)
         cpCmd.run(validateAfter=True)
 
         self.logger.info('Copying pg_hba.conf from existing segment into template')
@@ -871,7 +877,7 @@ class SegmentTemplate:
                   % (self.srcSegHostname, self.srcSegDataDir)
         cpCmd = Rsync(name=cmdName, srcFile=self.srcSegDataDir + '/pg_hba.conf',
                     dstFile=self.tempDir, dstHost=localHostname,ctxt=REMOTE,
-                    remoteHost=self.srcSegHostname)
+                    remoteHost=self.srcSegHostname, ignore_times=True, whole_file=True)
         cpCmd.run(validateAfter=True)
 
     def _tar_template(self):
