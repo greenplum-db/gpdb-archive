@@ -83,10 +83,7 @@ source =
 omit =
     */site-packages/*
     */bin/behave
-    */python/psutil/*
-    */python/pygresql/*
     */python/subprocess32.py
-    */python/yaml/*
     */bin/pythonSrc/ext/*
 EOF
 
