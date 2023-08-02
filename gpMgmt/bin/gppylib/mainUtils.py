@@ -170,6 +170,11 @@ class SimpleMainLock:
             if self.pidfilepid == self.parentpid:
                 return None
 
+            # Check if the process that holds the lock exists.
+            # If the process is already killed, remove the lock directory.
+            if not unix.check_pid(self.pidfilepid):
+                shutil.rmtree(self.ppath)
+
         # try and acquire the lock
         try:
             self.pidlockfile.acquire()
