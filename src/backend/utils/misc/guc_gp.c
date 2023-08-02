@@ -2326,7 +2326,7 @@ struct config_bool ConfigureNamesBool_gp[] =
 			GUC_NOT_IN_SAMPLE
 		},
 		&optimizer_force_multistage_agg,
-		true,
+		false,
 		NULL, NULL, NULL
 	},
 
