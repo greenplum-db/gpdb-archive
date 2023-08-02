@@ -2823,6 +2823,16 @@ If the number of segment files does not exceed the value, Greenplum Database blo
 |-----------|-------|-------------------|
 |0 - 64|1|coordinator, system, reload, superuser|
 
+## <a id="wal_compression"></a>wal_compression
+
+Enables compression of full page writes in a WAL file. This parameter can only be changed by superusers.
+
+> **Note** `wal_compression` can reduce the WAL volume without increasing the risk of unrecoverable data corruption, but at the cost of some extra CPU spent on the compression during WAL logging and on the decompression during WAL replay.
+
+|Value Range|Default|Set Classifications|
+|-----------|-------|-------------------|
+|Boolean|on|local, session, reload, superuser|
+
 ## <a id="replication_timeout"></a>wal\_sender\_timeout 
 
 For Greenplum Database coordinator mirroring, sets the maximum time in milliseconds that the `walsender` process on the active coordinator waits for a status message from the `walreceiver` process on the standby coordinator. If a message is not received, the `walsender` logs an error message.
