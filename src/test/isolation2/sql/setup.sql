@@ -1,8 +1,8 @@
 -- start_ignore
 ! gpconfig -c plpython3.python_path -v "'$GPHOME/lib/python'" --skipvalidation;
-! gpstop -ari;
--- end_ignore
+! gpstop -u;
 create or replace language plpython3u;
+-- end_ignore
 
 -- Helper function, to call either __gp_aoseg, or gp_aocsseg, depending
 -- on whether the table is row- or column-oriented. This allows us to
