@@ -2774,9 +2774,17 @@ CExpressionPreprocessor::PexprExistWithPredFromINSubq(CMemoryPool *mp,
 		// it does not include any column from the relational child.
 		if (COperator::EopLogicalProject == pexprLogicalProject->Pop()->Eopid())
 		{
-			// bail out if subquery has an inner reference or does not have any outer reference
+			// bail out if subquery has an inner reference or
+			// does not have any outer reference
 			if (!CUtils::HasOuterRefs(pexprLogicalProject) ||
 				CUtils::FInnerRefInProjectList(pexprLogicalProject))
+			{
+				return pexprNew;
+			}
+			// also bail out if the project list returns set
+			CExpression *pexprProjectList = (*pexprLogicalProject)[1];
+			if (pexprProjectList->DeriveSetReturningFunctionColumns()->Size() >
+				0)
 			{
 				return pexprNew;
 			}
@@ -2800,7 +2808,6 @@ CExpressionPreprocessor::PexprExistWithPredFromINSubq(CMemoryPool *mp,
 		{
 			pexprNew->Release();
 			pexprNew = pexprNewConverted;
-			;
 		}
 	}
 
