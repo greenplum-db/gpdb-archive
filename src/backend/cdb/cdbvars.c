@@ -438,6 +438,9 @@ assign_gp_role(const char *newval, void *extra)
 
 	if (Gp_role == GP_ROLE_UTILITY && MyProc != NULL)
 		MyProc->mppIsWriter = false;
+
+	if (Gp_role == GP_ROLE_UTILITY)
+		should_reject_connection = false;
 }
 
 /*
