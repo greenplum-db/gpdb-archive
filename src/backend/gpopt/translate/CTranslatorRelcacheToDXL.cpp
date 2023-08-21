@@ -461,6 +461,50 @@ CTranslatorRelcacheToDXL::RetrieveExtStatsInfo(CMemoryPool *mp, IMDId *mdid)
 										 extstats_info_array);
 }
 
+
+//---------------------------------------------------------------------------
+//	@function:
+//		get_ao_version
+//
+//	@doc:
+//		Retrieve a relation's AORelationVersion. If table is partitioned then
+//		return the lowest AORelationVersion from all children. If table is not
+//		AO table (e.g. heap table) or a partitioned table that does not contain
+//		an AO table then return AORelationVersion_None.
+//
+//---------------------------------------------------------------------------
+static IMDRelation::Erelaoversion
+get_ao_version(gpdb::RelationWrapper &rel)
+{
+	// partitioned table - return lowest version of child partitions
+	if (rel->rd_partdesc)
+	{
+		IMDRelation::Erelaoversion low_ao_version =
+			IMDRelation::MaxAORelationVersion;
+		for (int i = 0; i < rel->rd_partdesc->nparts; i++)
+		{
+			gpdb::RelationWrapper child_rel =
+				gpdb::GetRelation(rel->rd_partdesc->oids[i]);
+			IMDRelation::Erelaoversion child_low_version =
+				get_ao_version(child_rel);
+			if (child_low_version < low_ao_version &&
+				child_low_version != IMDRelation::AORelationVersion_None)
+			{
+				low_ao_version = child_low_version;
+			}
+		}
+		return low_ao_version;
+	}
+	// non-partitioned AO table or leaf AO table
+	else if ((rel->rd_rel->relam == AO_ROW_TABLE_AM_OID ||
+			  rel->rd_rel->relam == AO_COLUMN_TABLE_AM_OID))
+	{
+		return static_cast<IMDRelation::Erelaoversion>(
+			AORelationVersion_Get(rel.get()));
+	}
+	return IMDRelation::AORelationVersion_None;
+}
+
 //---------------------------------------------------------------------------
 //	@function:
 //		CTranslatorRelcacheToDXL::RetrieveRel
@@ -498,6 +542,8 @@ CTranslatorRelcacheToDXL::RetrieveRel(CMemoryPool *mp, CMDAccessor *md_accessor,
 	CMDName *mdname = nullptr;
 	IMDRelation::Erelstoragetype rel_storage_type =
 		IMDRelation::ErelstorageSentinel;
+	IMDRelation::Erelaoversion rel_ao_version =
+		IMDRelation::AORelationVersion_None;
 	CMDColumnArray *mdcol_array = nullptr;
 	IMDRelation::Ereldistrpolicy dist = IMDRelation::EreldistrSentinel;
 	ULongPtrArray *distr_cols = nullptr;
@@ -519,6 +565,9 @@ CTranslatorRelcacheToDXL::RetrieveRel(CMemoryPool *mp, CMDAccessor *md_accessor,
 
 	// get storage type
 	rel_storage_type = RetrieveRelStorageType(rel.get());
+
+	// get append only table version
+	rel_ao_version = get_ao_version(rel);
 
 	// get relation columns
 	mdcol_array = RetrieveRelColumns(mp, md_accessor, rel.get());
@@ -612,10 +661,11 @@ CTranslatorRelcacheToDXL::RetrieveRel(CMemoryPool *mp, CMDAccessor *md_accessor,
 	}
 
 	md_rel = GPOS_NEW(mp) CMDRelationGPDB(
-		mp, mdid, mdname, is_temporary, rel_storage_type, dist, mdcol_array,
-		distr_cols, distr_op_families, part_keys, part_types, partition_oids,
-		convert_hash_to_random, keyset_array, md_index_info_array,
-		check_constraint_mdids, mdpart_constraint, foreign_server_mdid);
+		mp, mdid, mdname, is_temporary, rel_storage_type, rel_ao_version, dist,
+		mdcol_array, distr_cols, distr_op_families, part_keys, part_types,
+		partition_oids, convert_hash_to_random, keyset_array,
+		md_index_info_array, check_constraint_mdids, mdpart_constraint,
+		foreign_server_mdid);
 
 	return md_rel;
 }
