@@ -3656,7 +3656,11 @@ show_hashagg_info(AggState *aggstate, ExplainState *es)
 							   aggstate->hash_planned_partitions, es);
 	}
 
-	if (!es->analyze)
+	/*
+	 * Greenplums outputs hash aggregate information in "Extra Text" via
+	 * cdbexplainbuf, hash_agg_update_metrics() is never called on QD.
+	 */
+	if (Gp_role != GP_ROLE_UTILITY || !es->analyze)
 		return;
 
 	/* EXPLAIN ANALYZE */
