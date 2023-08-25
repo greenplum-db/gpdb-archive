@@ -932,7 +932,7 @@ Gather Motion 3:1  (slice1; segments: 3) (actual time=8.948..21.656 rows=10000 l
               Extra Text: (seg0)   hash table(s): 1; chain length 2.3 avg, 5 max; using 3368 of 8192 buckets; total 1 expansions.
 
               ->  Seq Scan on test_src_tbl (actual time=0.015..1.748 rows=16930 loops=1)
-Optimizer: Postgres query optimizer
+Optimizer: Postgres-based planner
 Planning Time: 0.167 ms
   (slice0)    Executor memory: 236K bytes.
 * (slice1)    Executor memory: 657K bytes avg x 3 workers, 722K bytes max (seg0).  Work_mem: 753K bytes max, 721K bytes wanted.
@@ -961,7 +961,7 @@ Gather Motion 3:1  (slice1; segments: 3) (actual time=57.360..82.135 rows=20000 
                     Extra Text: (seg1)   hash table(s): 2; 6772 groups total in 40 batches, 121260 spill partitions; disk usage: 2912KB; chain length 2.1 avg, 6 max; using 3386 of 83968 buckets; total 0 expansions.
 
                     ->  Seq Scan on test_src_tbl (actual time=0.043..3.471 rows=16930 loops=1)
-Optimizer: Postgres query optimizer
+Optimizer: Postgres-based planner
 Planning Time: 0.202 ms
   (slice0)    Executor memory: 205K bytes.
 * (slice1)    Executor memory: 467K bytes avg x 3 workers, 467K bytes max (seg1).  Work_mem: 705K bytes max, 1921K bytes wanted.

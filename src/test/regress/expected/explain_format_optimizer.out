@@ -846,7 +846,7 @@ Gather Motion 3:1  (slice1; segments: 3) (actual time=9.551..21.820 rows=10000 l
               Extra Text: (seg0)   hash table(s): 1; 3368 groups total in 4 batches, 1264 spill partitions; disk usage: 1024KB; chain length 2.3 avg, 5 max; using 3368 of 40960 buckets; total 1 expansions.
 
               ->  Seq Scan on test_src_tbl (actual time=0.020..1.349 rows=16930 loops=1)
-Optimizer: Pivotal Optimizer (GPORCA)
+Optimizer: GPORCA
 Planning Time: 5.518 ms
   (slice0)    Executor memory: 236K bytes.
 * (slice1)    Executor memory: 709K bytes avg x 3 workers, 876K bytes max (seg0).  Work_mem: 753K bytes max, 721K bytes wanted.
@@ -879,7 +879,7 @@ Gather Motion 3:1  (slice1; segments: 3) (actual time=66.084..124.823 rows=20000
                     Extra Text: (seg0)   hash table(s): 1; 3368 groups total in 20 batches, 60280 spill partitions; disk usage: 1888KB; chain length 1.9 avg, 3 max; using 3368 of 43008 buckets; total 0 expansions.
 
                     ->  Shared Scan (share slice:id 1:0) (actual time=0.009..5.775 rows=16930 loops=1)
-Optimizer: Pivotal Optimizer (GPORCA)
+Optimizer: GPORCA
 Planning Time: 11.209 ms
   (slice0)    Executor memory: 224K bytes.
 * (slice1)    Executor memory: 574K bytes avg x 3 workers, 576K bytes max (seg2).  Work_mem: 353K bytes max, 1137K bytes wanted.
