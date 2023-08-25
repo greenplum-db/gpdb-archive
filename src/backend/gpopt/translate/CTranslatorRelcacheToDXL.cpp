@@ -1028,6 +1028,9 @@ CTranslatorRelcacheToDXL::RetrieveIndex(CMemoryPool *mp,
 	bool index_partitioned = false;
 	ULongPtrArray *index_key_cols_array = nullptr;
 	ULONG *attno_mapping = nullptr;
+	ULongPtrArray *sort_direction = nullptr;
+	ULongPtrArray *nulls_direction = nullptr;
+	bool index_amcanorder = false;
 
 	if (!IsIndexSupported(index_rel.get()))
 	{
@@ -1105,6 +1108,46 @@ CTranslatorRelcacheToDXL::RetrieveIndex(CMemoryPool *mp,
 				GPOS_NEW(mp) ULONG(GetAttributePosition(attno, attno_mapping)));
 		}
 	}
+
+	// extract sort and nulls direction of the key columns
+	sort_direction = GPOS_NEW(mp) ULongPtrArray(mp);
+	nulls_direction = GPOS_NEW(mp) ULongPtrArray(mp);
+
+	// Get IndexAmRoutine Struct
+	IndexAmRoutine *am_routine =
+		gpdb::GetIndexAmRoutineFromAmHandler(index_rel->rd_amhandler);
+	index_amcanorder = am_routine->amcanorder;
+	// Check if index can order
+	// If amcanorder is true, index AM must support INDOPTION_DESC,
+	// INDOPTION_NULLS_FIRST options and have provided Sort, Nulls directions
+	if (index_amcanorder)
+	{
+		for (int i = 0; i < form_pg_index->indnkeyatts; i++)
+		{
+			// indoption value represents sort and nulls direction using 2 bits
+			ULONG rel_indoption = index_rel->rd_indoption[i];
+			// Check if the Sort direction is DESC
+			if (rel_indoption & INDOPTION_DESC)
+			{
+				sort_direction->Append(GPOS_NEW(mp) ULONG(SORT_DESC));
+			}
+			else
+			{
+				sort_direction->Append(GPOS_NEW(mp) ULONG(SORT_ASC));
+			}
+			// Check if the Nulls direction is FIRST
+			if (rel_indoption & INDOPTION_NULLS_FIRST)
+			{
+				nulls_direction->Append(GPOS_NEW(mp)
+											ULONG(COrderSpec::EntFirst));
+			}
+			else
+			{
+				nulls_direction->Append(GPOS_NEW(mp)
+											ULONG(COrderSpec::EntLast));
+			}
+		}
+	}
 	mdid_rel->Release();
 
 	mdid_index->AddRef();
@@ -1124,8 +1167,9 @@ CTranslatorRelcacheToDXL::RetrieveIndex(CMemoryPool *mp,
 
 	CMDIndexGPDB *index = GPOS_NEW(mp)
 		CMDIndexGPDB(mp, mdid_index, mdname, index_clustered, index_partitioned,
-					 index_type, mdid_item_type, index_key_cols_array,
-					 included_cols, op_families_mdids, child_index_oids);
+					 index_amcanorder, index_type, mdid_item_type,
+					 index_key_cols_array, included_cols, op_families_mdids,
+					 child_index_oids, sort_direction, nulls_direction);
 
 	GPOS_DELETE_ARRAY(attno_mapping);
 	return index;

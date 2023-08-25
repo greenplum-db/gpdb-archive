@@ -811,10 +811,13 @@ CTranslatorExprToDXL::PdxlnIndexScan(CExpression *pexprIndexScan,
 	CDXLIndexDescr *dxl_index_descr =
 		GPOS_NEW(m_mp) CDXLIndexDescr(pmdidIndex, pmdnameIndex);
 
-	// TODO: vrgahavan; we assume that the index are always forward access.
+	// get scan direction from PhysicalIndexScan operator
+	EdxlIndexScanDirection scan_direction =
+		(popIs->IndexScanDirection() == EForwardScan) ? EdxlisdForward
+													  : EdxlisdBackward;
 	// create the physical index scan operator
 	CDXLPhysicalIndexScan *dxl_op = GPOS_NEW(m_mp) CDXLPhysicalIndexScan(
-		m_mp, table_descr, dxl_index_descr, EdxlisdForward);
+		m_mp, table_descr, dxl_index_descr, scan_direction);
 	CDXLNode *pdxlnIndexScan = GPOS_NEW(m_mp) CDXLNode(m_mp, dxl_op);
 
 	// set properties
@@ -915,11 +918,14 @@ CTranslatorExprToDXL::PdxlnIndexOnlyScan(CExpression *pexprIndexOnlyScan,
 	CDXLIndexDescr *dxl_index_descr =
 		GPOS_NEW(m_mp) CDXLIndexDescr(pmdidIndex, pmdnameIndex);
 
-	// TODO: vrgahavan; we assume that the index are always forward access.
+	// get scan direction from PhysicalIndexOnlyScan operator
+	EdxlIndexScanDirection scan_direction =
+		(popIs->IndexScanDirection() == EForwardScan) ? EdxlisdForward
+													  : EdxlisdBackward;
 	// create the physical index scan operator
 	CDXLPhysicalIndexOnlyScan *dxl_op =
 		GPOS_NEW(m_mp) CDXLPhysicalIndexOnlyScan(
-			m_mp, table_descr, dxl_index_descr, EdxlisdForward);
+			m_mp, table_descr, dxl_index_descr, scan_direction);
 	CDXLNode *pdxlnIndexOnlyScan = GPOS_NEW(m_mp) CDXLNode(m_mp, dxl_op);
 
 	// set properties
@@ -1592,8 +1598,10 @@ CTranslatorExprToDXL::PdxlnDynamicIndexScan(
 		}
 	}
 
-	// TODO: we assume that the index are always forward access.
-
+	// TODO: we assume that the index are always forward access for partition
+	// tables as ORCA currently doesn't support backward scans on partition
+	// tables.
+	// Related Github Issue: https://github.com/greenplum-db/gpdb/issues/16237
 	CDXLNode *pdxlnDIS = nullptr;
 	if (indexOnly)
 	{

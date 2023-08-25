@@ -62,6 +62,9 @@ public:
 	// is the index partitioned
 	virtual BOOL IsPartitioned() const = 0;
 
+	// Does index AM support ordering
+	virtual BOOL CanOrder() const = 0;
+
 	// index type
 	virtual EmdindexType IndexType() const = 0;
 
@@ -79,6 +82,12 @@ public:
 
 	// return the n-th included column
 	virtual ULONG IncludedColAt(ULONG pos) const = 0;
+
+	// return the n-th column sort direction
+	virtual ULONG KeySortDirectionAt(ULONG pos) const = 0;
+
+	// return the n-th column nulls direction
+	virtual ULONG KeyNullsDirectionAt(ULONG pos) const = 0;
 
 	// return the position of the included column
 	virtual ULONG GetIncludedColPos(ULONG column) const = 0;

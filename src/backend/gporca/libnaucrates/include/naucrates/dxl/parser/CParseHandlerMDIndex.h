@@ -45,6 +45,9 @@ private:
 	// is the index clustered
 	BOOL m_clustered;
 
+	// Does Index AM support ordering
+	BOOL m_amcanorder;
+
 	// index type
 	IMDIndex::EmdindexType m_index_type;
 
@@ -57,6 +60,12 @@ private:
 
 	// included columns
 	ULongPtrArray *m_included_cols_array;
+
+	// index key's sort direction
+	ULongPtrArray *m_sort_direction;
+
+	// index key's NULLS direction
+	ULongPtrArray *m_nulls_direction;
 
 	// child index oids parse handler
 	CParseHandlerBase *m_child_indexes_parse_handler;
