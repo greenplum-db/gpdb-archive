@@ -277,7 +277,7 @@ You may choose a different method to recreate the Greenplum Database resource gr
 1. Configure the system to mount `cgroups-v2` by default during system boot by the `systemd` system and service manager:
 
     ```
-    sudo grubby --update-kernel=ALL --args=“systemd.unified_cgroup_hierarchy=1”
+    sudo grubby --update-kernel=ALL --args="systemd.unified_cgroup_hierarchy=1"
     ```
 
 2. Reboot the system for the changes to take effect.
