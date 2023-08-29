@@ -1774,25 +1774,6 @@ CXformUtils::PstrErrorMessage(CMemoryPool *mp, ULONG major, ULONG minor, ...)
 
 //---------------------------------------------------------------------------
 //	@function:
-//		CXformUtils::PcrsIndexKeysAndIncludes
-//
-//	@doc:
-//		Return the set of columns from the given array of columns which appear
-//		in the index key and included columns
-//
-//---------------------------------------------------------------------------
-CColRefSet *
-CXformUtils::PcrsIndexKeysAndIncludes(CMemoryPool *mp,
-									  CColRefArray *colref_array,
-									  const IMDIndex *pmdindex,
-									  const IMDRelation *pmdrel)
-{
-	return PcrsIndexColumns(mp, colref_array, pmdindex, pmdrel,
-							EicKeyAndIncluded);
-}
-
-//---------------------------------------------------------------------------
-//	@function:
 //		CXformUtils::PdrgpcrIndexKeys
 //
 //	@doc:
@@ -1805,7 +1786,7 @@ CXformUtils::PdrgpcrIndexKeys(CMemoryPool *mp, CColRefArray *colref_array,
 							  const IMDIndex *pmdindex,
 							  const IMDRelation *pmdrel)
 {
-	return PdrgpcrIndexColumns(mp, colref_array, pmdindex, pmdrel, EicKey);
+	return PdrgpcrIndexColumns(mp, colref_array, pmdindex, pmdrel);
 }
 
 //---------------------------------------------------------------------------
@@ -1821,7 +1802,7 @@ CColRefSet *
 CXformUtils::PcrsIndexKeys(CMemoryPool *mp, CColRefArray *colref_array,
 						   const IMDIndex *pmdindex, const IMDRelation *pmdrel)
 {
-	return PcrsIndexColumns(mp, colref_array, pmdindex, pmdrel, EicKey);
+	return PcrsIndexColumns(mp, colref_array, pmdindex, pmdrel);
 }
 
 //---------------------------------------------------------------------------
@@ -1836,14 +1817,45 @@ CXformUtils::PcrsIndexKeys(CMemoryPool *mp, CColRefArray *colref_array,
 CColRefSet *
 CXformUtils::PcrsIndexColumns(CMemoryPool *mp, CColRefArray *colref_array,
 							  const IMDIndex *pmdindex,
-							  const IMDRelation *pmdrel, EIndexCols eic)
+							  const IMDRelation *pmdrel)
 {
-	GPOS_ASSERT(EicKey == eic || EicKeyAndIncluded == eic);
 	CColRefArray *pdrgpcrIndexColumns =
-		PdrgpcrIndexColumns(mp, colref_array, pmdindex, pmdrel, eic);
+		PdrgpcrIndexColumns(mp, colref_array, pmdindex, pmdrel);
 	CColRefSet *pcrsCols = GPOS_NEW(mp) CColRefSet(mp, pdrgpcrIndexColumns);
 
 	pdrgpcrIndexColumns->Release();
+
+	return pcrsCols;
+}
+
+//---------------------------------------------------------------------------
+//	@function:
+//		CXformUtils::PdrgpcrIndexColumns
+//
+//	@doc:
+//		Return the set of columns from the given array of columns which are
+//		retunable through the index (to determine index-only scan capable)
+//
+//---------------------------------------------------------------------------
+CColRefSet *
+CXformUtils::PcrsIndexReturnableColumns(CMemoryPool *mp,
+										CColRefArray *colref_array,
+										const IMDIndex *pmdindex,
+										const IMDRelation *pmdrel)
+{
+	CColRefSet *pcrsCols = GPOS_NEW(mp) CColRefSet(mp);
+
+	// returnable columns
+	for (ULONG ul = 0; ul < pmdindex->ReturnableCols(); ul++)
+	{
+		ULONG ulPos = pmdindex->ReturnableColAt(ul);
+
+		ULONG ulPosNonDropped = pmdrel->NonDroppedColAt(ulPos);
+		GPOS_ASSERT(gpos::ulong_max != ulPosNonDropped);
+		GPOS_ASSERT(ulPosNonDropped < colref_array->Size());
+		CColRef *colref = (*colref_array)[ulPosNonDropped];
+		pcrsCols->Include(colref);
+	}
 
 	return pcrsCols;
 }
@@ -1860,10 +1872,8 @@ CXformUtils::PcrsIndexColumns(CMemoryPool *mp, CColRefArray *colref_array,
 CColRefArray *
 CXformUtils::PdrgpcrIndexColumns(CMemoryPool *mp, CColRefArray *colref_array,
 								 const IMDIndex *pmdindex,
-								 const IMDRelation *pmdrel, EIndexCols eic)
+								 const IMDRelation *pmdrel)
 {
-	GPOS_ASSERT(EicKey == eic || EicKeyAndIncluded == eic);
-
 	CColRefArray *pdrgpcrIndex = GPOS_NEW(mp) CColRefArray(mp);
 
 	// key columns
@@ -1879,8 +1889,7 @@ CXformUtils::PdrgpcrIndexColumns(CMemoryPool *mp, CColRefArray *colref_array,
 	}
 
 	// included columns
-	for (ULONG ul = 0;
-		 ul < (EicKeyAndIncluded == eic ? pmdindex->IncludedCols() : 0); ul++)
+	for (ULONG ul = 0; ul < pmdindex->IncludedCols(); ul++)
 	{
 		ULONG ulPos = pmdindex->IncludedColAt(ul);
 
@@ -4098,7 +4107,7 @@ CXformUtils::FCoverIndex(CMemoryPool *mp, CIndexDescriptor *pindexdesc,
 	GPOS_ASSERT(nullptr != pdrgpcrOutput);
 	pdrgpcrOutput->AddRef();
 
-	CColRefSet *matched_cols = CXformUtils::PcrsIndexKeysAndIncludes(
+	CColRefSet *returnable_cols = CXformUtils::PcrsIndexReturnableColumns(
 		mp, pdrgpcrOutput, pmdindex, pmdrel);
 	CColRefSet *output_cols = GPOS_NEW(mp) CColRefSet(mp);
 
@@ -4127,14 +4136,14 @@ CXformUtils::FCoverIndex(CMemoryPool *mp, CIndexDescriptor *pindexdesc,
 		}
 	}
 
-	if (!matched_cols->ContainsAll(output_cols))
+	if (!returnable_cols->ContainsAll(output_cols))
 	{
-		matched_cols->Release();
+		returnable_cols->Release();
 		output_cols->Release();
 		pdrgpcrOutput->Release();
 		return false;
 	}
-	matched_cols->Release();
+	returnable_cols->Release();
 	output_cols->Release();
 
 	return true;
