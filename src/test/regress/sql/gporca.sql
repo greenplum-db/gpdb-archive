@@ -3469,6 +3469,56 @@ select a from mix_func_cast();
 select b from mix_func_cast();
 select c from mix_func_cast();
 
+----------------------------------
+-- Test ORCA support for FIELDSELECT
+----------------------------------
+create type comp_type as ( a text, b numeric, c int, d float, e int);
+create table comp_table(id int, item comp_type) distributed by (id);
+create table comp_part (id int, item comp_type) distributed by (id) partition by range(id) (start(1) end(4) every(1));
+insert into comp_table values (1, ROW('GP', 10.5, 10, 10.5, 20)), (2, ROW('VM',20.5, 20, 10.5, 20)), (3, ROW('DB',10.5, 10, 10.5, 10));
+insert into comp_part values (1, ROW('GP', 10.5, 10, 10.5, 20)), (2, ROW('VM',20.5, 20, 10.5, 20)), (3, ROW('DB',10.5, 10, 10.5, 10));
+analyze comp_table;
+analyze comp_part;
+
+select sum((item).b) from comp_table where (item).c=20;
+explain (costs off) select sum((item).b) from comp_table where (item).c=20;
+
+select distinct (item).b from comp_table where (item).c=20;
+explain (costs off) select distinct (item).b from comp_table where (item).c=20;
+
+-- verify the query output using predicate with the same composite type
+select (item).a from comp_table where (item).c=20 and (item).e >10;
+explain (costs off) select (item).a from comp_table where (item).c=20 and (item).e >10;
+
+-- verify the query output using predicate with the different composite type
+select * from comp_table where (item).c>(item).d;
+explain (costs off) select * from comp_table where (item).c>(item).d ;
+
+-- verify the query output by using a composite type in a join query
+select (x.item).a from comp_table x join comp_table y on (x.item).c=(y.item).c;
+explain (costs off) select (x.item).a from comp_table x join comp_table y on (x.item).c=(y.item).c;
+
+-- verify the query output by using a composite type in a TVF query
+select (x.item).a, (select count(*) from generate_series(1, (x.item).c)) from comp_table x;
+explain (costs off) select (x.item).a, (select count(*) from generate_series(1, (x.item).c)) from comp_table x;
+
+-- verify the query output by using a composite type in a cte query
+with cte1 as (select * from comp_table where (item).c>10) select id, (item).a, (item).b, (item).c, (item).e from cte1;
+explain (costs off) with cte1 as (select * from comp_table where (item).c>10) select id, (item).a, (item).b, (item).c, (item).e from cte1;
+
+-- verify the query output by using a composite type in a  subquery
+select (item).a from comp_table where (item).c=10 and (item).e IN (SELECT (item).e FROM comp_table WHERE (item).c = 10);
+explain (costs off) select (item).a from comp_table where (item).c=10 and (item).e IN (SELECT (item).e FROM comp_table WHERE (item).c = 10);
+
+-- verify the query output by using a composite type in a partition table query
+select (x.item).a from comp_part x join comp_part y on (X.item).c=(Y.item).c;
+explain (costs off) select (x.item).a from comp_part x join comp_part y on (X.item).c=(Y.item).c;
+
+-- clean up
+drop table comp_table;
+drop table comp_part;
+drop type comp_type;
+
 -- the query with empty CTE producer target list should fall back to Postgres
 -- optimizer without any error on build without asserts
 drop table if exists empty_cte_tl_test;

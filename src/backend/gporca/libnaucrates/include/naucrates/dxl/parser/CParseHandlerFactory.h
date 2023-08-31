@@ -401,6 +401,11 @@ private:
 		CMemoryPool *mp, CParseHandlerManager *parse_handler_mgr,
 		CParseHandlerBase *parse_handler_root);
 
+	// construct an FieldSelect parse handler
+	static CParseHandlerBase *CreateScalarFieldSelectParseHandler(
+		CMemoryPool *mp, CParseHandlerManager *parse_handler_mgr,
+		CParseHandlerBase *parse_handler_root);
+
 	// construct an arrayref index list parse handler
 	static CParseHandlerBase *CreateScArrayRefIdxListParseHandler(
 		CMemoryPool *mp, CParseHandlerManager *parse_handler_mgr,

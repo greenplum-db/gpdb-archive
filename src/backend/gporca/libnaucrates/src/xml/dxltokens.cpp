@@ -222,9 +222,15 @@ CDXLTokens::Init(CMemoryPool *mp)
 		{EdxltokenScalarSortColList, GPOS_WSZ_LIT("SortingColumnList")},
 		{EdxltokenScalarGroupingColList, GPOS_WSZ_LIT("GroupingColumns")},
 		{EdxltokenScalarSortGroupClause, GPOS_WSZ_LIT("SortGroupClause")},
-
 		{EdxltokenScalarBitmapAnd, GPOS_WSZ_LIT("BitmapAnd")},
 		{EdxltokenScalarBitmapOr, GPOS_WSZ_LIT("BitmapOr")},
+
+		{EdxltokenScalarFieldSelect, GPOS_WSZ_LIT("FIELDSELECT")},
+		{EdxltokenScalarFieldSelectFieldType, GPOS_WSZ_LIT("FieldType")},
+		{EdxltokenScalarFieldSelectFieldCollation,
+		 GPOS_WSZ_LIT("FieldCollation")},
+		{EdxltokenScalarFieldSelectFieldNumber, GPOS_WSZ_LIT("FieldNumber")},
+		{EdxltokenScalarFieldSelectTypeModifier, GPOS_WSZ_LIT("TypeModifier")},
 
 		{EdxltokenScalarArray, GPOS_WSZ_LIT("Array")},
 		{EdxltokenScalarArrayRef, GPOS_WSZ_LIT("ArrayRef")},

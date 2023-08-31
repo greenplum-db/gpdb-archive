@@ -140,6 +140,7 @@
 #include "naucrates/dxl/parser/CParseHandlerScalarConstValue.h"
 #include "naucrates/dxl/parser/CParseHandlerScalarDMLAction.h"
 #include "naucrates/dxl/parser/CParseHandlerScalarExpr.h"
+#include "naucrates/dxl/parser/CParseHandlerScalarFieldSelect.h"
 #include "naucrates/dxl/parser/CParseHandlerScalarFuncExpr.h"
 #include "naucrates/dxl/parser/CParseHandlerScalarIdent.h"
 #include "naucrates/dxl/parser/CParseHandlerScalarIfStmt.h"

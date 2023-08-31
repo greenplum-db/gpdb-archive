@@ -14433,21 +14433,17 @@ explain select c2 from quad_func_cast();
 (2 rows)
 
 explain select (c1).r from quad_func_cast();
-INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
-DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: FIELDSELECT
                             QUERY PLAN                             
 -------------------------------------------------------------------
- Function Scan on quad_func_cast  (cost=0.00..0.01 rows=1 width=8)
- Optimizer: Postgres query optimizer
+ Function Scan on quad_func_cast  (cost=0.00..0.00 rows=1 width=8)
+ Optimizer: Pivotal Optimizer (GPORCA)
 (2 rows)
 
 explain select (c2).i from quad_func_cast();
-INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
-DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: FIELDSELECT
                             QUERY PLAN                             
 -------------------------------------------------------------------
- Function Scan on quad_func_cast  (cost=0.00..0.01 rows=1 width=8)
- Optimizer: Postgres query optimizer
+ Function Scan on quad_func_cast  (cost=0.00..0.00 rows=1 width=8)
+ Optimizer: Pivotal Optimizer (GPORCA)
 (2 rows)
 
 select c1 from quad_func_cast();
@@ -14463,16 +14459,12 @@ select c2 from quad_func_cast();
 (1 row)
 
 select (c1).r from quad_func_cast();
-INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
-DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: FIELDSELECT
   r  
 -----
  1.1
 (1 row)
 
 select (c2).i from quad_func_cast();
-INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
-DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: FIELDSELECT
  i 
 ---
   
@@ -14519,6 +14511,205 @@ select c from mix_func_cast();
  t
 (1 row)
 
+----------------------------------
+-- Test ORCA support for FIELDSELECT
+----------------------------------
+create type comp_type as ( a text, b numeric, c int, d float, e int);
+create table comp_table(id int, item comp_type) distributed by (id);
+create table comp_part (id int, item comp_type) distributed by (id) partition by range(id) (start(1) end(4) every(1));
+insert into comp_table values (1, ROW('GP', 10.5, 10, 10.5, 20)), (2, ROW('VM',20.5, 20, 10.5, 20)), (3, ROW('DB',10.5, 10, 10.5, 10));
+insert into comp_part values (1, ROW('GP', 10.5, 10, 10.5, 20)), (2, ROW('VM',20.5, 20, 10.5, 20)), (3, ROW('DB',10.5, 10, 10.5, 10));
+analyze comp_table;
+analyze comp_part;
+select sum((item).b) from comp_table where (item).c=20;
+ sum  
+------
+ 20.5
+(1 row)
+
+explain (costs off) select sum((item).b) from comp_table where (item).c=20;
+                   QUERY PLAN                   
+------------------------------------------------
+ Finalize Aggregate
+   ->  Gather Motion 3:1  (slice1; segments: 3)
+         ->  Partial Aggregate
+               ->  Seq Scan on comp_table
+                     Filter: ((item).c = 20)
+ Optimizer: GPORCA
+(6 rows)
+
+select distinct (item).b from comp_table where (item).c=20;
+  b   
+------
+ 20.5
+(1 row)
+
+explain (costs off) select distinct (item).b from comp_table where (item).c=20;
+                            QUERY PLAN                            
+------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  GroupAggregate
+         Group Key: ((item).b)
+         ->  Sort
+               Sort Key: ((item).b)
+               ->  Redistribute Motion 3:3  (slice2; segments: 3)
+                     Hash Key: ((item).b)
+                     ->  Seq Scan on comp_table
+                           Filter: ((item).c = 20)
+ Optimizer: GPORCA
+(10 rows)
+
+-- verify the query output using predicate with the same composite type
+select (item).a from comp_table where (item).c=20 and (item).e >10;
+ a  
+----
+ VM
+(1 row)
+
+explain (costs off) select (item).a from comp_table where (item).c=20 and (item).e >10;
+                      QUERY PLAN                       
+-------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Seq Scan on comp_table
+         Filter: (((item).c = 20) AND ((item).e > 10))
+ Optimizer: GPORCA
+(4 rows)
+
+-- verify the query output using predicate with the different composite type
+select * from comp_table where (item).c>(item).d;
+ id |         item         
+----+----------------------
+  2 | (VM,20.5,20,10.5,20)
+(1 row)
+
+explain (costs off) select * from comp_table where (item).c>(item).d ;
+                        QUERY PLAN                         
+-----------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Seq Scan on comp_table
+         Filter: (((item).c)::double precision > (item).d)
+ Optimizer: GPORCA
+(4 rows)
+
+-- verify the query output by using a composite type in a join query
+select (x.item).a from comp_table x join comp_table y on (x.item).c=(y.item).c;
+ a  
+----
+ DB
+ DB
+ GP
+ GP
+ VM
+(5 rows)
+
+explain (costs off) select (x.item).a from comp_table x join comp_table y on (x.item).c=(y.item).c;
+                            QUERY PLAN                            
+------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Hash Join
+         Hash Cond: ((comp_table.item).c = (comp_table_1.item).c)
+         ->  Redistribute Motion 3:3  (slice2; segments: 3)
+               Hash Key: (comp_table.item).c
+               ->  Seq Scan on comp_table
+         ->  Hash
+               ->  Redistribute Motion 3:3  (slice3; segments: 3)
+                     Hash Key: (comp_table_1.item).c
+                     ->  Seq Scan on comp_table comp_table_1
+ Optimizer: GPORCA
+(11 rows)
+
+-- verify the query output by using a composite type in a TVF query
+select (x.item).a, (select count(*) from generate_series(1, (x.item).c)) from comp_table x;
+ a  | count 
+----+-------
+ GP |    10
+ VM |    20
+ DB |    10
+(3 rows)
+
+explain (costs off) select (x.item).a, (select count(*) from generate_series(1, (x.item).c)) from comp_table x;
+                      QUERY PLAN                      
+------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Seq Scan on comp_table
+         SubPlan 1
+           ->  Aggregate
+                 ->  Function Scan on generate_series
+ Optimizer: GPORCA
+(6 rows)
+
+-- verify the query output by using a composite type in a cte query
+with cte1 as (select * from comp_table where (item).c>10) select id, (item).a, (item).b, (item).c, (item).e from cte1;
+ id | a  |  b   | c  | e  
+----+----+------+----+----
+  2 | VM | 20.5 | 20 | 20
+(1 row)
+
+explain (costs off) with cte1 as (select * from comp_table where (item).c>10) select id, (item).a, (item).b, (item).c, (item).e from cte1;
+                QUERY PLAN                
+------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Seq Scan on comp_table
+         Filter: ((item).c > 10)
+ Optimizer: GPORCA
+(4 rows)
+
+-- verify the query output by using a composite type in a  subquery
+select (item).a from comp_table where (item).c=10 and (item).e IN (SELECT (item).e FROM comp_table WHERE (item).c = 10);
+ a  
+----
+ DB
+ GP
+(2 rows)
+
+explain (costs off) select (item).a from comp_table where (item).c=10 and (item).e IN (SELECT (item).e FROM comp_table WHERE (item).c = 10);
+                             QUERY PLAN                             
+--------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Hash Semi Join
+         Hash Cond: ((comp_table.item).e = ((comp_table_1.item).e))
+         ->  Seq Scan on comp_table
+               Filter: ((item).c = 10)
+         ->  Hash
+               ->  Broadcast Motion 3:3  (slice2; segments: 3)
+                     ->  Seq Scan on comp_table comp_table_1
+                           Filter: ((item).c = 10)
+ Optimizer: GPORCA
+(10 rows)
+
+-- verify the query output by using a composite type in a partition table query
+select (x.item).a from comp_part x join comp_part y on (X.item).c=(Y.item).c;
+ a  
+----
+ GP
+ GP
+ VM
+ DB
+ DB
+(5 rows)
+
+explain (costs off) select (x.item).a from comp_part x join comp_part y on (X.item).c=(Y.item).c;
+                              QUERY PLAN                              
+----------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Hash Join
+         Hash Cond: ((comp_part.item).c = (comp_part_1.item).c)
+         ->  Redistribute Motion 3:3  (slice2; segments: 3)
+               Hash Key: (comp_part.item).c
+               ->  Dynamic Seq Scan on comp_part
+                     Number of partitions to scan: 3 (out of 3)
+         ->  Hash
+               ->  Redistribute Motion 3:3  (slice3; segments: 3)
+                     Hash Key: (comp_part_1.item).c
+                     ->  Dynamic Seq Scan on comp_part comp_part_1
+                           Number of partitions to scan: 3 (out of 3)
+ Optimizer: GPORCA
+(13 rows)
+
+-- clean up
+drop table comp_table;
+drop table comp_part;
+drop type comp_type;
 -- the query with empty CTE producer target list should fall back to Postgres
 -- optimizer without any error on build without asserts
 drop table if exists empty_cte_tl_test;

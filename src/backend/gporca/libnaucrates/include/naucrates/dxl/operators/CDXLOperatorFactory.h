@@ -251,6 +251,10 @@ public:
 	static CDXLScalar *MakeDXLArrayCoerceExpr(
 		CDXLMemoryManager *dxl_memory_manager, const Attributes &attrs);
 
+	// create a FieldSelectExpr
+	static CDXLScalar *MakeDXLFieldSelect(CDXLMemoryManager *dxl_memory_manager,
+										  const Attributes &attrs);
+
 	// create a scalar identifier operator
 	static CDXLScalar *MakeDXLScalarIdent(CDXLMemoryManager *dxl_memory_manager,
 										  const Attributes &attrs);

@@ -80,6 +80,7 @@
 #include "gpopt/operators/CScalarCoalesce.h"
 #include "gpopt/operators/CScalarCoerceToDomain.h"
 #include "gpopt/operators/CScalarCoerceViaIO.h"
+#include "gpopt/operators/CScalarFieldSelect.h"
 #include "gpopt/operators/CScalarIdent.h"
 #include "gpopt/operators/CScalarIf.h"
 #include "gpopt/operators/CScalarIsDistinctFrom.h"
@@ -145,6 +146,7 @@
 #include "naucrates/dxl/operators/CDXLScalarComp.h"
 #include "naucrates/dxl/operators/CDXLScalarDMLAction.h"
 #include "naucrates/dxl/operators/CDXLScalarDistinctComp.h"
+#include "naucrates/dxl/operators/CDXLScalarFieldSelect.h"
 #include "naucrates/dxl/operators/CDXLScalarFuncExpr.h"
 #include "naucrates/dxl/operators/CDXLScalarHashCondList.h"
 #include "naucrates/dxl/operators/CDXLScalarHashExpr.h"
@@ -645,6 +647,8 @@ CTranslatorExprToDXL::PdxlnScalar(CExpression *pexpr)
 			return CTranslatorExprToDXL::PdxlnArrayCmp(pexpr);
 		case COperator::EopScalarArrayRef:
 			return CTranslatorExprToDXL::PdxlnArrayRef(pexpr);
+		case COperator::EopScalarFieldSelect:
+			return CTranslatorExprToDXL::PdxlnFieldSelect(pexpr);
 		case COperator::EopScalarArrayRefIndexList:
 			return CTranslatorExprToDXL::PdxlnArrayRefIndexList(pexpr);
 		case COperator::EopScalarAssertConstraintList:
@@ -6545,6 +6549,36 @@ CTranslatorExprToDXL::PdxlnArrayRef(CExpression *pexpr)
 	TranslateScalarChildren(pexpr, pdxlnArrayref);
 
 	return pdxlnArrayref;
+}
+
+//---------------------------------------------------------------------------
+//	@function:
+//		CTranslatorExprToDXL::PdxlnFieldSelect
+//
+//	@doc:
+//		Create a DXL FieldSelect node from an optimizer FieldSelect expression
+//
+//---------------------------------------------------------------------------
+CDXLNode *
+CTranslatorExprToDXL::PdxlnFieldSelect(CExpression *pexpr)
+{
+	GPOS_ASSERT(nullptr != pexpr);
+	CScalarFieldSelect *pop = CScalarFieldSelect::PopConvert(pexpr->Pop());
+
+	IMDId *field_type = pop->MdidType();
+	field_type->AddRef();
+	IMDId *field_collation = pop->FieldCollation();
+	field_collation->AddRef();
+	INT type_modifier = pop->TypeModifier();
+	SINT field_number = pop->FieldNumber();
+
+	CDXLNode *pdxlnFieldSelect = GPOS_NEW(m_mp) CDXLNode(
+		m_mp,
+		GPOS_NEW(m_mp) CDXLScalarFieldSelect(m_mp, field_type, field_collation,
+											 type_modifier, field_number));
+	TranslateScalarChildren(pexpr, pdxlnFieldSelect);
+
+	return pdxlnFieldSelect;
 }
 
 //---------------------------------------------------------------------------
