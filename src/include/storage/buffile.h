@@ -30,6 +30,7 @@
 
 #include "storage/sharedfileset.h"
 #include "utils/workfile_mgr.h"
+#include "cdb/cdbvars.h"
 
 /* BufFile is an opaque type whose details are not known outside buffile.c. */
 
@@ -67,7 +68,7 @@ extern void BufFileSuspend(BufFile *buffile);
 extern void BufFileResume(BufFile *buffile);
 
 extern bool gp_workfile_compression;
-extern void BufFilePledgeSequential(BufFile *buffile);
+extern void BufFilePledgeSequential(BufFile *buffile, workfile_set *work_set);
 extern void BufFileSetIsTempFile(BufFile *file, bool isTempFile);
 
 #endif							/* BUFFILE_H */

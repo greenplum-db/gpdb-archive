@@ -649,6 +649,7 @@ extern bool dml_ignore_target_partition_check;
 extern int gp_workfile_limit_per_segment;
 extern int gp_workfile_limit_per_query;
 extern int gp_workfile_limit_files_per_query;
+extern int gp_workfile_compression_overhead_limit;
 extern int gp_workfile_caching_loglevel;
 extern int gp_sessionstate_loglevel;
 extern int gp_workfile_bytes_to_checksum;

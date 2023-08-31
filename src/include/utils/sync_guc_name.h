@@ -94,6 +94,7 @@
 		"gp_udpic_network_disable_ipv6",
 		"gp_workfile_caching_loglevel",
 		"gp_workfile_compression",
+		"gp_workfile_compression_overhead_limit",
 		"gp_workfile_limit_files_per_query",
 		"gp_workfile_limit_per_query",
 		"gp_write_shared_snapshot",

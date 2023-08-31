@@ -3186,6 +3186,17 @@ struct config_int ConfigureNamesInt_gp[] =
 	},
 
 	{
+		{"gp_workfile_compression_overhead_limit", PGC_USERSET, RESOURCES,
+			gettext_noop("The overhead memory (kB) limit for all compressed workfiles of a single workfile_set."),
+			gettext_noop("0 for no limit. Once the limit is hit, the following files will not be compressed."),
+			GUC_UNIT_KB
+		},
+		&gp_workfile_compression_overhead_limit,
+		2048 * 1024, 0, INT_MAX,
+		NULL, NULL, NULL
+	},
+
+	{
 		{"gp_vmem_idle_resource_timeout", PGC_USERSET, CLIENT_CONN_OTHER,
 			gettext_noop("Sets the time a session can be idle (in milliseconds) before we release gangs on the segment DBs to free resources."),
 			gettext_noop("A value of 0 turns off the timeout."),
