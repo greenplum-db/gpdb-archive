@@ -1246,8 +1246,10 @@ bool gp_workfile_compression;		/* GUC */
  * that use buffiles across processes pledge sequential access, though.)
  */
 void
-BufFilePledgeSequential(BufFile *buffile, workfile_set *work_set)
+BufFilePledgeSequential(BufFile *buffile)
 {
+	workfile_set *work_set = buffile->work_set;
+
 	if (BufFileSize(buffile) != 0)
 		elog(ERROR, "cannot pledge sequential access to a temporary file after writing it");
 

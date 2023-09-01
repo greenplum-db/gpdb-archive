@@ -1494,7 +1494,7 @@ ExecHashJoinSaveTuple(PlanState *ps, MinimalTuple tuple, uint32 hashvalue,
 		Assert(hashtable->work_set != NULL);
 		file = BufFileCreateTempInSet("HashJoin", false /* interXact */,
 									  hashtable->work_set);
-		BufFilePledgeSequential(file, hashtable->work_set);	/* allow compression */
+		BufFilePledgeSequential(file);	/* allow compression */
 		*fileptr = file;
 
 		elog(gp_workfile_caching_loglevel, "create batch file %s",
