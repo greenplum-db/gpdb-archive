@@ -207,7 +207,9 @@ makeBufFile(File firstfile, const char *operation_name)
 
 	file->operation_name = pstrdup(operation_name);
 
+#ifdef USE_ZSTD
 	file->compressed_buffer_size = 0;
+#endif
 
 	return file;
 }
