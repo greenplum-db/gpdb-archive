@@ -237,13 +237,25 @@ SET statement_mem = '1000kB';
 -- Hashagg with spilling
 CREATE TABLE test_hashagg_spill AS
 SELECT a, COUNT(DISTINCT b) AS b FROM test_src_tbl GROUP BY a;
-EXPLAIN (analyze, costs off) SELECT a, COUNT(DISTINCT b) AS b FROM test_src_tbl GROUP BY a;
+WITH query_plan (et) AS
+(
+  SELECT test_util.get_explain_output(
+    'SELECT a, COUNT(DISTINCT b) AS b FROM test_src_tbl GROUP BY a',
+    false)
+)
+SELECT BTRIM(et) as explain_info FROM query_plan WHERE et like '%Extra Text%' limit 2;
 
 -- Hashagg with grouping sets
 CREATE TABLE test_hashagg_groupingsets AS
 SELECT a, avg(b) AS b FROM test_src_tbl GROUP BY grouping sets ((a), (b));
 -- The planner generates multiple hash tables but ORCA uses Shared Scan.
-EXPLAIN (analyze, costs off) SELECT a, avg(b) AS b FROM test_src_tbl GROUP BY grouping sets ((a), (b));
+WITH query_plan (et) AS
+(
+  SELECT test_util.get_explain_output(
+    'SELECT a, avg(b) AS b FROM test_src_tbl GROUP BY grouping sets ((a), (b))',
+    false)
+)
+SELECT BTRIM(et) as explain_info FROM query_plan WHERE et like '%Extra Text%' limit 2;
 
 RESET optimizer_enable_hashagg;
 RESET statement_mem;
