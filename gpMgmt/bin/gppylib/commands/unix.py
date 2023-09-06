@@ -737,6 +737,6 @@ elif curr_platform == DARWIN:
 elif curr_platform == FREEBSD:
     SYSTEM = FreeBsdPlatform()
 elif curr_platform == OPENBSD:
-    SYSTEM = OpenBSDPlatform();
+    SYSTEM = OpenBSDPlatform()
 else:
     raise Exception("Platform %s is not supported.  Supported platforms are: %s", SYSTEM, str(platform_list))

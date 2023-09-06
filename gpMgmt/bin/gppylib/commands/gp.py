@@ -341,7 +341,7 @@ class CoordinatorStart(Command):
 
         # build pg_ctl command
         c = PgCtlStartArgs(dataDir, b, era, wrapper, wrapper_args, wait, timeout)
-        logger.info("CoordinatorStart pg_ctl cmd is %s", c);
+        logger.info("CoordinatorStart pg_ctl cmd is %s", c)
         self.cmdStr = str(c)
 
         Command.__init__(self, name, self.cmdStr, ctxt, remoteHost)
@@ -398,7 +398,7 @@ class SegmentStart(Command):
 
         # build pg_ctl command
         c = PgCtlStartArgs(datadir, b, era, wrapper, wrapper_args, pg_ctl_wait, timeout)
-        logger.info("SegmentStart pg_ctl cmd is %s", c);
+        logger.info("SegmentStart pg_ctl cmd is %s", c)
         self.cmdStr = str(c) + ' 2>&1'
 
         Command.__init__(self, name, self.cmdStr, ctxt, remoteHost)

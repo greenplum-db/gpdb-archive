@@ -807,11 +807,11 @@ class CatThread(threading.Thread):
 
 def cli_help():
     help_path = os.path.join(sys.path[0], '..', 'docs', 'cli_help', EXECNAME +
-                             '_help');
+                             '_help')
     f = None
     try:
         try:
-            f = open(help_path);
+            f = open(help_path)
             return f.read(-1)
         except:
             return ''
@@ -1278,7 +1278,7 @@ class gpload:
                 pass
 
         if level == self.ERROR:
-            self.exitValue = 2;
+            self.exitValue = 2
             sys.exit(self.exitValue)
 
     def getconfig(self, a, typ=None, default='error', extraStuff='', returnOriginal=False):
@@ -2593,7 +2593,7 @@ class gpload:
                     results = cur.fetchall()
                     global NUM_WARN_ROWS
                     NUM_WARN_ROWS = (results[0])[0]
-                    return (results[0])[0];
+                    return (results[0])[0]
         return 0
 
     def report_errors(self):
