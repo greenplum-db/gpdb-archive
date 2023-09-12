@@ -1040,11 +1040,11 @@ class GpVersion(Command):
 
         self.gphome=gphome
         #self.cmdStr="%s/bin/postgres --gp-version" % gphome
-        self.cmdStr="$GPHOME/bin/postgres --gp-version"
+        self.cmdStr="echo 'START_CMD_OUTPUT';$GPHOME/bin/postgres --gp-version"
         Command.__init__(self,name,self.cmdStr,ctxt,remoteHost)
 
     def get_version(self):
-        return self.results.stdout.strip()
+        return self.results.stdout.strip().split('START_CMD_OUTPUT\n')[1]
 
     @staticmethod
     def local(name,gphome):
