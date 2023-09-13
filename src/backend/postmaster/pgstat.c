@@ -4542,6 +4542,23 @@ pgstat_get_crashed_backend_activity(int pid, char *buffer, int buflen)
 	return NULL;
 }
 
+bool
+pgstat_get_backend_query_isbypassed(int pid)
+{
+	int			tot_backends = pgstat_fetch_stat_numbackends();
+	int                     beid;
+
+	for (beid = 1; beid <= tot_backends; beid++)
+	{
+		PgBackendStatus *beentry = pgstat_fetch_stat_beentry(beid);
+
+		if (beentry && beentry->st_procpid == pid)
+			return beentry->st_bypass_rsg;
+	}
+
+	return false;
+}
+
 const char *
 pgstat_get_backend_desc(BackendType backendType)
 {

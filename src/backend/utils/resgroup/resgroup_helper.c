@@ -15,6 +15,7 @@
 #include "funcapi.h"
 #include "libpq-fe.h"
 #include "miscadmin.h"
+#include "pgstat.h"
 #include "catalog/pg_resgroup.h"
 #include "cdb/cdbdisp_query.h"
 #include "cdb/cdbdispatchresult.h"
@@ -494,10 +495,14 @@ pg_resgroup_move_query(PG_FUNCTION_ARGS)
 							(errmsg("cannot find process: %d", pid))));
 
 		currentGroupId = ResGroupGetGroupIdBySessionId(sessionId);
-		if (currentGroupId == InvalidOid)
+		if (currentGroupId == InvalidOid && pgstat_get_backend_query_isbypassed(pid))
 			ereport(ERROR,
 					(errcode(ERRCODE_UNDEFINED_OBJECT),
-							(errmsg("process %d is in IDLE state", pid))));
+							(errmsg("cannot move a bypassed or unassigned query"))));
+		else if (currentGroupId == InvalidOid)
+			ereport(ERROR,
+					(errcode(ERRCODE_UNDEFINED_OBJECT),
+							(errmsg("process %d is in IDLE state, cannot move a queued or pending query in idle state", pid))));
 		if (currentGroupId == groupId)
 			PG_RETURN_BOOL(true);
 
