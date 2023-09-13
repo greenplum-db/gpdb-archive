@@ -2819,11 +2819,11 @@ The default value is `0`, GPORCA produces an unlimited set of bindings.
 
 ## <a id="password_encryption"></a>password\_encryption 
 
-When a password is specified in CREATE USER or ALTER USER without writing either ENCRYPTED or UNENCRYPTED, this option determines whether the password is to be encrypted.
+When a password is specified in CREATE ROLE or ALTER ROLE, this parameter determines the algorithm to use to encrypt the password. Possible values are scram-sha-256, which will encrypt the password with SCRAM-SHA-256, and md5, which stores the password as an MD5 hash. The default is md5.
 
 |Value Range|Default|Set Classifications|
 |-----------|-------|-------------------|
-|Boolean|on|coordinator, session, reload|
+|md5, scram-sha-256|md5|coordinator, session, reload|
 
 ## <a id="plan_cache_mode"></a>plan\_cache\_mode 
 
