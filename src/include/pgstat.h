@@ -1272,6 +1272,8 @@ typedef struct PgBackendStatus
 	ProgressCommandType st_progress_command;
 	Oid			st_progress_command_target;
 	int64		st_progress_param[PGSTAT_NUM_PROGRESS_PARAM];
+
+	bool                    st_bypass_rsg;
 } PgBackendStatus;
 
 /*

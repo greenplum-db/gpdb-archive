@@ -3884,3 +3884,9 @@ can_bypass_direct_dispatch_plan(PlannedStmt *stmt)
 	else
 		return false;
 }
+
+bool
+ResGroupIsBypassed(void)
+{
+	return bypassedGroup != NULL;
+}

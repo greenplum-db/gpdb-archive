@@ -919,7 +919,17 @@ pg_stat_get_activity(PG_FUNCTION_ARGS)
 				values[30] = ObjectIdGetDatum(beentry->st_rsgid);
 
 				if (groupName != NULL)
-					values[31] = CStringGetTextDatum(groupName);
+				{
+					if(beentry->st_bypass_rsg)
+					{
+						StringInfoData buf;
+						initStringInfo(&buf);
+						appendStringInfo(&buf, "%s<bypass>", groupName);
+						values[31] = CStringGetTextDatum(buf.data);
+					}
+					else
+						values[31] = CStringGetTextDatum(groupName);
+				}
 				else
 					nulls[31] = true;
 			}
