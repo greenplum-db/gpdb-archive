@@ -83,6 +83,8 @@ typedef struct MinipagePerColumnGroup
 	Minipage *minipage;
 	uint32 numMinipageEntries;
 	ItemPointerData tupleTid;
+	/* cached entry number from last call to find_minipage_entry() */
+	int cached_entry_no;
 } MinipagePerColumnGroup;
 
 /*
@@ -137,14 +139,6 @@ typedef struct AppendOnlyBlockDirectory
 	ScanKey scanKeys;
 	StrategyNumber *strategyNumbers;
 
-	/*
-	 * Minipage entry number, for caching purpose.
-	 *
-	 * XXX: scenarios which call AppendOnlyBlockDirectory_GetEntry()
-	 * may need to consider using this cache.
-	 */
-	int cached_mpentry_num;
-
 }	AppendOnlyBlockDirectory;
 
 
@@ -193,6 +187,7 @@ typedef struct AOBlkDirScanData
 	SysScanDesc					sysscan;
 	int							segno;
 	int							colgroupno;
+	int							mpentryno;
 } AOBlkDirScanData, *AOBlkDirScan;
 
 extern void AppendOnlyBlockDirectoryEntry_GetBeginRange(
@@ -364,6 +359,7 @@ copy_out_minipage(MinipagePerColumnGroup *minipageInfo,
 	Assert(minipageInfo->minipage->nEntry <= NUM_MINIPAGE_ENTRIES);
 
 	minipageInfo->numMinipageEntries = minipageInfo->minipage->nEntry;
+	minipageInfo->cached_entry_no = InvalidEntryNum;
 }
 
 static inline void
@@ -374,6 +370,7 @@ AOBlkDirScan_Init(AOBlkDirScan blkdirscan,
 	blkdirscan->sysscan = NULL;
 	blkdirscan->segno = -1;
 	blkdirscan->colgroupno = 0;
+	blkdirscan->mpentryno = InvalidEntryNum;
 }
 
 /* should be called before fetch_finish() */

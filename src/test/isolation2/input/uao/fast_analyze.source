@@ -347,3 +347,20 @@ create index on analyze_@amname@_2(a);
 1: analyze analyze_@amname@_2;
 
 drop table analyze_@amname@_2;
+
+--
+-- The following test ensures ANALYZE won't break column correlation
+-- as well as other pg_stats values. This is because we don't allow
+-- caching minipage entry on ANALYZE AOCO table currently, misuse of
+-- caching minipage entry for a specific column in ANALYZE AOCO table
+-- could break column correlation which would impact cost estimation
+-- and then finally resut in wrong plan to be selected.
+--
+
+create table analyze_@amname@_3(inttype int, texttype text, decimaltype decimal(10,2)) using @amname@;
+insert into analyze_@amname@_3 select i, 'texttype'||i, i from generate_series(1,9999) i;
+create index i_analyze_@amname@_3 on analyze_@amname@_3(inttype) include (texttype);
+analyze analyze_@amname@_3;
+select attname, correlation from pg_stats where tablename='analyze_@amname@_3';
+
+drop table analyze_@amname@_3;

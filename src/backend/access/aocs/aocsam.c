@@ -839,10 +839,9 @@ aocs_blkdirscan_get_target_tuple(AOCSScanDesc scan, int64 targrow, TupleTableSlo
 	/*
 	 * Unlike ao_row, we set currentSegmentFileNum for ao_column here
 	 * just for passing the assertion in extract_minipage() called by
-	 * AOBlkDirScan_GetRowNum().
-	 * Since we don't invoke AppendOnlyBlockDirectory_GetCachedEntry()
-	 * for ao_column, it shoule be restored back to the original value
-	 * for AppendOnlyBlockDirectory_GetEntry() working properly.
+	 * AOBlkDirScan_GetRowNum(). Then it shoule be restored back to
+	 * the original value for making AppendOnlyBlockDirectory_GetEntry()
+	 * work properly.
 	 */
 	int currentSegmentFileNum = blkdir->currentSegmentFileNum;
 	blkdir->currentSegmentFileNum = blkdir->segmentFileInfo[segidx]->segno;
@@ -870,9 +869,9 @@ aocs_blkdirscan_get_target_tuple(AOCSScanDesc scan, int64 targrow, TupleTableSlo
 										&rowsprocessed);
 
 		elog(DEBUG2, "AOBlkDirScan_GetRowNum(segno: %d, col: %d, targrow: %ld): "
-			 "[segfirstrow: %ld, segrowsprocessed: %ld, rownum: %ld, cached_mpentry_num: %d]",
+			 "[segfirstrow: %ld, segrowsprocessed: %ld, rownum: %ld, cached_entry_no: %d]",
 			 segno, col, targrow, scan->segfirstrow, scan->segrowsprocessed, rownum,
-			 blkdir->cached_mpentry_num);
+			 blkdir->minipages[col].cached_entry_no);
 
 		if (rownum < 0)
 			continue;
@@ -897,6 +896,13 @@ aocs_blkdirscan_get_target_tuple(AOCSScanDesc scan, int64 targrow, TupleTableSlo
 	AOTupleIdInit(&aotid, segno, rownum);
 
 	ExecClearTuple(slot);
+
+	/* 
+	 * Unlike ao_row, we don't update blkdir->minipages[col].cached_entry_no
+	 * before fetching because ao_column requires all other column entries
+	 * to form the whole tuple instead of the single one obtained by
+	 * AOBlkDirScan_GetRowNum().
+	 */
 
 	/* fetch the target tuple */
 	if(!aocs_fetch(scan->aocsfetch, &aotid, slot))

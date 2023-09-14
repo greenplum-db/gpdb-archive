@@ -42,8 +42,7 @@ static void init_scankeys(
 			  int nkeys, ScanKey scanKeys,
 			  StrategyNumber *strategyNumbers);
 static int find_minipage_entry(
-					Minipage *minipage,
-					uint32 numEntries,
+					MinipagePerColumnGroup *minipageInfo,
 					int64 rowNum);
 static void extract_minipage(
 				 AppendOnlyBlockDirectory *blockDirectory,
@@ -156,9 +155,8 @@ init_internal(AppendOnlyBlockDirectory *blockDirectory)
 			palloc0(minipage_size(NUM_MINIPAGE_ENTRIES));
 		minipageInfo->numMinipageEntries = 0;
 		ItemPointerSetInvalid(&minipageInfo->tupleTid);
+		minipageInfo->cached_entry_no = InvalidEntryNum;
 	}
-
-	blockDirectory->cached_mpentry_num = InvalidEntryNum;
 
 	MemoryContextSwitchTo(oldcxt);
 }
@@ -585,32 +583,6 @@ set_directoryentry_range(
 }
 
 /*
- * AppendOnlyBlockDirectory_GetCachedEntry
- * 
- * Return cached minipage entry for avoidance
- * of double scans on block directory.
- */
-static inline bool
-AppendOnlyBlockDirectory_GetCachedEntry(
-										AppendOnlyBlockDirectory *blockDirectory,
-										int segmentFileNum,
-										int columnGroupNo,
-										AppendOnlyBlockDirectoryEntry *directoryEntry)
-{
-	MinipagePerColumnGroup *minipageInfo PG_USED_FOR_ASSERTS_ONLY = &blockDirectory->minipages[columnGroupNo];
-
-    Assert(blockDirectory->cached_mpentry_num != InvalidEntryNum);
-	Assert(segmentFileNum == blockDirectory->currentSegmentFileNum);
-	Assert(blockDirectory->currentSegmentFileInfo != NULL);
-	Assert(minipageInfo->numMinipageEntries > 0);
-
-	return set_directoryentry_range(blockDirectory,
-									columnGroupNo,
-									blockDirectory->cached_mpentry_num,
-									directoryEntry);
-}
-
-/*
  * AppendOnlyBlockDirectory_GetEntry
  *
  * Find a directory entry for the given AOTupleId in the block directory.
@@ -663,21 +635,6 @@ AppendOnlyBlockDirectory_GetEntry(
 					  columnGroupNo, segmentFileNum, rowNum)));
 
 	/*
-	 * We enable caching minipage entry only for ao_row.
-	 * 
-	 * Because ao_column requires all column values,
-	 * but the entry returned here caches for only one
-	 * column. It is unavoidable to scan blkdir again in
-	 * aocs_fetch() to extract all other column entries
-	 * for constructing the whole tuple.
-	 */
-	if (!blockDirectory->isAOCol && blockDirectory->cached_mpentry_num != InvalidEntryNum)
-		return AppendOnlyBlockDirectory_GetCachedEntry(blockDirectory,
-													   segmentFileNum,
-													   columnGroupNo,
-													   directoryEntry);
-
-	/*
 	 * If the segment file number is the same as
 	 * blockDirectory->currentSegmentFileNum, the in-memory minipage may
 	 * contain such an entry. We search the in-memory minipage first. If such
@@ -698,10 +655,7 @@ AppendOnlyBlockDirectory_GetEntry(
 			 * Check if the existing minipage contains the requested rowNum.
 			 * If so, just get it.
 			 */
-			entry_no = find_minipage_entry(minipageInfo->minipage,
-										   minipageInfo->numMinipageEntries,
-										   rowNum);
-
+			entry_no = find_minipage_entry(minipageInfo, rowNum);
 			if (entry_no != InvalidEntryNum)
 			{
 				return set_directoryentry_range(blockDirectory,
@@ -812,9 +766,7 @@ AppendOnlyBlockDirectory_GetEntry(
 		 * Perform a binary search over the minipage to find the entry about
 		 * the AO block.
 		 */
-		entry_no = find_minipage_entry(minipageInfo->minipage,
-									   minipageInfo->numMinipageEntries,
-									   rowNum);
+		entry_no = find_minipage_entry(minipageInfo, rowNum);
 
 		/* If there are no entries, return false. */
 		if (entry_no == -1 && minipageInfo->numMinipageEntries == 0)
@@ -1122,9 +1074,7 @@ blkdir_entry_exists(AppendOnlyBlockDirectory *blockDirectory,
 
 		if (minipageInfo && minipageInfo->minipage)
 		{
-			int entry_no = find_minipage_entry(minipageInfo->minipage,
-											   minipageInfo->numMinipageEntries,
-											   rowNum);
+			int entry_no = find_minipage_entry(minipageInfo, rowNum);
 			if (entry_no != InvalidEntryNum)
 			{
 				ereportif(Debug_appendonly_print_blockdirectory, LOG,
@@ -1206,9 +1156,7 @@ blkdir_entry_exists(AppendOnlyBlockDirectory *blockDirectory,
 						 columnGroupNo);
 
 		minipageInfo = &blockDirectory->minipages[columnGroupNo];
-		entry_no = find_minipage_entry(minipageInfo->minipage,
-									   minipageInfo->numMinipageEntries,
-									   rowNum);
+		entry_no = find_minipage_entry(minipageInfo, rowNum);
 		if (entry_no != InvalidEntryNum)
 		{
 			found = true;
@@ -1589,17 +1537,37 @@ load_last_minipage(AppendOnlyBlockDirectory *blockDirectory,
  *
  * Find the minipage entry that covers the given rowNum.
  * If such an entry does not exists, -1 is returned. Otherwise
- * the index to such an entry in the minipage array is returned.
+ * the index to such an entry in the minipage array is returned,
+ * and it is stored in cached_entry_no for caching purpose.
  */
 static int
-find_minipage_entry(Minipage *minipage,
-					uint32 numEntries,
+find_minipage_entry(MinipagePerColumnGroup *minipageInfo,
 					int64 rowNum)
 {
 	int			start_no,
 				end_no;
-	int			entry_no;
+	int			entry_no = InvalidEntryNum;
 	MinipageEntry *entry;
+	Minipage *minipage = minipageInfo->minipage;
+	uint32 numEntries = minipageInfo->numMinipageEntries;
+
+	/* fast lookup in cached entry */
+	if (minipageInfo->cached_entry_no != InvalidEntryNum)
+	{
+		Assert(minipageInfo->cached_entry_no < numEntries);
+
+		entry_no = minipageInfo->cached_entry_no;
+		entry = &(minipage->entry[entry_no]);
+
+		if (entry->firstRowNum <= rowNum &&
+			entry->firstRowNum + entry->rowCount > rowNum)
+		{
+			Assert(entry->firstRowNum > 0);
+			Assert(entry->rowCount > 0);
+	
+			return entry_no;
+		}
+	}
 
 	start_no = 0;
 	end_no = numEntries - 1;
@@ -1627,9 +1595,11 @@ find_minipage_entry(Minipage *minipage,
 	}
 
 	if (start_no <= end_no)
-		return entry_no;
+		minipageInfo->cached_entry_no = entry_no;
 	else
-		return InvalidEntryNum;
+		minipageInfo->cached_entry_no = InvalidEntryNum;
+
+	return minipageInfo->cached_entry_no;
 }
 
 /*
@@ -1726,6 +1696,7 @@ clear_minipage(MinipagePerColumnGroup *minipagePerColumnGroup)
 		   minipagePerColumnGroup->numMinipageEntries * sizeof(MinipageEntry));
 	minipagePerColumnGroup->numMinipageEntries = 0;
 	ItemPointerSetInvalid(&minipagePerColumnGroup->tupleTid);
+	minipagePerColumnGroup->cached_entry_no = InvalidEntryNum;
 }
 
 /*
@@ -2011,10 +1982,10 @@ AOBlkDirScan_GetRowNum(AOBlkDirScan blkdirscan,
 		blkdirscan->segno = targsegno;
 		blkdirscan->colgroupno = colgroupno;
 		/* reset to InvalidEntryNum for new Minipage entry array */
-		blkdir->cached_mpentry_num = InvalidEntryNum;
+		blkdirscan->mpentryno = InvalidEntryNum;
 	}
 
-	mpentryi = blkdir->cached_mpentry_num;
+	mpentryi = blkdirscan->mpentryno;
 	mpinfo = &blkdir->minipages[colgroupno];
 
 	while (true)
@@ -2073,7 +2044,7 @@ AOBlkDirScan_GetRowNum(AOBlkDirScan blkdirscan,
 
 out:
 	/* set the result of minipage entry lookup */
-	blkdir->cached_mpentry_num = mpentryi;
+	blkdirscan->mpentryno = mpentryi;
 
 	return rownum;
 }
