@@ -630,7 +630,7 @@ The `on_change` option triggers statistics collection only when the number of ro
 
 `COPY`
 
-Default is `on_no_stats`.
+Default is `none`.
 
 > **Note** For partitioned tables, automatic statistics collection is not triggered if data is inserted from the top-level parent table of a partitioned table.
 
@@ -638,7 +638,7 @@ Automatic statistics collection is triggered if data is inserted directly in a l
 
 |Value Range|Default|Set Classifications|
 |-----------|-------|-------------------|
-|none, on\_change, on\_no\_stats, |on\_no\_ stats|coordinator, session, reload|
+|none, on\_change, none, |on\_no\_ stats|coordinator, session, reload|
 
 ## <a id="gp_autostats_mode_in_functions"></a>gp\_autostats\_mode\_in\_functions 
 
