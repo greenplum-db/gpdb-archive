@@ -2,6 +2,8 @@
 
 Reloads Greenplum Database table data sorting the data based on specified columns.
 
+> **Note** The `gpreload` utility is deprecated and will be removed in the next major release of Greenplum Database. Use [ALTER TABLE REPACK BY COLUMNS](../../ref_guide/sql_commands/ALTER_TABLE.html) to physically reorder a table based on one or more columns. 
+
 ## <a id="section2"></a>Synopsis 
 
 ```
