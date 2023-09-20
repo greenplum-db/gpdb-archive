@@ -379,7 +379,7 @@ where t.a in (select count(s.i) from s);
             <dxl:ProjElem ColId="18" Alias="count">
               <dxl:AggFunc AggMdid="0.2147.1.0" AggDistinct="false" AggStage="Final" AggKind="n" AggArgTypes="">
                 <dxl:ValuesList ParamType="aggargs">
-                <dxl:Ident ColId="23" ColName="ColRef_0023" TypeMdid="0.20.1.0"/>
+                  <dxl:Ident ColId="23" ColName="ColRef_0023" TypeMdid="0.20.1.0"/>
                 </dxl:ValuesList>
                 <dxl:ValuesList ParamType="aggdirectargs"/>
                 <dxl:ValuesList ParamType="aggorder"/>
@@ -408,7 +408,7 @@ where t.a in (select count(s.i) from s);
                 <dxl:ProjElem ColId="23" Alias="ColRef_0023">
                   <dxl:AggFunc AggMdid="0.2147.1.0" AggDistinct="false" AggStage="Partial" AggKind="n" AggArgTypes="">
                     <dxl:ValuesList ParamType="aggargs">
-                    <dxl:Ident ColId="9" ColName="i" TypeMdid="0.23.1.0"/>
+                      <dxl:Ident ColId="9" ColName="i" TypeMdid="0.23.1.0"/>
                     </dxl:ValuesList>
                     <dxl:ValuesList ParamType="aggdirectargs"/>
                     <dxl:ValuesList ParamType="aggorder"/>

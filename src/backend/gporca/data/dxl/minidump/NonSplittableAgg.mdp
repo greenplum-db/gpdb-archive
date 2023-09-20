@@ -243,7 +243,7 @@
           <dxl:ProjElem ColId="9" Alias="min">
             <dxl:AggFunc AggMdid="0.183058.1.0" AggDistinct="false" AggStage="Normal" AggKind="n" AggArgTypes="">
               <dxl:ValuesList ParamType="aggargs">
-              <dxl:Ident ColId="0" ColName="a" TypeMdid="0.183013.1.0"/>
+                <dxl:Ident ColId="0" ColName="a" TypeMdid="0.183013.1.0"/>
               </dxl:ValuesList>
               <dxl:ValuesList ParamType="aggdirectargs"/>
               <dxl:ValuesList ParamType="aggorder"/>
@@ -253,7 +253,7 @@
           <dxl:ProjElem ColId="10" Alias="count">
             <dxl:AggFunc AggMdid="0.2147.1.0" AggDistinct="true" AggStage="Normal" AggKind="n" AggArgTypes="">
               <dxl:ValuesList ParamType="aggargs">
-              <dxl:Ident ColId="0" ColName="a" TypeMdid="0.183013.1.0"/>
+                <dxl:Ident ColId="0" ColName="a" TypeMdid="0.183013.1.0"/>
               </dxl:ValuesList>
               <dxl:ValuesList ParamType="aggdirectargs"/>
               <dxl:ValuesList ParamType="aggorder"/>

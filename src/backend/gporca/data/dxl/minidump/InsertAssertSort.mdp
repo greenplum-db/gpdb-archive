@@ -468,16 +468,16 @@ explain insert into tbl_cds_buysell_orders_new (a,b,c)
                   <dxl:ConstValue TypeMdid="0.23.1.0" Value="1"/>
                 </dxl:ProjElem>
                 <dxl:ProjElem ColId="10" Alias="d">
-                  <dxl:ConstValue TypeMdid="0.23.1.0" IsNull="true" IsByValue="true"/>
+                  <dxl:ConstValue TypeMdid="0.23.1.0" IsNull="true"/>
                 </dxl:ProjElem>
                 <dxl:ProjElem ColId="11" Alias="e">
-                  <dxl:ConstValue TypeMdid="0.23.1.0" IsNull="true" IsByValue="true"/>
+                  <dxl:ConstValue TypeMdid="0.23.1.0" IsNull="true"/>
                 </dxl:ProjElem>
                 <dxl:ProjElem ColId="12" Alias="f">
-                  <dxl:ConstValue TypeMdid="0.23.1.0" IsNull="true" IsByValue="true"/>
+                  <dxl:ConstValue TypeMdid="0.23.1.0" IsNull="true"/>
                 </dxl:ProjElem>
                 <dxl:ProjElem ColId="13" Alias="g">
-                  <dxl:ConstValue TypeMdid="0.23.1.0" IsNull="true" IsByValue="true"/>
+                  <dxl:ConstValue TypeMdid="0.23.1.0" IsNull="true"/>
                 </dxl:ProjElem>
                 <dxl:ProjElem ColId="0" Alias="a">
                   <dxl:Ident ColId="0" ColName="a" TypeMdid="0.23.1.0"/>

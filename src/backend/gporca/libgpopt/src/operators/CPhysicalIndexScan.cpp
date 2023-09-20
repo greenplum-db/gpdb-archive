@@ -31,7 +31,8 @@ using namespace gpopt;
 CPhysicalIndexScan::CPhysicalIndexScan(
 	CMemoryPool *mp, CIndexDescriptor *pindexdesc, CTableDescriptor *ptabdesc,
 	ULONG ulOriginOpId, const CName *pnameAlias, CColRefArray *pdrgpcrOutput,
-	COrderSpec *pos, EIndexScanDirection scan_direction)
+	COrderSpec *pos, ULONG ulUnindexedPredColCount,
+	EIndexScanDirection scan_direction)
 	: CPhysicalScan(mp, pnameAlias, ptabdesc, pdrgpcrOutput),
 	  m_pindexdesc(pindexdesc),
 	  m_ulOriginOpId(ulOriginOpId),
@@ -40,6 +41,8 @@ CPhysicalIndexScan::CPhysicalIndexScan(
 {
 	GPOS_ASSERT(nullptr != pindexdesc);
 	GPOS_ASSERT(nullptr != pos);
+
+	m_ulUnindexedPredColCount = ulUnindexedPredColCount;
 }
 
 

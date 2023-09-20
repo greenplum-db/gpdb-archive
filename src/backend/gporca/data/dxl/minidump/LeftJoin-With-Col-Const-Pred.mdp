@@ -2145,7 +2145,7 @@
             </dxl:SubPlan>
           </dxl:ProjElem>
           <dxl:ProjElem ColId="118" Alias="reloptions">
-            <dxl:FuncExpr FuncId="0.395.1.0" FuncRetSet="false" TypeMdid="0.25.1.0">
+            <dxl:FuncExpr FuncId="0.395.1.0" FuncRetSet="false" TypeMdid="0.25.1.0" FuncVariadic="false">
               <dxl:Ident ColId="29" ColName="reloptions" TypeMdid="0.1009.1.0"/>
               <dxl:ConstValue TypeMdid="0.25.1.0" Value="AAAABUI=" LintValue="160711212"/>
             </dxl:FuncExpr>

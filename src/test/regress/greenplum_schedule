@@ -165,6 +165,7 @@ test: bfv_partition_plans
 # to race-condition fetching relallvisible.
 test: gp_covering_index
 test: qp_indexscan
+test: gp_index_costing
 test: pgstat_qd_tabstat
 # dispatch should always run seperately from other cases.
 test: dispatch

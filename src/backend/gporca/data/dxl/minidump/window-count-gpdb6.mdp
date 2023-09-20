@@ -366,7 +366,7 @@ explain select b,c, count(c) over (partition by b) from (select * from foo) s;
           <dxl:WindowKeyList>
             <dxl:WindowKey>
               <dxl:SortingColumnList/>
-              <dxl:WindowFrame FrameSpec="Range" ExclusionStrategy="Nulls">
+              <dxl:WindowFrame FrameSpec="Range" ExclusionStrategy="Nulls" StartInRange="0" EndInRange="0" InRangeColl="0" InRangeAsc="false" InRangeNullsFirst="false">
                 <dxl:TrailingEdge TrailingBoundary="UnboundedPreceding"/>
                 <dxl:LeadingEdge LeadingBoundary="CurrentRow"/>
               </dxl:WindowFrame>

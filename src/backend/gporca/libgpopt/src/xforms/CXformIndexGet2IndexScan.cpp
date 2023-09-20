@@ -111,10 +111,10 @@ CXformIndexGet2IndexScan::Transform(CXformContext *pxfctxt,
 
 	CExpression *pexprAlt = GPOS_NEW(mp) CExpression(
 		mp,
-		GPOS_NEW(mp)
-			CPhysicalIndexScan(mp, pindexdesc, ptabdesc, pexpr->Pop()->UlOpId(),
-							   GPOS_NEW(mp) CName(mp, pop->NameAlias()),
-							   pdrgpcrOutput, pos, pop->ScanDirection()),
+		GPOS_NEW(mp) CPhysicalIndexScan(
+			mp, pindexdesc, ptabdesc, pexpr->Pop()->UlOpId(),
+			GPOS_NEW(mp) CName(mp, pop->NameAlias()), pdrgpcrOutput, pos,
+			pop->ResidualPredicateSize(), pop->ScanDirection()),
 		pexprIndexCond);
 	pxfres->Add(pexprAlt);
 }

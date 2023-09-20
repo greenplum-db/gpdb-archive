@@ -59,6 +59,9 @@ private:
 	// distribution columns (empty for coordinator only tables)
 	CColRefSet *m_pcrsDist;
 
+	// Number of predicate not applicable on the index
+	ULONG m_ulUnindexedPredColCount;
+
 	// index scan direction
 	EIndexScanDirection m_scan_direction;
 
@@ -71,6 +74,7 @@ public:
 	CLogicalIndexGet(CMemoryPool *mp, const IMDIndex *pmdindex,
 					 CTableDescriptor *ptabdesc, ULONG ulOriginOpId,
 					 const CName *pnameAlias, CColRefArray *pdrgpcrOutput,
+					 ULONG ulUnindexedPredColCount,
 					 EIndexScanDirection scan_direction);
 
 	// dtor
@@ -144,6 +148,13 @@ public:
 	Pos() const
 	{
 		return m_pos;
+	}
+
+	// number of predicate not applicable on the index
+	ULONG
+	ResidualPredicateSize() const
+	{
+		return m_ulUnindexedPredColCount;
 	}
 
 	// index scan direction is only used for B-tree indices.

@@ -467,7 +467,7 @@
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="31" Alias="xx">
-                <dxl:FuncExpr FuncId="0.2971.1.0" FuncRetSet="false" TypeMdid="0.25.1.0">
+                <dxl:FuncExpr FuncId="0.2971.1.0" FuncRetSet="false" TypeMdid="0.25.1.0" FuncVariadic="false">
                   <dxl:SubPlan TypeMdid="0.16.1.0" SubPlanType="AnySubPlan">
                     <dxl:TestExpr>
                       <dxl:Comparison ComparisonOperator="=" OperatorMdid="0.96.1.0">

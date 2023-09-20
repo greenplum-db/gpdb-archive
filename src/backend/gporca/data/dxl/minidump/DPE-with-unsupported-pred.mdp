@@ -2337,7 +2337,7 @@
               <dxl:Comparison ComparisonOperator="&gt;=" OperatorMdid="0.525.1.0">
                 <dxl:Ident ColId="2" ColName="c" TypeMdid="0.23.1.0"/>
                 <dxl:CoerceViaIO TypeMdid="0.23.1.0" CoercionForm="1" Location="0">
-                  <dxl:FuncExpr FuncId="0.1773.1.0" FuncRetSet="false" TypeMdid="0.25.1.0">
+                  <dxl:FuncExpr FuncId="0.1773.1.0" FuncRetSet="false" TypeMdid="0.25.1.0" FuncVariadic="false">
                     <dxl:Ident ColId="19" ColName="f" TypeMdid="0.23.1.0"/>
                     <dxl:ConstValue TypeMdid="0.25.1.0" Value="AAAABzk5OQ==" LintValue="724274224"/>
                   </dxl:FuncExpr>
@@ -2346,7 +2346,7 @@
               <dxl:Comparison ComparisonOperator="&lt;=" OperatorMdid="0.523.1.0">
                 <dxl:Ident ColId="2" ColName="c" TypeMdid="0.23.1.0"/>
                 <dxl:CoerceViaIO TypeMdid="0.23.1.0" CoercionForm="1" Location="0">
-                  <dxl:FuncExpr FuncId="0.1773.1.0" FuncRetSet="false" TypeMdid="0.25.1.0">
+                  <dxl:FuncExpr FuncId="0.1773.1.0" FuncRetSet="false" TypeMdid="0.25.1.0" FuncVariadic="false">
                     <dxl:Ident ColId="19" ColName="f" TypeMdid="0.23.1.0"/>
                     <dxl:ConstValue TypeMdid="0.25.1.0" Value="AAAABzk5OQ==" LintValue="724274224"/>
                   </dxl:FuncExpr>

@@ -686,7 +686,7 @@
           <dxl:ProjElem ColId="23" Alias="avg_1">
             <dxl:AggFunc AggMdid="0.211808.1.0" AggDistinct="false" AggStage="Normal" AggKind="n" AggArgTypes="">
               <dxl:ValuesList ParamType="aggargs">
-              <dxl:Ident ColId="3" ColName="four" TypeMdid="0.23.1.0"/>
+                <dxl:Ident ColId="3" ColName="four" TypeMdid="0.23.1.0"/>
               </dxl:ValuesList>
               <dxl:ValuesList ParamType="aggdirectargs"/>
               <dxl:ValuesList ParamType="aggorder"/>

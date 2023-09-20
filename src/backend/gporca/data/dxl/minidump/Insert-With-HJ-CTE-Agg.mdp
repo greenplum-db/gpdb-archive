@@ -526,7 +526,7 @@
               <dxl:Ident ColId="39" ColName="?column?" TypeMdid="0.25.1.0"/>
             </dxl:ProjElem>
             <dxl:ProjElem ColId="42" Alias="lang_count">
-              <dxl:FuncExpr FuncId="0.480.1.0" FuncRetSet="false" TypeMdid="0.23.1.0">
+              <dxl:FuncExpr FuncId="0.480.1.0" FuncRetSet="false" TypeMdid="0.23.1.0" FuncVariadic="false">
                 <dxl:Ident ColId="19" ColName="lang_count" TypeMdid="0.20.1.0"/>
               </dxl:FuncExpr>
             </dxl:ProjElem>

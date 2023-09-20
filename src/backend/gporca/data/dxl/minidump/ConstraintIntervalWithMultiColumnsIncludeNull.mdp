@@ -269,7 +269,7 @@ Rows out:  1 rows at destination with 1693 ms to end.
       </dxl:GatherMotion>
       <dxl:DirectDispatchInfo>
         <dxl:KeyValue>
-          <dxl:Datum TypeMdid="0.23.1.0" IsNull="true" IsByValue="true"/>
+          <dxl:Datum TypeMdid="0.23.1.0" IsNull="true"/>
         </dxl:KeyValue>
       </dxl:DirectDispatchInfo>
     </dxl:Plan>

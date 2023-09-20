@@ -325,7 +325,7 @@
                 <dxl:SortingColumnList>
                   <dxl:SortingColumn ColId="0" SortOperatorMdid="0.97.1.0" SortOperatorName="&lt;" SortNullsFirst="false"/>
                 </dxl:SortingColumnList>
-                <dxl:WindowFrame FrameSpec="Row" ExclusionStrategy="None">
+                <dxl:WindowFrame FrameSpec="Row" ExclusionStrategy="None" StartInRange="0" EndInRange="0" InRangeColl="0" InRangeAsc="false" InRangeNullsFirst="false">
                   <dxl:TrailingEdge TrailingBoundary="BoundedFollowing">
                     <dxl:ConstValue TypeMdid="0.23.1.0" Value="10"/>
                   </dxl:TrailingEdge>
@@ -341,7 +341,7 @@
               <dxl:SortingColumnList>
                 <dxl:SortingColumn ColId="0" SortOperatorMdid="0.97.1.0" SortOperatorName="&lt;" SortNullsFirst="false"/>
               </dxl:SortingColumnList>
-              <dxl:WindowFrame FrameSpec="Row" ExclusionStrategy="None">
+              <dxl:WindowFrame FrameSpec="Row" ExclusionStrategy="None" StartInRange="0" EndInRange="0" InRangeColl="0" InRangeAsc="false" InRangeNullsFirst="false">
                 <dxl:TrailingEdge TrailingBoundary="BoundedPreceding">
                   <dxl:ConstValue TypeMdid="0.23.1.0" Value="10"/>
                 </dxl:TrailingEdge>

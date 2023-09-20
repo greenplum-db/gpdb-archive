@@ -400,7 +400,7 @@
             <dxl:Comparison ComparisonOperator="=" OperatorMdid="0.98.1.0">
               <dxl:Ident ColId="1" ColName="b" TypeMdid="0.25.1.0"/>
               <dxl:OpExpr OperatorName="||" OperatorMdid="0.654.1.0" OperatorType="0.25.1.0">
-                <dxl:FuncExpr FuncId="0.2971.1.0" FuncRetSet="false" TypeMdid="0.25.1.0">
+                <dxl:FuncExpr FuncId="0.2971.1.0" FuncRetSet="false" TypeMdid="0.25.1.0" FuncVariadic="false">
                   <dxl:Comparison ComparisonOperator="=" OperatorMdid="0.91.1.0">
                     <dxl:SubPlan TypeMdid="0.16.1.0" SubPlanType="ScalarSubPlan">
                       <dxl:TestExpr/>
