@@ -29,6 +29,32 @@ Feature: gpstart behave tests
           And gpstart should return a return code of 0
           And all the segments are running
 
+    @demo_cluster
+    Scenario: gpstart runs with given coordinator data directory option
+        Given the database is running
+          And running postgres processes are saved in context
+          And the user runs "gpstop -a"
+          And gpstop should return a return code of 0
+          And verify no postgres process is running on all hosts
+          And "COORDINATOR_DATA_DIRECTORY" environment variable is not set
+         Then the user runs utility "gpstart" with coordinator data directory and "-a"
+          And gpstart should return a return code of 0
+          And "COORDINATOR_DATA_DIRECTORY" environment variable should be restored
+          And all the segments are running
+
+    @demo_cluster
+    Scenario: gpstart priorities given coordinator data directory over env option
+        Given the database is running
+          And running postgres processes are saved in context
+          And the user runs "gpstop -a"
+          And gpstop should return a return code of 0
+          And verify no postgres process is running on all hosts
+          And the environment variable "COORDINATOR_DATA_DIRECTORY" is set to "/tmp/"
+         Then the user runs utility "gpstart" with coordinator data directory and "-a"
+          And gpstart should return a return code of 0
+          And "COORDINATOR_DATA_DIRECTORY" environment variable should be restored
+          And all the segments are running
+
     @concourse_cluster
     @demo_cluster
     Scenario: gpstart starts even if a segment host is unreachable

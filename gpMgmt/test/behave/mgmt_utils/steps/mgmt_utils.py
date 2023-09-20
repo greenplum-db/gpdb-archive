@@ -1222,6 +1222,15 @@ def impl(context, options):
     context.execute_steps('''Then the user runs command "gpactivatestandby -a %s" from standby coordinator''' % options)
     context.standby_was_activated = True
 
+
+@given('the user runs utility "{utility}" with coordinator data directory and "{options}"')
+@when('the user runs utility "{utility}" with coordinator data directory and "{options}"')
+@then('the user runs utility "{utility}" with coordinator data directory and "{options}"')
+def impl(context, utility, options):
+    cmd = "{} -d {} {}".format(utility, coordinator_data_dir, options)
+    context.execute_steps('''then the user runs command "%s"''' % cmd )
+
+
 @then('gpintsystem logs should {contain} lines about running backout script')
 def impl(context, contain):
     string_to_find = 'Run command bash .*backout_gpinitsystem.* on coordinator to remove these changes$'
