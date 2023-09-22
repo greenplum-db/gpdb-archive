@@ -178,6 +178,7 @@ ExecRefreshMatView(RefreshMatViewStmt *stmt, const char *queryString,
 	Oid			save_userid;
 	int			save_sec_context;
 	int			save_nestlevel;
+	bool		createAoBlockDirectory;
 	ObjectAddress address;
 	RefreshClause *refreshClause;
 
@@ -328,13 +329,16 @@ ExecRefreshMatView(RefreshMatViewStmt *stmt, const char *queryString,
 		relpersistence = matviewRel->rd_rel->relpersistence;
 	}
 
+	/* If an AO temp table has index, we need to create it. */
+	createAoBlockDirectory = matviewRel->rd_rel->relhasindex;
+
 	/*
 	 * Create the transient table that will receive the regenerated data. Lock
 	 * it against access by any other process until commit (by which time it
 	 * will be gone).
 	 */
 	OIDNewHeap = make_new_heap_with_colname(matviewOid, tableSpace, matviewRel->rd_rel->relam, NULL, (Datum)0, relpersistence,
-							   ExclusiveLock, false, true, "_$");
+							   ExclusiveLock, createAoBlockDirectory, true, "_$");
 	LockRelationOid(OIDNewHeap, AccessExclusiveLock);
 	dest = CreateTransientRelDestReceiver(OIDNewHeap, matviewOid, concurrent, relpersistence,
 										  stmt->skipData);
@@ -547,6 +551,7 @@ transientrel_init(QueryDesc *queryDesc)
 	bool		concurrent;
 	char		relpersistence;
 	LOCKMODE	lockmode;
+	bool		createAoBlockDirectory;
 	RefreshClause *refreshClause;
 
 	refreshClause = queryDesc->plannedstmt->refreshClause;
@@ -579,6 +584,10 @@ transientrel_init(QueryDesc *queryDesc)
 		tableSpace = matviewRel->rd_rel->reltablespace;
 		relpersistence = matviewRel->rd_rel->relpersistence;
 	}
+
+	/* If an AO temp table has index, we need to create it. */
+	createAoBlockDirectory = matviewRel->rd_rel->relhasindex;
+
 	/*
 	 * Create the transient table that will receive the regenerated data. Lock
 	 * it against access by any other process until commit (by which time it
@@ -588,7 +597,7 @@ transientrel_init(QueryDesc *queryDesc)
 							   NULL,
 							   (Datum)0, /* newoptions */
 							   relpersistence,
-							   ExclusiveLock, false, false);
+							   ExclusiveLock, createAoBlockDirectory, false);
 	LockRelationOid(OIDNewHeap, AccessExclusiveLock);
 
 	queryDesc->dest = CreateTransientRelDestReceiver(OIDNewHeap, matviewOid, concurrent,
