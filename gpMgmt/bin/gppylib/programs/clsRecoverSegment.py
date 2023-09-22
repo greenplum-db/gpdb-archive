@@ -219,17 +219,13 @@ class GpRecoverSegmentProgram:
             res = dbconn.query(conn, "SELECT datname FROM PG_DATABASE WHERE datname != 'template0'")
             return res.fetchall()
 
-    def run(self):
+    def validateRecoveryParams(self):
         if self.__options.parallelDegree < 1 or self.__options.parallelDegree > gp.MAX_COORDINATOR_NUM_WORKERS:
             raise ProgramArgumentValidationException(
                 "Invalid parallelDegree value provided with -B argument: %d" % self.__options.parallelDegree)
         if self.__options.parallelPerHost < 1 or self.__options.parallelPerHost > gp.MAX_SEGHOST_NUM_WORKERS:
             raise ProgramArgumentValidationException(
                 "Invalid parallelPerHost value provided with -b argument: %d" % self.__options.parallelPerHost)
-
-        self.__pool = WorkerPool(self.__options.parallelDegree)
-        gpEnv = GpCoordinatorEnvironment(self.__options.coordinatorDataDirectory, True)
-
         # verify "where to recover" options
         optionCnt = 0
         if self.__options.newRecoverHosts is not None:
@@ -253,6 +249,19 @@ class GpRecoverSegmentProgram:
 
         if self.__options.disableReplayLag and not self.__options.rebalanceSegments:
             raise ProgramArgumentValidationException("--disable-replay-lag should be used only with -r")
+
+        # Verify if full recovery option provided along with rebalance and recovery to new host option
+        if self.__options.forceFullResynchronization:
+            if self.__options.rebalanceSegments:
+                raise ProgramArgumentValidationException("-F option is not supported with -r option")
+            if self.__options.newRecoverHosts is not None:
+                raise ProgramArgumentValidationException("-F option is not supported with -p option")
+        return
+
+    def run(self):
+        self.validateRecoveryParams()
+        self.__pool = WorkerPool(self.__options.parallelDegree)
+        gpEnv = GpCoordinatorEnvironment(self.__options.coordinatorDataDirectory, True)
 
         faultProberInterface.getFaultProber().initializeProber(gpEnv.getCoordinatorPort())
 

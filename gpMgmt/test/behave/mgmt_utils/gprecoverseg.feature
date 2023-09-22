@@ -497,6 +497,20 @@ Feature: gprecoverseg tests
         And the segments are synchronized
         And the cluster is rebalanced
 
+    Scenario: rebalance and recovery to new host with -F option shows error and exits
+      Given the database is running
+        And user stops all primary processes
+        And user can start transactions
+       When the user runs "gprecoverseg -a -F -r"
+       Then gprecoverseg should return a return code of 2
+        And gprecoverseg should print "-F option is not supported with -r option" to stdout
+       When the user runs "gprecoverseg -a -p localhost -F"
+       Then gprecoverseg should return a return code of 2
+        And gprecoverseg should print "-F option is not supported with -p option" to stdout
+       When the user runs "gprecoverseg -a"
+       Then gprecoverseg should return a return code of 0
+        And the segments are synchronized
+        And the cluster is rebalanced
 
 ########################### @concourse_cluster tests ###########################
 # The @concourse_cluster tag denotes the scenario that requires a remote cluster
