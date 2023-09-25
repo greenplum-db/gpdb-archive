@@ -34,6 +34,8 @@ LLVM has support for optimizing generated code. Some of the optimizations are ch
 
 JIT compilation is beneficial primarily for long-running CPU-bound queries. Frequently these are analytical queries. For short queries the added overhead of performing JIT compilation will often be higher than the time it can save.
 
+> **Note** In order to use JIT, you must first install the LLVM libraries in your system by running the command `yum install llvm-libs`.
+
 The internal workflow of JIT can be divided into three different stages:
 
 1. Planner Stage
