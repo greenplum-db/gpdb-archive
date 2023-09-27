@@ -25,31 +25,50 @@ Greenplum Database 7 requires the following software packages on RHEL systems. T
 -   bash
 -   bzip2
 -   curl
--   krb5
+-   iproute
+-   krb5-devel
 -   libcgroup-tools
 -   libcurl
 -   libevent
+-   libuuid
+-   libuv
 -   libxml2
 -   libyaml
--   zlib
+-   libzstd
 -   openldap
+-   openssh
 -   openssh-client
+-   openssh-server
 -   openssl
 -   openssl-libs
 -   perl
+-   python3
+-   python3-psycopg2
+-   python3-psutil
+-   python3-pyyaml
 -   python39
 -   readline
 -   rsync
--   sed \(used by `gpinitsystem`\)
+-   sed
 -   tar
+-   which
 -   zip
+-   zlib
 
 VMware Greenplum Database 7 client software requires these operating system packages:
 
 -   apr
--   apr-util
+-   bzip2
+-   libedit
 -   libyaml
 -   libevent
+-   libzstd
+-   openssh
+-   python3
+-   python3-psycopg2
+-   python3-psutil
+-   python3-pyyaml
+-   zlib
 
 > **Important** SSL is supported only on the Greenplum Database coordinator host system. It cannot be used on the segment host systems.
 
