@@ -1292,7 +1292,8 @@ SetupTCPInterconnect(EState *estate)
 	interconnect_context->doSendStopMessage = doSendStopMessageTCP;
 
 #ifdef ENABLE_IC_PROXY
-	if (ic_proxy_backend_check_listener_failed())
+	/* check if current Segment's ICProxy listener failed */
+	if (pg_atomic_read_u32(ic_proxy_peer_listener_failed) > 0)
 		elog(ERROR, "SetupInterconnect: We are in IC_PROXY mode, but IC-Proxy Listener failed, please check.");
 	ic_proxy_backend_init_context(interconnect_context);
 #endif /* ENABLE_IC_PROXY */

@@ -13,7 +13,6 @@
 #define IC_PROXY_BACKEND_H
 
 #include "postgres.h"
-#include "port/atomics.h"
 
 #include "cdb/cdbinterconnect.h"
 
@@ -48,6 +47,5 @@ extern void ic_proxy_backend_connect(ICProxyBackendContext *context,
 extern void ic_proxy_backend_init_context(ChunkTransportState *state);
 extern void ic_proxy_backend_close_context(ChunkTransportState *state);
 extern void ic_proxy_backend_run_loop(ICProxyBackendContext *context);
-extern bool ic_proxy_backend_check_listener_failed(void);
 
 #endif   /* IC_PROXY_BACKEND_H */

@@ -537,19 +537,10 @@ int
 ic_proxy_server_main(void)
 {
 	char		path[MAXPGPATH];
-	bool		found;
 	elogif(gp_log_interconnect >= GPVARS_VERBOSITY_TERSE,
 		   LOG, "ic-proxy: server setting up");
 
-	/* get and init failure flag */
-	ic_proxy_peer_listener_failed = ShmemInitStruct("IC_PROXY Listener Failure Flag",
-													sizeof(*ic_proxy_peer_listener_failed),
-													&found);
-	if (!found)
-		pg_atomic_init_u32(ic_proxy_peer_listener_failed, 0);
-	else
-		pg_atomic_exchange_u32(ic_proxy_peer_listener_failed, 0);
-
+	pg_atomic_exchange_u32(ic_proxy_peer_listener_failed, 0);
 	ic_proxy_pkt_cache_init(IC_PROXY_MAX_PKT_SIZE);
 
 	uv_loop_init(&ic_proxy_server_loop);
