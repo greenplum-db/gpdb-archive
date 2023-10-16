@@ -24,6 +24,7 @@
 #include "cdbendpoint_private.h"
 #include "cdb/cdbutil.h"
 #include "cdb/cdbvars.h"
+#include "utils/timeout.h"
 
 /* These two structures are containers for the columns returned by the UDFs. */
 
@@ -90,6 +91,39 @@ bool
 endpoint_name_equals(const char *name1, const char *name2)
 {
 	return strncmp(name1, name2, NAMEDATALEN) == 0;
+}
+
+/*
+ * Check every parallel retrieve cursor status and cancel QEs if it has error.
+ *
+ * Also return true if it has error.
+ */
+bool
+gp_check_parallel_retrieve_cursor_error(void)
+{
+	List		*portals;
+	ListCell	*lc;
+	bool		has_error = false;
+	EState		*estate = NULL;
+
+	portals = GetAllParallelRetrieveCursorPortals();
+
+	foreach(lc, portals)
+	{
+		Portal portal = (Portal)lfirst(lc);
+
+		estate = portal->queryDesc->estate;
+
+		if (estate->dispatcherState->primaryResults->errcode)
+			has_error = true;
+		else
+			has_error = cdbdisp_checkForCancel(estate->dispatcherState);
+	}
+
+	/* free the list to avoid memory leak */
+	list_free(portals);
+
+	return has_error;
 }
 
 /*
@@ -551,4 +585,18 @@ generate_endpoint_name(char *name, const char *cursorName)
 	len += ENDPOINT_NAME_COMMANDID_LEN;
 
 	name[len] = '\0';
+}
+
+/*
+ * Enable the timeout of parallel retrieve cursor check if not yet
+ */
+void
+enable_parallel_retrieve_cursor_check_timeout(void)
+{
+	if (Gp_role == GP_ROLE_DISPATCH &&
+		!get_timeout_active(GP_PARALLEL_RETRIEVE_CURSOR_CHECK_TIMEOUT))
+	{
+		enable_timeout_after(GP_PARALLEL_RETRIEVE_CURSOR_CHECK_TIMEOUT,
+							 GP_PARALLEL_RETRIEVE_CURSOR_CHECK_PERIOD_MS);
+	}
 }

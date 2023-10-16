@@ -681,6 +681,7 @@ ProcessClientReadInterrupt(bool blocked)
 		/* Process notify interrupts, if any */
 		if (notifyInterruptPending)
 			ProcessNotifyInterrupt();
+
 	}
 	else if (ProcDiePending)
 	{
