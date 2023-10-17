@@ -9236,9 +9236,9 @@ get_rule_expr(Node *node, deparse_context *context,
 					if (elem->partName)
 					{
 						if (elem->isDefault)
-							appendStringInfo(buf, "DEFAULT SUBPARTITION %s", elem->partName);
+							appendStringInfo(buf, "DEFAULT SUBPARTITION %s", quote_identifier(elem->partName));
 						else
-							appendStringInfo(buf, "SUBPARTITION %s", elem->partName);
+							appendStringInfo(buf, "SUBPARTITION %s", quote_identifier(elem->partName));
 					}
 
 					if (elem->boundSpec)

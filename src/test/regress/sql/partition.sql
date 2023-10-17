@@ -4143,3 +4143,33 @@ explain (costs off) select d from test_listPartition where d='2022-10-23' or d=(
 select d from test_listPartition where d='2022-10-23' or d=('2022-10-23'::date -interval '1 day');
 
 drop table test_listPartition;
+
+-- Test case witt missing " for special-char in subpartition template name
+-- Please refer to https://github.com/greenplum-db/gpdb/issues/16558
+CREATE TABLE public.logs_issue_16558
+(
+  log_id integer,
+  log_date date,
+  log_type text
+)
+WITH (APPENDONLY=FALSE)
+DISTRIBUTED RANDOMLY
+PARTITION BY RANGE(log_date)
+    SUBPARTITION BY LIST(log_type)
+(
+    PARTITION p1 START ('2023-01-01') END ('2023-03-31') WITH (APPENDONLY=FALSE)
+    (
+        SUBPARTITION s1 VALUES ('1', '2', '3') WITH (APPENDONLY=FALSE)
+    )
+);
+ALTER TABLE public.logs_issue_16558 SET SUBPARTITION TEMPLATE
+(
+    SUBPARTITION "1 2" VALUES ('1', '2', '3')
+);
+SELECT level, pg_get_expr(template, relid, true) FROM gp_partition_template WHERE relid = 'public.logs_issue_16558'::regclass ORDER BY 1 DESC;
+ALTER TABLE public.logs_issue_16558 SET SUBPARTITION TEMPLATE
+(
+    DEFAULT SUBPARTITION "1 2"
+);
+SELECT level, pg_get_expr(template, relid, true) FROM gp_partition_template WHERE relid = 'public.logs_issue_16558'::regclass ORDER BY 1 DESC;
+DROP TABLE public.logs_issue_16558;
