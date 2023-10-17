@@ -2528,12 +2528,11 @@ ExecHashTableExplainEnd(PlanState *planstate, struct StringInfoData *buf)
 
 		appendStringInfo(buf,
 						 "Work file set: %u files (%u compressed), "
-						 "max file size %lu, min file size %lu, "
+						 "avg file size %lu, "
 						 "compression buffer size %lu bytes \n",
 						 hashtable->workset_num_files,
 						 hashtable->workset_num_files_compressed,
-						 hashtable->workset_max_file_size,
-						 hashtable->workset_min_file_size,
+						 hashtable->workset_avg_file_size,
 						 hashtable->workset_compression_buf_total);
 		ResetWorkFileSetStatsInfo(hashtable);
     }
@@ -3938,7 +3937,6 @@ static inline void ResetWorkFileSetStatsInfo(HashJoinTable hashtable)
 {
 	hashtable->workset_num_files = 0;
 	hashtable->workset_num_files_compressed = 0;
-	hashtable->workset_max_file_size = 0;
-	hashtable->workset_min_file_size = 0;
+	hashtable->workset_avg_file_size = 0;
 	hashtable->workset_compression_buf_total = 0;
 }

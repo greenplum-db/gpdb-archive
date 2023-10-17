@@ -354,9 +354,6 @@ ExecHashJoinImpl(PlanState *pstate, bool parallel)
 				elog(gp_workfile_caching_loglevel, "HashJoin built table with %.1f tuples by executing subplan for batch 0", hashtable->totalTuples);
 #endif
 
-				/* Save stats info of work file set to hash table */
-				SaveWorkFileSetStatsInfo(hashtable);
-
 				/**
 				 * If LASJ_NOTIN and a null was found on the inner side, then clean out.
 				 */
@@ -454,6 +451,16 @@ ExecHashJoinImpl(PlanState *pstate, bool parallel)
 					}
 					else
 						node->hj_JoinState = HJ_NEED_NEW_BATCH;
+
+					/*
+					 * When all the tuples of outer table have been read,
+					 * and we are ready to process the first batch, it means
+					 * a good time to collect statistic info of all temp
+					 * files.
+					 */
+					if (hashtable->curbatch == 0)
+						SaveWorkFileSetStatsInfo(hashtable);
+
 					continue;
 				}
 
@@ -2076,8 +2083,7 @@ static inline void SaveWorkFileSetStatsInfo(HashJoinTable hashtable)
 	{
 		hashtable->workset_num_files = work_set->num_files;
 		hashtable->workset_num_files_compressed = work_set->num_files_compressed;
-		hashtable->workset_max_file_size = work_set->max_file_size;
-		hashtable->workset_min_file_size = work_set->min_file_size;
+		hashtable->workset_avg_file_size = work_set->total_bytes / work_set->num_files;
 		hashtable->workset_compression_buf_total = work_set->compression_buf_total;
 	}
 }
