@@ -1801,7 +1801,7 @@ explain(costs off) select e,d,a from test_replicated_table order by e desc nulls
    ->  Gather Motion 1:1  (slice1; segments: 1)
          Merge Key: e, d, a
          ->  Index Scan using rep_index_eda on test_replicated_table
- Optimizer: Pivotal Optimizer (GPORCA)
+ Optimizer: GPORCA
 (5 rows)
 
 select e,d,a from test_replicated_table order by e desc nulls last, d, a desc limit 3;
@@ -1820,7 +1820,7 @@ explain(costs off) select e,d,a from test_replicated_table order by e nulls firs
    ->  Gather Motion 1:1  (slice1; segments: 1)
          Merge Key: e, d, a
          ->  Index Scan Backward using rep_index_eda on test_replicated_table
- Optimizer: Pivotal Optimizer (GPORCA)
+ Optimizer: GPORCA
 (5 rows)
 
 select e,d,a from test_replicated_table order by e nulls first, d desc, a limit 3;

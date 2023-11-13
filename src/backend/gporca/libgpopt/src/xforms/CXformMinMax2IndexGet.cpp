@@ -162,11 +162,12 @@ CXformMinMax2IndexGet::Transform(CXformContext *pxfctxt, CXformResult *pxfres,
 		EIndexScanDirection scan_direction =
 			GetScanDirection(pmdindex, popScAggFunc, agg_func_type);
 
+		BOOL indexonly = Exfid() == ExfMinMax2IndexOnlyGet;
 		// build IndexGet expression
 		CExpression *pexprIndexGet = CXformUtils::PexprBuildBtreeIndexPlan(
 			mp, md_accessor, pexprGetNotNull, popAgg->UlOpId(), pdrgpexpr,
 			pcrsScalarExpr, nullptr /*outer_refs*/, pmdindex, pmdrel,
-			scan_direction, false);
+			scan_direction, false, indexonly);
 
 		if (pexprIndexGet != nullptr)
 		{
