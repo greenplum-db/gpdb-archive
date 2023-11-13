@@ -301,13 +301,8 @@ recurse_set_operations(Node *setOp, PlannerInfo *root,
 		 * the SubqueryScanPath with nil pathkeys.  (XXX that should change
 		 * soon too, likely.)
 		 */
-		/*
-		 * GPDB_96_MERGE_FIXME: can we really use the subpath's locus here unmodified?
-		 * Shouldn't we convert it to use Vars pointing to the outputs of the subquery,
-		 * like in subquery_pathlist()
-		 */
 		path = (Path *) create_subqueryscan_path(root, rel, subpath,
-												 NIL, subpath->locus, NULL);
+												 NIL, cdbpathlocus_from_subquery(root, rel, subpath), NULL);
 
 		add_path(rel, path);
 
@@ -325,7 +320,7 @@ recurse_set_operations(Node *setOp, PlannerInfo *root,
 			partial_subpath = linitial(final_rel->partial_pathlist);
 			partial_path = (Path *)
 				create_subqueryscan_path(root, rel, partial_subpath,
-										 NIL, partial_subpath->locus, NULL);
+										 NIL, cdbpathlocus_from_subquery(root, rel, partial_subpath), NULL);
 			add_partial_path(rel, partial_path);
 		}
 
