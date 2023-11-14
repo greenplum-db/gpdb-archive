@@ -423,6 +423,17 @@ StreamServerPort(int family, char *hostName, unsigned short portNumber,
 	{
 		snprintf(portNumberStr, sizeof(portNumberStr), "%d", portNumber);
 		service = portNumberStr;
+		if (Gp_postmaster_address_family_type == POSTMASTER_ADDRESS_FAMILY_TYPE_IPV4)
+			hint.ai_family = AF_INET;
+		else if (Gp_postmaster_address_family_type == POSTMASTER_ADDRESS_FAMILY_TYPE_IPV6)
+			hint.ai_family = AF_INET6;
+		else if (Gp_postmaster_address_family_type)
+		{
+			ereport(LOG,
+					(errmsg("Unknown gp_postmaster_address_family: %d",
+							Gp_postmaster_address_family_type)));
+			return STATUS_ERROR;
+		}
 	}
 
 	ret = pg_getaddrinfo_all(hostName, service, &hint, &addrs);
@@ -632,6 +643,10 @@ StreamServerPort(int family, char *hostName, unsigned short portNumber,
 
 		ListenSocket[listen_index] = fd;
 		added++;
+
+		/* Forced address family, no more tries. */
+		if (!IS_AF_UNIX(addr->ai_family) && Gp_postmaster_address_family_type)
+			break;
 	}
 
 	pg_freeaddrinfo_all(hint.ai_family, addrs);

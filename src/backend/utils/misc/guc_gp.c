@@ -566,6 +566,13 @@ static const struct config_enum_entry gp_autovacuum_scope_options[] = {
 	{NULL, 0}
 };
 
+static const struct config_enum_entry gp_postmaster_address_family_options[] = {
+	{"auto", POSTMASTER_ADDRESS_FAMILY_TYPE_AUTO},
+	{"ipv4", POSTMASTER_ADDRESS_FAMILY_TYPE_IPV4},
+	{"ipv6", POSTMASTER_ADDRESS_FAMILY_TYPE_IPV6},
+	{NULL, 0}
+};
+
 IndexCheckType gp_indexcheck_insert = INDEX_CHECK_NONE;
 
 struct config_bool ConfigureNamesBool_gp[] =
@@ -4859,6 +4866,18 @@ struct config_enum ConfigureNamesEnum_gp[] =
 		AV_SCOPE_CATALOG, gp_autovacuum_scope_options,
 		NULL, NULL, NULL
 	},
+
+	{
+		{"gp_postmaster_inet_address_family", PGC_POSTMASTER, CUSTOM_OPTIONS,
+			gettext_noop("Specifies the address family used by postmaster listener sockets."),
+			gettext_noop("Valid values are auto, ipv4 and ipv6."), 
+			GUC_SUPERUSER_ONLY | GUC_NO_SHOW_ALL | GUC_NOT_IN_SAMPLE
+		},
+		&Gp_postmaster_address_family_type,
+		POSTMASTER_ADDRESS_FAMILY_TYPE_AUTO, gp_postmaster_address_family_options,
+		NULL, NULL, NULL
+	},
+	
 	/* End-of-list marker */
 	{
 		{NULL, 0, 0, NULL, NULL}, NULL, 0, NULL, NULL, NULL
