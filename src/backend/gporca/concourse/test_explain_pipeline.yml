@@ -198,6 +198,28 @@ resources:
     json_key: ((qp/concourse-gcs-resources-orca-service-account-key))
     versioned_file: ((pipeline-name))/explain_results/explain_((workload6))_results.tar.gz
 
+## resources for workload 7
+- name: explain_output_((workload7))_branch
+  type: gcs
+  source:
+    bucket: ((gcs-bucket-orca))
+    json_key: ((qp/concourse-gcs-resources-orca-service-account-key))
+    versioned_file: ((pipeline-name))/explain_intermediate/explain_((workload7))_branch.tar.gz
+
+- name: explain_output_((workload7))_baseline
+  type: gcs
+  source:
+    bucket: ((gcs-bucket-orca))
+    json_key: ((qp/concourse-gcs-resources-orca-service-account-key))
+    versioned_file: ((pipeline-name))/explain_intermediate/explain_((workload7))_baseline.tar.gz
+
+- name: explain_((workload7))_results
+  type: gcs
+  source:
+    bucket: ((gcs-bucket-orca))
+    json_key: ((qp/concourse-gcs-resources-orca-service-account-key))
+    versioned_file: ((pipeline-name))/explain_results/explain_((workload7))_results.tar.gz
+
 ## ======================================================================
 ## jobs
 ## ======================================================================
@@ -308,6 +330,7 @@ jobs:
     params:
       MODE: orca
       WORKLOAD: ((workload1))
+      NUM_SEGMENTS: 64
     on_success:
       try:
         put: explain_output_((workload1))_branch
@@ -341,6 +364,7 @@ jobs:
     params:
       MODE: orca
       WORKLOAD: ((workload1))
+      NUM_SEGMENTS: 64
     on_success:
       try:
         put: explain_output_((workload1))_baseline
@@ -403,6 +427,7 @@ jobs:
     params:
       MODE: orca
       WORKLOAD: ((workload2))
+      NUM_SEGMENTS: 32
     on_success:
       try:
         put: explain_output_((workload2))_branch
@@ -436,6 +461,7 @@ jobs:
     params:
       MODE: orca
       WORKLOAD: ((workload2))
+      NUM_SEGMENTS: 32
     on_success:
       try:
         put: explain_output_((workload2))_baseline
@@ -498,6 +524,7 @@ jobs:
     params:
       MODE: orca
       WORKLOAD: ((workload3))
+      NUM_SEGMENTS: 32
     on_success:
       try:
         put: explain_output_((workload3))_branch
@@ -531,6 +558,7 @@ jobs:
     params:
       MODE: orca
       WORKLOAD: ((workload3))
+      NUM_SEGMENTS: 32
     on_success:
       try:
         put: explain_output_((workload3))_baseline
@@ -593,6 +621,7 @@ jobs:
     params:
       MODE: orca
       WORKLOAD: ((workload4))
+      NUM_SEGMENTS: 64
     on_success:
       try:
         put: explain_output_((workload4))_branch
@@ -626,6 +655,7 @@ jobs:
     params:
       MODE: orca
       WORKLOAD: ((workload4))
+      NUM_SEGMENTS: 64
     on_success:
       try:
         put: explain_output_((workload4))_baseline
@@ -688,6 +718,7 @@ jobs:
     params:
       MODE: orca
       WORKLOAD: ((workload5))
+      NUM_SEGMENTS: 32
     on_success:
       try:
         put: explain_output_((workload5))_branch
@@ -721,6 +752,7 @@ jobs:
     params:
       MODE: orca
       WORKLOAD: ((workload5))
+      NUM_SEGMENTS: 32
     on_success:
       try:
         put: explain_output_((workload5))_baseline
@@ -783,6 +815,7 @@ jobs:
     params:
       MODE: orca
       WORKLOAD: ((workload6))
+      NUM_SEGMENTS: 64
     on_success:
       try:
         put: explain_output_((workload6))_branch
@@ -816,6 +849,7 @@ jobs:
     params:
       MODE: orca
       WORKLOAD: ((workload6))
+      NUM_SEGMENTS: 64
     on_success:
       try:
         put: explain_output_((workload6))_baseline
@@ -848,3 +882,100 @@ jobs:
       put: explain_((workload6))_results
       params:
         file: diffs/explain_test_results.tar.gz
+
+## ======================================================================
+## workload7
+## ======================================================================
+
+- name: run_explain_suite_((workload7))
+  max_in_flight: 1
+  plan:
+    - in_parallel:
+        - get: gporca-commits-to-test
+          passed:
+            - compile_branch
+        - get: bin_gpdb
+          passed:
+            - compile_branch
+          resource: bin_gpdb_rhel8_branch
+          trigger: true
+        - get: gpdb_src
+          resource: gpdb_main_src
+        - get: gp_workloads
+          params:
+            disable_git_lfs: true
+            depth: 1
+        - get: gpdb7-rhel8-test
+    - task: run_explain_suite
+      file: gpdb_src/concourse/tasks/run_explain_suite.yml
+      image: gpdb7-rhel8-test
+      params:
+        MODE: orca
+        WORKLOAD: ((workload7))
+        NUM_SEGMENTS: 24
+      on_success:
+        try:
+          put: explain_output_((workload7))_branch
+          params:
+            file: output/explain_ouput.tar.gz
+
+- name: run_explain_suite_((workload7))_baseline
+  max_in_flight: 1
+  plan:
+    - in_parallel:
+        - get: gporca-commits-to-test
+          passed:
+            - compile_baseline
+        - get: bin_gpdb
+          resource: bin_gpdb_rhel8_baseline
+          passed:
+            - compile_baseline
+          trigger: true
+        - get: gpdb_src
+          resource: gpdb_main_src
+          params:
+            submodules: none
+        - get: gp_workloads
+          params:
+            disable_git_lfs: true
+            depth: 1
+        - get: gpdb7-rhel8-test
+    - task: run_explain_suite_baseline
+      file: gpdb_src/concourse/tasks/run_explain_suite.yml
+      image: gpdb7-rhel8-test
+      params:
+        MODE: orca
+        WORKLOAD: ((workload7))
+        NUM_SEGMENTS: 24
+      on_success:
+        try:
+          put: explain_output_((workload7))_baseline
+          params:
+            file: output/explain_ouput.tar.gz
+
+- name: diff_explain_results_((workload7))
+  plan:
+    - in_parallel:
+        - get: gporca-commits-to-test
+          passed:
+            - run_explain_suite_((workload7))
+            - run_explain_suite_((workload7))_baseline
+          trigger: true
+        - get: gpdb_src
+          resource: gpdb_main_src
+          params:
+            submodules: none
+        - get: explain_output
+          resource: explain_output_((workload7))_branch
+          passed:
+            - run_explain_suite_((workload7))
+        - get: explain_output_baseline
+          resource: explain_output_((workload7))_baseline
+          passed:
+            - run_explain_suite_((workload7))_baseline
+    - task: diff_explain_results_((workload7))
+      file: gpdb_src/concourse/tasks/diff_explain_results_with_baseline.yml
+      ensure:
+        put: explain_((workload7))_results
+        params:
+          file: diffs/explain_test_results.tar.gz

@@ -54,7 +54,7 @@ class GpBuild:
             print("Executing {}".format(runcmd))
         return subprocess.call([runcmd], shell=True, stdout=stdout, stderr=stderr)
 
-    def run_explain_test_suite(self, dbexists):
+    def run_explain_test_suite(self, dbexists, num_segments):
         cmd = 'echo \\\\timing on>> /home/gpadmin/.psqlrc'
         self._run_cmd(cmd, "gpdb_src")
 
@@ -79,8 +79,11 @@ class GpBuild:
         # set gucs if any were specified
         status = self._run_cmd("source gpdb_src/gpAux/gpdemo/gpdemo-env.sh && cat gporca-commits-to-test/optional_gucs.txt >> $COORDINATOR_DATA_DIRECTORY/postgresql.conf", None)
         fail_on_error(status)
-        # use 32 segments for explain tests (this number is fairly arbitrary, it might be better to make this dependent on the workload?)
-        status = self._run_cmd("source gpdb_src/gpAux/gpdemo/gpdemo-env.sh && echo 'optimizer_segments=32\ngp_segments_for_planner=32' >> $COORDINATOR_DATA_DIRECTORY/postgresql.conf", None)
+
+        command = "source gpdb_src/gpAux/gpdemo/gpdemo-env.sh && echo 'optimizer_segments={0}\ngp_segments_for_planner={0}' >> $COORDINATOR_DATA_DIRECTORY/postgresql.conf".format(num_segments)
+        print("Running command: " + command)
+        status = self._run_cmd(command, None)
+
         fail_on_error(status)
         status = self._run_gpdb_command("gpstop -ar")
         fail_on_error(status)

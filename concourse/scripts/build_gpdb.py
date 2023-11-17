@@ -44,6 +44,7 @@ def main():
     parser = optparse.OptionParser()
     parser.add_option("--mode", choices=['orca', 'planner'])
     parser.add_option("--output_dir", dest="output_dir", default=INSTALL_DIR)
+    parser.add_option("--num_segments", dest="num_segments", default=32, help="number of segments")
     parser.add_option("--configure-option", dest="configure_option", action="append",
                       help="Configure flags, ex --configure_option=--disable-orca --configure_option=--disable-gpcloud")
     parser.add_option("--action", choices=['build', 'test', 'test_explain_suite'], dest="action", default='build',
@@ -62,7 +63,7 @@ def main():
     else:
         status = extract_explain_test_suite()
         fail_on_error(status)
-    status = gpBuild.run_explain_test_suite(options.dbexists)
+    status = gpBuild.run_explain_test_suite(options.dbexists, options.num_segments)
     fail_on_error(status)
     status = tar_explain_output()
     fail_on_error(status)
