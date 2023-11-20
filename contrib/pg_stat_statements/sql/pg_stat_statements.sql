@@ -94,7 +94,7 @@ SELECT *
   ORDER BY a ;
 
 -- SELECT without constants
-SELECT * FROM test ORDER BY a;
+SELECT * FROM test ORDER BY a, b;
 
 -- SELECT with IN clause
 SELECT * FROM test WHERE a IN (1, 2, 3, 4, 5);

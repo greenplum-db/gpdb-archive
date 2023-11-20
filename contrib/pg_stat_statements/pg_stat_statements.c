@@ -62,6 +62,7 @@
 #include <unistd.h>
 
 #include "catalog/pg_authid.h"
+#include "cdb/cdbvars.h"
 #include "common/hashfn.h"
 #include "executor/instrument.h"
 #include "funcapi.h"
@@ -1111,6 +1112,13 @@ pgss_store(const char *query, uint64 queryId,
 
 	/* Safety check... */
 	if (!pgss || !pgss_hash)
+		return;
+
+	/* Query Executor does not need to run pgss_store. Because the query string
+	 * is truncated when buildGpQueryString, then the Assert for strlen(query)
+	 * below will fail.
+	 */
+	if (Gp_role != GP_ROLE_DISPATCH)
 		return;
 
 	/*
@@ -2603,6 +2611,17 @@ JumbleExpr(pgssJumbleState *jstate, Node *node)
 
 				JumbleExpr(jstate, (Node *) grpnode->refs);
 			}
+			break;
+		case T_GroupId:
+		case T_GroupingSetId:
+		case T_RowIdExpr:
+		case T_AggExprId:
+			/*
+			 * No need to jumble for gpdb's special op,  jstate->jumble
+			 * is only used to generate a queryId that can uniquely
+			 * identify a query, and it is fully capable of uniquely
+			 * identifying a query for the existing node type.
+			 */
 			break;
 		case T_WindowFunc:
 			{
