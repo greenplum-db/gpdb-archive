@@ -792,6 +792,26 @@ fileEndForeignScan(ForeignScanState *node)
 }
 
 /*
+ * Modify the filename when it contains <SEGID> or <SEG_DATA_DIR> if any.
+ *
+ * Replaces the "<SEGID>" token in the filename with this segment's ID.
+ * Replaces the "<SEG_DATA_DIR>" token in the filename with DataDir.
+ */
+static char *
+fileFdwMangleFileName(const char *filename)
+{
+	StringInfoData filepath;
+	char segid_buf[8];
+	snprintf(segid_buf, 8, "%d", GpIdentity.segindex);
+
+	initStringInfo(&filepath);
+	appendStringInfoString(&filepath, filename);
+
+	replaceStringInfoString(&filepath, "<SEG_DATA_DIR>", DataDir);
+	replaceStringInfoString(&filepath, "<SEGID>", segid_buf);
+	return filepath.data;
+}
+/*
  * fileAnalyzeForeignTable
  *		Test whether analyzing this foreign table is supported
  */
@@ -804,6 +824,7 @@ fileAnalyzeForeignTable(Relation relation,
 	bool		is_program;
 	List	   *options;
 	struct stat stat_buf;
+	ForeignTable *table = NULL;
 
 	/* Fetch options of foreign table */
 	fileGetOptions(RelationGetRelid(relation), &filename, &is_program, &options);
@@ -818,6 +839,24 @@ fileAnalyzeForeignTable(Relation relation,
 	if (is_program)
 		return false;
 
+	table = GetForeignTable(RelationGetRelid(relation));
+	if (Gp_role == GP_ROLE_DISPATCH && table->exec_location == FTEXECLOCATION_ALL_SEGMENTS)
+	{
+		/* 
+		 * It is not easy to fetch all the reomte files from all segments, so
+		 * we set it to the same default value in estimate_size() 
+		 */
+		*totalpages = 10;
+		/* This function could dispatch gp_acquire_sample_rows to all segments */
+		*func = gp_acquire_sample_rows_func;
+		return true;
+	}
+
+	/* Copy codes from MangleCopyFileName function */
+	if (table->exec_location == FTEXECLOCATION_ALL_SEGMENTS)
+	{
+		filename = fileFdwMangleFileName(filename);
+	}
 	/*
 	 * Get size of the file.  (XXX if we fail here, would it be better to just
 	 * return false to skip analyzing the table?)

@@ -49,6 +49,8 @@ SELECT * FROM text_csv_all ORDER BY word1;
  FOO   | bar
 (3 rows)
 
+-- Analyze 'all segments' option table when filename is like "text<SEGID>.csv"
+Analyze text_csv_all;
 CREATE FOREIGN TABLE text_csv_any_from_server (
     word1 text, word2 text
 ) SERVER file_server

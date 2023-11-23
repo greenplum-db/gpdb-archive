@@ -185,9 +185,6 @@ static int acquire_sample_rows(Relation onerel, int elevel,
 static int acquire_sample_rows_dispatcher(Relation onerel, bool inh, int elevel,
 										  HeapTuple *rows, int targrows,
 										  double *totalrows, double *totaldeadrows);
-static int gp_acquire_sample_rows_func(Relation onerel, int elevel,
-									   HeapTuple *rows, int targrows,
-									   double *totalrows, double *totaldeadrows);
 static BlockNumber acquire_index_number_of_blocks(Relation indexrel, Relation tablerel);
 
 static void gp_acquire_correlations_dispatcher(Oid relOid, bool inh, float4 *correlations, bool *correlationsIsNull);
