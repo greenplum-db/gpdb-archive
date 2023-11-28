@@ -646,6 +646,24 @@ Feature: gpstate tests
             | Mirrors not configured on this array
         And "COORDINATOR_DATA_DIRECTORY" environment variable should be restored
 
+    Scenario: gpstate -e shows information about segments with ongoing differential recovery
+        Given a standard local demo cluster is running
+        Given all files in gpAdminLogs directory are deleted
+        And a sample recovery_progress.file is created with ongoing differential recoveries in gpAdminLogs
+        And we run a sample background script to generate a pid on "coordinator" segment
+        And a sample gprecoverseg.lock directory is created using the background pid in coordinator_data_directory
+        When the user runs "gpstate -e"
+        Then gpstate should print "Segments in recovery" to stdout
+        And gpstate output contains "differential,differential" entries for mirrors of content 0,1
+        And gpstate output looks like
+            | Segment | Port   | Recovery type  | Stage                                       | Completed bytes \(kB\) | Percentage completed |
+            | \S+     | [0-9]+ | differential   | Syncing pg_data of dbid 5                   | 16,454,866             | 4%                   |
+            | \S+     | [0-9]+ | differential   | Syncing tablespace of dbid 6 for oid 20516  | 8,192                  | 100%                 |
+        And all files in gpAdminLogs directory are deleted
+        And the background pid is killed on "coordinator" segment
+        And the gprecoverseg lock directory is removed
+
+
 ########################### @concourse_cluster tests ###########################
 # The @concourse_cluster tag denotes the scenario that requires a remote cluster
 

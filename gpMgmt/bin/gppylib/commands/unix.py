@@ -14,6 +14,8 @@ import socket
 import signal
 import uuid
 import pipes
+import re
+from pkg_resources import parse_version
 
 from gppylib.gplog import get_default_logger
 from gppylib.commands.base import *
@@ -572,8 +574,10 @@ class Rsync(Command):
         if whole_file:
             cmd_tokens.append('--whole-file')
 
+        # Shows the progress of the whole transfer,
+        # Note : It is only supported with rsync 3.1.0 or above
         if progress:
-            cmd_tokens.append('--progress')
+            cmd_tokens.append('--info=progress2,name0')
 
         # To show file transfer stats
         if stats:
@@ -606,11 +610,13 @@ class Rsync(Command):
 
         cmd_tokens.extend(exclude_str)
 
+        # Combines output streams, uses 'sed' to find lines with 'kB/s' or 'MB/s' and appends ':%s' as suffix to the end
+        # of each line and redirects it to progress_file
         if progress_file:
-            cmd_tokens.append('> %s 2>&1' % pipes.quote(progress_file))
+            cmd_tokens.append('2>&1 | tr "\\r" "\\n" |sed -E "/[0-9]+%/ s/$/ :{0}/" > {1}' .format(name, pipes.quote(progress_file)))
 
         cmdStr = ' '.join(cmd_tokens)
-
+        cmdStr = "set -o pipefail; {}".format(cmdStr)
         self.command_tokens = cmd_tokens
 
         Command.__init__(self, name, cmdStr, ctxt, remoteHost)
@@ -788,3 +794,25 @@ elif curr_platform == OPENBSD:
     SYSTEM = OpenBSDPlatform()
 else:
     raise Exception("Platform %s is not supported.  Supported platforms are: %s", SYSTEM, str(platform_list))
+
+
+def validate_rsync_version(min_ver):
+    """
+    checks the version of the 'rsync' command and compares it with a required version.
+    If the current version is lower than the required version, it raises an exception
+    """
+    rsync_version_info = get_rsync_version()
+    pattern = r"version (\d+\.\d+\.\d+)"
+    match = re.search(pattern, rsync_version_info)
+    current_rsync_version = match.group(1)
+    if parse_version(current_rsync_version) < parse_version(min_ver):
+        return False
+    return True
+
+def get_rsync_version():
+    """ get the rsync current version """
+    cmdStr = findCmdInPath("rsync") + " --version"
+    cmd = Command("get rsync version", cmdStr=cmdStr)
+    cmd.run(validateAfter=True)
+    return cmd.get_stdout()
+

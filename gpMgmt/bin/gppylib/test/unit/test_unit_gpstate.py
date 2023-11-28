@@ -59,11 +59,15 @@ class RecoveryProgressTestCase(unittest.TestCase):
         self.gpArrayMock = mock.MagicMock(spec=gparray.GpArray)
         self.gpArrayMock.getSegDbList.return_value = [self.primary1, self.primary2, self.primary3]
 
-    def check_recovery_fields(self, segment, type, completed, total, percentage):
+    def check_recovery_fields(self, segment, type, completed, total, percentage, stage=None):
         self.assertEqual(type, self.data.getStrValue(segment, VALUE_RECOVERY_TYPE))
         self.assertEqual(completed, self.data.getStrValue(segment, VALUE_RECOVERY_COMPLETED_BYTES))
-        self.assertEqual(total, self.data.getStrValue(segment, VALUE_RECOVERY_TOTAL_BYTES))
+
         self.assertEqual(percentage, self.data.getStrValue(segment, VALUE_RECOVERY_PERCENTAGE))
+        if type == "differential":
+            self.assertEqual(stage, self.data.getStrValue(segment, VALUE_RECOVERY_STAGE))
+        else:
+            self.assertEqual(total, self.data.getStrValue(segment, VALUE_RECOVERY_TOTAL_BYTES))
 
     def test_parse_recovery_progress_data_returns_empty_when_file_does_not_exist(self):
         self.assertEqual([], GpSystemStateProgram._parse_recovery_progress_data(self.data, '/file/does/not/exist', self.gpArrayMock))
@@ -85,13 +89,14 @@ class RecoveryProgressTestCase(unittest.TestCase):
     def test_parse_recovery_progress_data_adds_recovery_progress_data_during_multiple_recoveries(self):
         with tempfile.NamedTemporaryFile() as f:
             f.write("full:1: 1164848/1371715 kB (0%), 0/1 tablespace (...t1/demoDataDir0/base/16384/40962)\n".encode("utf-8"))
-            f.write("incremental:2: 1171384/1371875 kB (85%)anything can appear here".encode('utf-8'))
+            f.write("incremental:2: 1171384/1371875 kB (85%)anything can appear here\n".encode('utf-8'))
+            f.write("differential:3:    122,017,543  74%   74.02MB/s    0:00:01 (xfr#1994, to-chk=963/2979) :Syncing pg_data of dbid 1\n".encode("utf-8"))
             f.flush()
-            self.assertEqual([self.primary1, self.primary2], GpSystemStateProgram._parse_recovery_progress_data(self.data, f.name, self.gpArrayMock))
+            self.assertEqual([self.primary1, self.primary2, self.primary3], GpSystemStateProgram._parse_recovery_progress_data(self.data, f.name, self.gpArrayMock))
 
             self.check_recovery_fields(self.primary1,'full', '1164848', '1371715', '0%')
             self.check_recovery_fields(self.primary2, 'incremental', '1171384', '1371875', '85%')
-            self.check_recovery_fields(self.primary3, '', '', '', '')
+            self.check_recovery_fields(self.primary3, 'differential', '122,017,543', '', '74%', 'Syncing pg_data of dbid 1')
 
     def test_parse_recovery_progress_data_doesnt_adds_recovery_progress_data_only_for_completed_recoveries(self):
         with tempfile.NamedTemporaryFile() as f:
@@ -123,6 +128,29 @@ class RecoveryProgressTestCase(unittest.TestCase):
             self.check_recovery_fields(self.primary2,'full', '1164848', '1371715', '100%')
             self.check_recovery_fields(self.primary3, '', '', '', '')
 
+
+    def test_parse_recovery_progress_data_adds_differential_recovery_progress_data_during_single_recovery(self):
+        with tempfile.NamedTemporaryFile() as f:
+            f.write("differential:1:     38,861,653   7%   43.45MB/s    0:00:00 (xfr#635, ir-chk=9262/9919) :Syncing pg_data of dbid 1\n".encode("utf-8"))
+            f.flush()
+            self.assertEqual([self.primary1], GpSystemStateProgram._parse_recovery_progress_data(self.data, f.name, self.gpArrayMock))
+
+            self.check_recovery_fields(self.primary1, 'differential', '38,861,653', '', '7%', "Syncing pg_data of dbid 1")
+            self.check_recovery_fields(self.primary2, '', '', '', '')
+            self.check_recovery_fields(self.primary3, '', '', '', '')
+
+
+    def test_parse_recovery_progress_data_adds_differential_recovery_progress_data_during_multiple_recovery(self):
+        with tempfile.NamedTemporaryFile() as f:
+            f.write("differential:1:     38,861,653   7%   43.45MB/s    0:00:00 (xfr#635, ir-chk=9262/9919) :Syncing pg_data of dbid 1\n".encode("utf-8"))
+            f.write("differential:2:    122,017,543  74%   74.02MB/s    0:00:01 (xfr#1994, to-chk=963/2979) :Syncing tablespace of dbid 2 for oid 17934\n".encode("utf-8"))
+            f.write("differential:3:    122,017,543  (74%)   74.02MB/s    0:00:01 (xfr#1994, to-chk=963/2979) :Invalid format\n".encode("utf-8"))
+            f.flush()
+            self.assertEqual([self.primary1, self.primary2], GpSystemStateProgram._parse_recovery_progress_data(self.data, f.name, self.gpArrayMock))
+
+            self.check_recovery_fields(self.primary1, 'differential', '38,861,653', '', '7%', "Syncing pg_data of dbid 1")
+            self.check_recovery_fields(self.primary2, 'differential', '122,017,543', '', '74%', "Syncing tablespace of dbid 2 for oid 17934")
+            self.check_recovery_fields(self.primary3, '', '', '', '')
 
 class ReplicationInfoTestCase(unittest.TestCase):
     """

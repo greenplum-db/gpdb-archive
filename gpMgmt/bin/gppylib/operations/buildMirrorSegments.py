@@ -68,7 +68,7 @@ def get_recovery_progress_pattern(recovery_type='incremental'):
         progress of rsync looks like: "1,036,923,510  99%   39.90MB/s    0:00:24"
     """
     if recovery_type == 'differential':
-        return r" +\d+%\ +\d+.\d+(kB|mB)\/s"
+        return r" +\d+%\ +\d+.\d+(kB|MB)\/s"
     return r"\d+\/\d+ (kB|mB) \(\d+\%\)"
 
 
@@ -437,7 +437,6 @@ class GpMirrorListToBuild:
                 if inplace:
                     output.append("\x1B[K")
                 output.append("\n")
-
                 if re.search(diff_pattern, results) or re.search(rewind_bb_pattern, results):
                     complete_progress_output.extend("%s:%d:%s\n" % (recovery_type, cmd.dbid, results))
 
@@ -469,18 +468,67 @@ class GpMirrorListToBuild:
                 os.remove(combined_progress_filepath)
 
 
-    def _get_progress_cmd(self, progressFile, targetSegmentDbId, targetHostname):
+    def _get_progress_cmd(self, progressFile, targetSegmentDbId, targetHostname, isDifferentialRecovery):
         """
         # There is race between when the recovery process creates the progressFile
         # when this progress cmd is run. Thus, the progress command touches
         # the file to ensure its presence before tailing.
         """
         if self.__progressMode != GpMirrorListToBuild.Progress.NONE:
-            return GpMirrorListToBuild.ProgressCommand("tail the last line of the file",
-                                                       "set -o pipefail; touch -a {0}; tail -1 {0} | tr '\\r' '\\n' |"
-                                                       " tail -1".format(pipes.quote(progressFile)),
-                                                       targetSegmentDbId, progressFile, ctxt=base.REMOTE,
-                                                       remoteHost=targetHostname)
+            cmd_desc = "tail the last line of the file"
+            if isDifferentialRecovery:
+                # For differential recovery, use sed to filter lines with specific patterns to avoid race condition.
+
+                # Set the option to make the pipeline fail if any command within it fails;
+                # Example: set -o pipefail;
+
+                # Create or update a file with the name specified in {0};
+                # Example: touch -a 'rsync.20230926_145006.dbid2.out';
+
+                # Display the last 3 lines of the file specified in {0} and pass them to the next command;
+                # Example: If {0} contains:
+                # receiving incremental file list
+                #
+                #               0   0%    0.00kB/s    0:00:00   :Syncing pg_control file of dbid 5
+                #           8,192 100%    7.81MB/s    0:00:00 (xfr#1, to-chk=0/1) :Syncing pg_control file of dbid 5
+                #           8,192 100%    7.81MB/s    0:00:00 (xfr#1, to-chk=0/1) :Syncing pg_control file of dbid 5
+                #
+                # This command will pass the above lines (excluding the first) to the next command.
+
+                # Process the output using sed (stream editor), printing lines that match certain patterns;
+                # Example: If the output is "          8,192 100%    7.81MB/s    0:00:00 (xfr#1, to-chk=0/1) :Syncing pg_control file of dbid 5",
+                # this command will print:
+                # 8,192 100%    7.81MB/s    0:00:00 (xfr#1, to-chk=0/1) :Syncing pg_control file of dbid 5
+                #
+                # It will print lines that contain ":Syncing.*dbid", "error:", or "total".
+
+                # Translate carriage return characters to newline characters;
+                # Example: If the output contains '\r' characters, they will be replaced with '\n'.
+
+                # Display only the last line of the processed output.
+                # Example: If the output after the previous command is:
+                # 8,192 100%    7.81MB/s    0:00:00 (xfr#1, to-chk=0/1) :Syncing pg_control file of dbid 5
+                # This command will output the same line.
+
+                cmd_str = (
+                    "set -o pipefail; touch -a {0}; tail -3 {0} | sed -n -e '/:Syncing.*dbid/p; /error:/p; /total/p' | tr '\\r' '\\n' | tail -1"
+                    .format(pipes.quote(progressFile))
+                )
+            else:
+                # For full and incremental recovery, simply tail the last line.
+                cmd_str = (
+                    "set -o pipefail; touch -a {0}; tail -1 {0} | tr '\\r' '\\n' | tail -1"
+                    .format(pipes.quote(progressFile))
+                )
+
+            progress_command = GpMirrorListToBuild.ProgressCommand(
+                cmd_desc, cmd_str,
+                targetSegmentDbId, progressFile, ctxt=base.REMOTE,
+                remoteHost=targetHostname
+            )
+
+            return progress_command
+
         return None
 
     def _get_remove_cmd(self, remove_file, target_host):
@@ -543,7 +591,7 @@ class GpMirrorListToBuild:
         era = read_era(gpEnv.getCoordinatorDataDir(), logger=self.__logger)
         for hostName, recovery_info_list in recovery_info_by_host.items():
             for ri in recovery_info_list:
-                progressCmd = self._get_progress_cmd(ri.progress_file, ri.target_segment_dbid, hostName)
+                progressCmd = self._get_progress_cmd(ri.progress_file, ri.target_segment_dbid, hostName, ri.is_differential_recovery)
                 if progressCmd:
                     progress_cmds.append(progressCmd)
 

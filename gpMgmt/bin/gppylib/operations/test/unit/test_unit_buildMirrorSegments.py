@@ -20,7 +20,7 @@ from gppylib.gparray import Segment, GpArray
 from gppylib.mainUtils import ExceptionNoStackTraceNeeded
 from gppylib.operations.buildMirrorSegments import GpMirrorToBuild, GpMirrorListToBuild, GpStopSegmentDirectoryDirective, get_recovery_progress_pattern
 from gppylib.system import configurationInterface
-from test.unit.gp_unittest import Contains, GpTestCase
+from gppylib.test.unit.gp_unittest import Contains, GpTestCase
 
 from gppylib.recoveryinfo import RecoveryInfo, RecoveryResult
 
@@ -476,7 +476,7 @@ class BuildMirrorsTestCase(GpTestCase):
         build_mirrors_obj._clean_up_failed_segments()
 
         self.mock_get_segments_by_hostname.assert_called_once_with([failed1, failed3])
-        self.mock_logger.info.called_once_with('"Cleaning files from 3 segment(s)')
+        self.mock_logger.info.called_once_with('Cleaning files from 3 segment(s)')
 
     def test_clean_up_failed_segments_no_segs_to_cleanup(self):
         failed2 = self._create_primary(dbid='3', status='d')

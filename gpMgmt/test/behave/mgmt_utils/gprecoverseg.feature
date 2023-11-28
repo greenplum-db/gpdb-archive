@@ -112,6 +112,52 @@ Feature: gprecoverseg tests
           And verify replication slot internal_wal_replication_slot is available on all the segments
           And the cluster is rebalanced
 
+
+    @concourse_cluster
+    Scenario: gpstate track of differential recovery for single host
+      Given the database is running
+      And all files in gpAdminLogs directory are deleted on all hosts in the cluster
+      And user immediately stops all mirror processes for content 0
+      And the user waits until mirror on content 0 is down
+      And user can start transactions
+      And sql "DROP TABLE IF EXISTS test_recoverseg; CREATE TABLE test_recoverseg AS SELECT generate_series(1,100000000) AS a;" is executed in "postgres" db
+      And sql "DROP TABLE IF EXISTS test_recoverseg_1; CREATE TABLE test_recoverseg_1 AS SELECT generate_series(1,100000000) AS a;" is executed in "postgres" db
+      When the user asynchronously runs "gprecoverseg -a --differential" and the process is saved
+      Then the user waits until recovery_progress.file is created in gpAdminLogs and verifies that all dbids progress with pg_data are present
+      When the user runs "gpstate -e"
+      Then gpstate should print "Segments in recovery" to stdout
+      And gpstate output contains "differential" entries for mirrors of content 0
+          And gpstate output looks like
+              | Segment | Port   | Recovery type  | Stage                                      | Completed bytes \(kB\) | Percentage completed |
+              | \S+     | [0-9]+ | differential   | Syncing pg_data of dbid 6                  | ([\d,]+)[ \t]          | \d+%                 |
+      And the user waits until saved async process is completed
+      And all files in gpAdminLogs directory are deleted on all hosts in the cluster
+      And sql "DROP TABLE IF EXISTS test_recoverseg;" is executed in "postgres" db
+      And sql "DROP TABLE IF EXISTS test_recoverseg_1;" is executed in "postgres" db
+      And the cluster is rebalanced
+
+
+    @concourse_cluster
+    Scenario: check Tablespace Recovery Progress with gpstate
+       Given the database is running
+      And all files in gpAdminLogs directory are deleted on all hosts in the cluster
+      And user immediately stops all mirror processes for content 0
+      And user can start transactions
+      And a tablespace is created with data
+      And insert additional data into the tablespace
+      When the user asynchronously runs "gprecoverseg -a --differential" and the process is saved
+      Then the user waits until recovery_progress.file is created in gpAdminLogs and verifies that all dbids progress with tablespace are present
+      When the user runs "gpstate -e"
+      Then gpstate should print "Segments in recovery" to stdout
+      And gpstate output contains "differential" entries for mirrors of content 0
+          And gpstate output looks like
+              | Segment | Port   | Recovery type  | Stage                                      | Completed bytes \(kB\) | Percentage completed |
+              | \S+     | [0-9]+ | differential   | Syncing tablespace of dbid 6 for oid \d+   | ([\d,]+)[ \t]          | \d+%                 |
+      And the user waits until saved async process is completed
+      And all files in gpAdminLogs directory are deleted on all hosts in the cluster
+      And the cluster is rebalanced
+
+
     Scenario Outline: full recovery limits number of parallel processes correctly
         Given the database is running
         And 2 gprecoverseg directory under '/tmp/recoverseg' with mode '0700' is created
@@ -759,6 +805,7 @@ Feature: gprecoverseg tests
     And user immediately stops all mirror processes for content 0,1,2
     And the user waits until mirror on content 0,1,2 is down
     And user can start transactions
+    And sql "DROP TABLE IF EXISTS test_recoverseg; CREATE TABLE test_recoverseg AS SELECT generate_series(1,100000000) AS a;" is executed in "postgres" db
     When the user asynchronously runs "gprecoverseg -a --differential" and the process is saved
     Then the user waits until recovery_progress.file is created in gpAdminLogs and verifies its format
     And verify that lines from recovery_progress.file are present in segment progress files in gpAdminLogs
@@ -827,6 +874,7 @@ Feature: gprecoverseg tests
     And all files in gpAdminLogs directory are deleted on all hosts in the cluster
     And user immediately stops all primary processes for content 0,1,2
     And user can start transactions
+    And sql "DROP TABLE IF EXISTS test_recoverseg; CREATE TABLE test_recoverseg AS SELECT generate_series(1,100000000) AS a;" is executed in "postgres" db
     When the user asynchronously runs "gprecoverseg -a --differential" and the process is saved
     Then the user waits until recovery_progress.file is created in gpAdminLogs and verifies its format
     Then verify if the gprecoverseg.lock directory is present in coordinator_data_directory
@@ -2376,3 +2424,4 @@ Feature: gprecoverseg tests
         And user can start transactions
        Then the row count of table test_recoverseg in "postgres" should be 2000
        And the cluster is recovered in full and rebalanced
+

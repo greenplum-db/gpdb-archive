@@ -262,6 +262,17 @@ class GpRecoverSegmentProgram:
                 raise ProgramArgumentValidationException("-F option is not supported with -r option")
             if self.__options.newRecoverHosts is not None:
                 raise ProgramArgumentValidationException("-F option is not supported with -p option")
+
+        # Checking rsync version before performing a differential recovery operation.
+        # the --info=progress2 option, which provides whole file transfer progress, requires rsync 3.1.0 or above
+        min_rsync_ver = "3.1.0"
+        if self.__options.differentialResynchronization and not unix.validate_rsync_version(min_rsync_ver):
+            raise ProgramArgumentValidationException("To perform a differential recovery, a minimum rsync version "
+                                                         "of {0} is required. Please ensure that rsync is updated to "
+                                                         "version {0} or higher.".format(min_rsync_ver))
+
+
+
         return
 
     def run(self):

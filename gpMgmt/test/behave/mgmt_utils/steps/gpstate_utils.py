@@ -70,7 +70,11 @@ def impl(context, recovery_types, contents):
     for index, seg_to_display in enumerate(segments_to_display):
         hostname = seg_to_display.getSegmentHostName()
         port = seg_to_display.getSegmentPort()
-        expected_msg = "{}[ \t]+{}[ \t]+{}[ \t]+[0-9]+[ \t]+[0-9]+[ \t]+[0-9]+\%".format(hostname, port,
+        if recovery_types[index] == "differential":
+            expected_msg = "{}[ \t]+{}[ \t]+{}[ \t]+(.+?)[ \t]+([\d,]+)[ \t]+[0-9]+\%".format(hostname, port,
+                                                                                             recovery_types[index])
+        else:
+           expected_msg = "{}[ \t]+{}[ \t]+{}[ \t]+[0-9]+[ \t]+[0-9]+[ \t]+[0-9]+\%".format(hostname, port,
                                                                                          recovery_types[index])
         check_stdout_msg(context, expected_msg)
 
@@ -129,3 +133,12 @@ def check_stdout_msg_in_order(context, msg):
 
     context.stdout_position = match.end()
 
+
+@given('a sample recovery_progress.file is created with ongoing differential recoveries in gpAdminLogs')
+def impl(context):
+    with open('{}/gpAdminLogs/recovery_progress.file'.format(os.path.expanduser("~")), 'w+') as fp:
+        fp.write(
+            "differential:5:     16,454,866   4%   16.52MB/s    0:00:00 (xfr#216, ir-chk=9669/9907) :Syncing pg_data "
+            "of dbid 5\n")
+        fp.write("differential:6:          8,192 100%    7.81MB/s    0:00:00 (xfr#1, to-chk=0/1) :Syncing tablespace of "
+                 "dbid 6 for oid 20516")
