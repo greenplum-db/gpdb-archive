@@ -17759,6 +17759,11 @@ ATExecSetDistributedBy(Relation rel, Node *node, AlterTableCmd *cmd)
 						(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
 						 errmsg("cannot set distribution policy of readable external table \"%s\"",
 								RelationGetRelationName(rel))));
+
+			if (ldistro && ldistro->ptype == POLICYTYPE_REPLICATED)
+				ereport(ERROR,
+						(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
+						 errmsg("SET DISTRIBUTED REPLICATED is not supported for external table")));
 		}
 	}
 
