@@ -562,6 +562,21 @@ generate_recursion_path(SetOperationStmt *setOp, PlannerInfo *root,
 											   dNumGroups);
 	path->locus = rpath->locus;
 
+	/*
+	 * GPDB:
+	 * https://github.com/greenplum-db/gpdb/issues/16772
+	 * If we use union rather than union all we should deduplicate the tuples.
+	 * When the locus of recursive union path is Partitioned,
+	 * It recursive union node only deduplicates the tuples on its segment.
+	 * There are duplicated tuples between different segments.
+	 * So we redistribute tuples and add a unique path above recursive union path.
+	 */
+	if (!setOp->all && CdbPathLocus_IsPartitioned(path->locus))
+	{
+		path = make_motion_hash_all_targets(root, path, tlist);
+		path = make_union_unique(setOp, path, tlist, root);
+	}
+
 	add_path(result_rel, path);
 	postprocess_setop_rel(root, result_rel);
 	return result_rel;

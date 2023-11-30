@@ -490,3 +490,24 @@ select count(*) from rcte;
 RESET enable_nestloop;
 RESET enable_hashjoin;
 RESET enable_mergejoin;
+
+-- using union rather than union all for recursive union
+CREATE TABLE tmp(a int, b int);
+INSERT INTO tmp SELECT generate_series(1,5);
+INSERT INTO tmp SELECT * FROM tmp;
+EXPLAIN (costs off)
+WITH RECURSIVE x(a) as
+(
+    select a from tmp
+    union
+    select a+1 from x where a<10
+)
+select * from x ;
+
+WITH RECURSIVE x(a) as
+(
+    select a from tmp
+    union
+    select a+1 from x where a<10
+)
+select * from x ;
