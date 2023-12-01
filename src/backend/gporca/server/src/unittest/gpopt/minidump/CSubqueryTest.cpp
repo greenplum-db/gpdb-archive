@@ -63,6 +63,8 @@ const CHAR *rgszSubqueryFileNames[] = {
 	"../data/dxl/minidump/SubqAny-InsideScalarExpression.mdp",
 	"../data/dxl/minidump/ExistentialSubquriesInsideScalarExpression.mdp",
 	"../data/dxl/minidump/SubqueryInsideScalarIf.mdp",
+	"../data/dxl/minidump/SubqueryInsideArrayRef.mdp",
+	"../data/dxl/minidump/SubqueryInsideArrayRefIndexList.mdp",
 	"../data/dxl/minidump/SubqueryNullTest.mdp",
 	"../data/dxl/minidump/ExistsSubqInsideExpr.mdp",
 	"../data/dxl/minidump/AnySubq-With-NonScalarSubqueryChild-1.mdp",

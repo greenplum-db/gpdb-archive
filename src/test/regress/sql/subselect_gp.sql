@@ -1414,3 +1414,41 @@ select (SELECT EXISTS
                   FROM pg_views
                   WHERE schemaname = a)) from tmp;
 drop table tmp;
+
+-- Test LEAST() and GREATEST() with an embedded subquery
+drop table if exists foo;
+
+create table foo (a int, b int) distributed by(a);
+insert into foo values (1, 2), (2, 3), (3, 4);
+analyze foo;
+
+explain (costs off) select foo.a from foo where foo.a <= LEAST(foo.b, (SELECT 1), NULL);
+select foo.a from foo where foo.a <= LEAST(foo.b, (SELECT 1), NULL);
+
+explain (costs off) select foo.a from foo where foo.a <= GREATEST(foo.b, (SELECT 1), NULL);
+select foo.a from foo where foo.a <= GREATEST(foo.b, (SELECT 1), NULL);
+
+explain (costs off) select least((select 5), greatest(b, NULL, (select 1)), a) from foo;
+select least((select 5), greatest(b, NULL, (select 1)), a) from foo;
+
+drop table foo;
+-- Test subquery within ScalarArrayRef or ScalarArrayRefIndexList
+drop table if exists bar;
+
+create table bar (a int[], b int[][]) distributed by(a);
+insert into bar values (ARRAY[1, 2, 3], ARRAY[[1, 2, 3], [4, 5, 6]]);
+analyze bar;
+
+explain (costs off) select (select a from bar)[1] from bar;
+select (select a from bar)[1] from bar;
+
+explain (costs off) select (select a from bar)[(select 1)] from bar;
+select (select a from bar)[(select 1)] from bar;
+
+explain (costs off) select (select b from bar)[1][1:3] from bar;
+select (select b from bar)[1][1:3] from bar;
+
+explain (costs off) select (select b from bar)[(select 1)][1:3] from bar;
+select (select b from bar)[(select 1)][1:3] from bar;
+
+drop table bar;

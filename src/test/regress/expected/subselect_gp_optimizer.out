@@ -3791,3 +3791,175 @@ select (SELECT EXISTS
 (0 rows)
 
 drop table tmp;
+-- Test LEAST() and GREATEST() with an embedded subquery
+drop table if exists foo;
+create table foo (a int, b int) distributed by(a);
+insert into foo values (1, 2), (2, 3), (3, 4);
+analyze foo;
+explain (costs off) select foo.a from foo where foo.a <= LEAST(foo.b, (SELECT 1), NULL);
+                         QUERY PLAN                          
+-------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Seq Scan on foo
+         Filter: (a <= LEAST(b, (SubPlan 1), NULL::integer))
+         SubPlan 1
+           ->  Result
+ Optimizer: GPORCA
+(6 rows)
+
+select foo.a from foo where foo.a <= LEAST(foo.b, (SELECT 1), NULL);
+ a 
+---
+ 1
+(1 row)
+
+explain (costs off) select foo.a from foo where foo.a <= GREATEST(foo.b, (SELECT 1), NULL);
+                           QUERY PLAN                           
+----------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Seq Scan on foo
+         Filter: (a <= GREATEST(b, (SubPlan 1), NULL::integer))
+         SubPlan 1
+           ->  Result
+ Optimizer: GPORCA
+(6 rows)
+
+select foo.a from foo where foo.a <= GREATEST(foo.b, (SELECT 1), NULL);
+ a 
+---
+ 2
+ 3
+ 1
+(3 rows)
+
+explain (costs off) select least((select 5), greatest(b, NULL, (select 1)), a) from foo;
+                QUERY PLAN                
+------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Nested Loop Left Join
+         Join Filter: true
+         ->  Nested Loop Left Join
+               Join Filter: true
+               ->  Seq Scan on foo
+               ->  Materialize
+                     ->  Result
+         ->  Materialize
+               ->  Result
+ Optimizer: GPORCA
+(11 rows)
+
+select least((select 5), greatest(b, NULL, (select 1)), a) from foo;
+ least 
+-------
+     2
+     3
+     1
+(3 rows)
+
+drop table foo;
+-- Test subquery within ScalarArrayRef or ScalarArrayRefIndexList
+drop table if exists bar;
+create table bar (a int[], b int[][]) distributed by(a);
+insert into bar values (ARRAY[1, 2, 3], ARRAY[[1, 2, 3], [4, 5, 6]]);
+analyze bar;
+explain (costs off) select (select a from bar)[1] from bar;
+                                  QUERY PLAN                                  
+------------------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Nested Loop Left Join
+         Join Filter: true
+         ->  Seq Scan on bar bar_1
+         ->  Assert
+               Assert Cond: ((row_number() OVER (?)) = 1)
+               ->  Materialize
+                     ->  Broadcast Motion 1:3  (slice2)
+                           ->  WindowAgg
+                                 ->  Gather Motion 3:1  (slice3; segments: 3)
+                                       ->  Seq Scan on bar
+ Optimizer: GPORCA
+(12 rows)
+
+select (select a from bar)[1] from bar;
+ a 
+---
+ 1
+(1 row)
+
+explain (costs off) select (select a from bar)[(select 1)] from bar;
+                                  QUERY PLAN                                  
+------------------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Nested Loop Left Join
+         Join Filter: true
+         ->  Nested Loop Left Join
+               Join Filter: true
+               ->  Seq Scan on bar bar_1
+               ->  Materialize
+                     ->  Result
+         ->  Assert
+               Assert Cond: ((row_number() OVER (?)) = 1)
+               ->  Materialize
+                     ->  Broadcast Motion 1:3  (slice2)
+                           ->  WindowAgg
+                                 ->  Gather Motion 3:1  (slice3; segments: 3)
+                                       ->  Seq Scan on bar
+ Optimizer: GPORCA
+(16 rows)
+
+select (select a from bar)[(select 1)] from bar;
+ a 
+---
+ 1
+(1 row)
+
+explain (costs off) select (select b from bar)[1][1:3] from bar;
+                                  QUERY PLAN                                  
+------------------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Nested Loop Left Join
+         Join Filter: true
+         ->  Seq Scan on bar bar_1
+         ->  Assert
+               Assert Cond: ((row_number() OVER (?)) = 1)
+               ->  Materialize
+                     ->  Broadcast Motion 1:3  (slice2)
+                           ->  WindowAgg
+                                 ->  Gather Motion 3:1  (slice3; segments: 3)
+                                       ->  Seq Scan on bar
+ Optimizer: GPORCA
+(12 rows)
+
+select (select b from bar)[1][1:3] from bar;
+     b     
+-----------
+ {{1,2,3}}
+(1 row)
+
+explain (costs off) select (select b from bar)[(select 1)][1:3] from bar;
+                                  QUERY PLAN                                  
+------------------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Nested Loop Left Join
+         Join Filter: true
+         ->  Nested Loop Left Join
+               Join Filter: true
+               ->  Seq Scan on bar bar_1
+               ->  Materialize
+                     ->  Result
+         ->  Assert
+               Assert Cond: ((row_number() OVER (?)) = 1)
+               ->  Materialize
+                     ->  Broadcast Motion 1:3  (slice2)
+                           ->  WindowAgg
+                                 ->  Gather Motion 3:1  (slice3; segments: 3)
+                                       ->  Seq Scan on bar
+ Optimizer: GPORCA
+(16 rows)
+
+select (select b from bar)[(select 1)][1:3] from bar;
+     b     
+-----------
+ {{1,2,3}}
+(1 row)
+
+drop table bar;
