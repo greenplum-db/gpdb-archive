@@ -3160,3 +3160,9 @@ DROP TABLE table_issue_15494;
 CREATE TABLE IF NOT EXISTS table_issue_15494(c0 boolean);
 ALTER TABLE table_issue_15494 ALTER c0 SET DEFAULT ((1.5::FLOAT) NOTNULL);
 DROP TABLE table_issue_15494;
+-- please refer to:  https://github.com/greenplum-db/gpdb/issues/16805
+create table IF NOT EXISTS float2double_table(c1 float,c2 float,c3 float);
+create index float2double_table_idx_c1c2c3 on float2double_table(c1,c2,c3);
+create unique index float2double_table_uniqidx_c1c2c3 on float2double_table(c1,c2,c3);
+ALTER TABLE float2double_table ALTER COLUMN c1 TYPE double precision;
+DROP TABLE float2double_table;
