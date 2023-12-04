@@ -13845,7 +13845,8 @@ ATPostAlterTypeParse(Oid oldId, Oid oldRelId, Oid refRelId, char *cmd,
 			}
 
 			/* replace it with my own */
-			stmt->oldNode = irel->rd_node.relNode;
+			if (strcmp(stmt->idxname, irel->rd_rel->relname.data) == 0)
+				stmt->oldNode = irel->rd_node.relNode;
 		}
 
 		if (irel != NULL)
