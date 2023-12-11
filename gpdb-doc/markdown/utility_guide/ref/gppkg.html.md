@@ -72,7 +72,7 @@ Examples of database extensions and packages software that are delivered using t
 :   Run a simulation for the command, without modifying anything.
 
 `-f | --force`
-:   Skip all requirement checks and overwrite existing files.
+:   Skip all requirement checks and overwrite existing files. If using it with `gppkg remove`, the utility removes packages which have incomplete or missing files.
 
 `-h | --help`
 :   Display the online help.
