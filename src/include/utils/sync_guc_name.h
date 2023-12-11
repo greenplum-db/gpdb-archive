@@ -26,6 +26,7 @@
 		"debug_appendonly_print_verify_write_block",
 		"debug_appendonly_print_visimap",
 		"debug_appendonly_use_no_toast",
+		"Debug_shareinput_xslice",
 		"default_table_access_method",
 		"default_tablespace",
 		"dml_ignore_target_partition_check",

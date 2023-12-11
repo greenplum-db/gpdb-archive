@@ -329,6 +329,7 @@ extern bool allow_segment_DML;
 extern bool gp_ignore_error_table;
 
 extern bool	Debug_dtm_action_primary;
+extern bool Debug_shareinput_xslice;
 
 extern bool gp_log_optimization_time;
 extern bool log_parser_stats;

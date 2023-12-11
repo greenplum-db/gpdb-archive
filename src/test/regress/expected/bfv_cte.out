@@ -356,3 +356,166 @@ JOIN ttt ON cte.oid = ttt.tc2;
 ERROR:  relation "cte" does not exist
 LINE 7: FROM gp_dist_random('cte')
                             ^
+--
+-- Test bug fix for reader-writer communication in Share Input Scan (SISC)
+-- https://github.com/greenplum-db/gpdb/issues/16429
+--
+-- Helper function
+CREATE OR REPLACE FUNCTION wait_until_query_output_to_file(file_path text) RETURNS VOID AS $$
+DECLARE
+	content TEXT;
+	line TEXT;
+	match TEXT;
+BEGIN
+	LOOP
+		content := pg_read_file(file_path);
+		FOR line IN (SELECT unnest(string_to_array(content, E'\n'))) LOOP
+			match := substring(line FROM '\(([0-9]+) row[s]?\)');
+			IF match IS NOT NULL THEN
+				RETURN;
+			END IF;
+		END LOOP;
+		PERFORM pg_sleep(0.1);  -- Sleep for a short period before checking again
+	END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+-- Setup tables
+CREATE TABLE sisc_t1(a int, b int) DISTRIBUTED BY (a);
+INSERT INTO sisc_t1 VALUES (1, 1), (2, 2), (5, 5);
+ANALYZE sisc_t1;
+CREATE TABLE sisc_t2(c int, d int) DISTRIBUTED BY (c);
+-- Ensure that sisc_t2 has 0 tuple on seg2
+INSERT INTO sisc_t2 VALUES (1, 1), (2, 2);
+ANALYZE sisc_t2;
+-- ORCA plan contains one SISC writer on slice1 and two readers on slice2 and slice4.
+-- The Hash Join on slice4 has its hash side being empty on seg2, so the SISC
+-- reader on the probe side will be squelched. Same applies to the Hash Join
+-- on slice2 for seg2.
+-- Similary, planner plan contains one SISC wirter on slice4 and one reader on slice2.
+-- The Hash Join on slice2 has its hash side being empty on seg2, so the SISC
+-- reader on the probe side will be squelched.
+SET optimizer_enable_motion_broadcast TO off;
+EXPLAIN (COSTS OFF)
+WITH cte AS MATERIALIZED (SELECT * FROM sisc_t1)
+SELECT y.a, z.a
+FROM (SELECT cte1.a, cte1.b FROM cte cte1 JOIN sisc_t2 ON (cte1.a = sisc_t2.d)) y,
+     (SELECT cte2.a, cte2.b FROM cte cte2 JOIN sisc_t2 ON (cte2.a = sisc_t2.d)) z
+WHERE y.b = z.b - 1;
+                                     QUERY PLAN                                     
+------------------------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Hash Join
+         Hash Cond: (share0_ref2.b = (share0_ref1.b - 1))
+         ->  Redistribute Motion 3:3  (slice2; segments: 3)
+               Hash Key: share0_ref2.b
+               ->  Hash Join
+                     Hash Cond: (share0_ref2.a = sisc_t2.d)
+                     ->  Shared Scan (share slice:id 2:0)
+                     ->  Hash
+                           ->  Redistribute Motion 3:3  (slice3; segments: 3)
+                                 Hash Key: sisc_t2.d
+                                 ->  Seq Scan on sisc_t2
+         ->  Hash
+               ->  Redistribute Motion 3:3  (slice4; segments: 3)
+                     Hash Key: (share0_ref1.b - 1)
+                     ->  Hash Join
+                           Hash Cond: (share0_ref1.a = sisc_t2_1.d)
+                           ->  Shared Scan (share slice:id 4:0)
+                                 ->  Seq Scan on sisc_t1
+                           ->  Hash
+                                 ->  Redistribute Motion 3:3  (slice5; segments: 3)
+                                       Hash Key: sisc_t2_1.d
+                                       ->  Seq Scan on sisc_t2 sisc_t2_1
+ Optimizer: Postgres-based planner
+(24 rows)
+
+-- On seg2, introduce a delay in SISC WRITER (slice1) so that the xslice shared state
+-- which is stored in shared memory is initialized by the SISC READER (slice2 or slice4)
+select gp_inject_fault('get_shareinput_reference_delay_writer', 'suspend', dbid) from gp_segment_configuration where content = 2 and role = 'p';
+ gp_inject_fault 
+-----------------
+ Success:
+(1 row)
+
+select gp_inject_fault('get_shareinput_reference_done', 'skip', dbid) from gp_segment_configuration where content = 2 and role = 'p';
+ gp_inject_fault 
+-----------------
+ Success:
+(1 row)
+
+-- Run the above CTE query again with additional debug logging.
+-- Use debug_shareinput_xslice to verify that the SISC READER on seg2 is indeed
+-- initialized and squelched before the SISC WRITER starts its execution.
+--
+-- XXX: since this is a blocking query, we need to run it in a separate shell.
+-- isolation2 test seems to be a more intuitive option, however, it lacks the
+-- ability to redirect the LOGs as sterr into stdout. Hence directly using bash.
+\! bash -c 'psql -X regression -c "set client_min_messages to log; set debug_shareinput_xslice to true; set optimizer_enable_motion_broadcast to off; WITH cte AS MATERIALIZED (SELECT * FROM sisc_t1) SELECT y.a, z.a FROM (SELECT cte1.a, cte1.b FROM cte cte1 JOIN sisc_t2 ON (cte1.a = sisc_t2.d)) y, (SELECT cte2.a, cte2.b FROM cte cte2 JOIN sisc_t2 ON (cte2.a = sisc_t2.d)) z WHERE y.b = z.b - 1;" &> /tmp/bfv_cte.out' &
+-- Wait for both SISC READERs to be initialized and squelched
+select gp_wait_until_triggered_fault('get_shareinput_reference_done', 1, dbid) from gp_segment_configuration where content = 2 and role = 'p';
+ gp_wait_until_triggered_fault 
+-------------------------------
+ Success:
+(1 row)
+
+select gp_inject_fault('get_shareinput_reference_done', 'reset', dbid) from gp_segment_configuration where content = 2 and role = 'p';
+ gp_inject_fault 
+-----------------
+ Success:
+(1 row)
+
+select gp_inject_fault('get_shareinput_reference_delay_writer', 'reset', dbid) from gp_segment_configuration where content = 2 and role = 'p';
+ gp_inject_fault 
+-----------------
+ Success:
+(1 row)
+
+-- Wait for the query to finish
+select wait_until_query_output_to_file('/tmp/bfv_cte.out');
+ wait_until_query_output_to_file 
+---------------------------------
+ 
+(1 row)
+
+-- start_matchsubs
+-- m/SISC READER \(shareid=0, slice=2\)/
+-- s/SISC READER \(shareid=0, slice=2\)/SISC READER (shareid=0, slice={2|4})/g
+-- m/SISC READER \(shareid=0, slice=4\)/
+-- s/SISC READER \(shareid=0, slice=4\)/SISC READER (shareid=0, slice={2|4})/g
+-- m/slice=2\): initialized xslice state/
+-- s/slice=2\): initialized xslice state/slice={2|4}): initialized xslice state/g
+-- m/slice=4\): initialized xslice state/
+-- s/slice=4\): initialized xslice state/slice={2|4}): initialized xslice state/g
+-- end_matchsubs
+-- Filter out irrelevant LOG messages from segments other than seg2.
+\! cat /tmp/bfv_cte.out | grep -P '^(?!LOG)|^(LOG.*seg2)' | grep -vP 'LOG.*fault|decreased xslice state refcount'
+LOG:  SISC (shareid=0, slice=2): initialized xslice state  (seg2 slice2 127.0.1.1:7004 pid=1049102)
+LOG:  SISC READER (shareid=0, slice=2): wrote notify_done  (seg2 slice2 127.0.1.1:7004 pid=1049102)
+LOG:  SISC WRITER (shareid=0, slice=4): initializing because squelched  (seg2 slice4 127.0.1.1:7004 pid=1049114)
+LOG:  SISC WRITER (shareid=0, slice=4): No tuplestore yet, creating tuplestore  (seg2 slice4 127.0.1.1:7004 pid=1049114)
+LOG:  SISC WRITER (shareid=0, slice=4): wrote notify_ready  (seg2 slice4 127.0.1.1:7004 pid=1049114)
+LOG:  SISC WRITER (shareid=0, slice=4): got DONE message from 1 readers  (seg2 slice4 127.0.1.1:7004 pid=1049114)
+LOG:  SISC (shareid=0, slice=4): removed xslice state  (seg2 slice4 127.0.1.1:7004 pid=1049114)
+ a | a 
+---+---
+ 1 | 2
+(1 row)
+
+-- cleanup
+select gp_inject_fault_infinite('all', 'reset', dbid) from gp_segment_configuration;
+ gp_inject_fault_infinite 
+--------------------------
+ Success:
+ Success:
+ Success:
+ Success:
+ Success:
+ Success:
+ Success:
+ Success:
+(8 rows)
+
+RESET optimizer_enable_motion_broadcast;
+DROP TABLE sisc_t1;
+DROP TABLE sisc_t2;
+\! rm /tmp/bfv_cte.out

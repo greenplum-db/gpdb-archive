@@ -112,6 +112,7 @@ bool        gp_guc_need_restore = false;
 
 char	   *Debug_dtm_action_sql_command_tag;
 
+bool		Debug_shareinput_xslice = false;
 bool		Debug_print_full_dtm = false;
 bool		Debug_print_snapshot_dtm = false;
 bool		Debug_disable_distributed_snapshot = false;
@@ -1480,6 +1481,17 @@ struct config_bool ConfigureNamesBool_gp[] =
 		},
 		&Debug_dtm_action_primary,
 		DEBUG_DTM_ACTION_PRIMARY_DEFAULT, NULL, NULL, NULL
+	},
+
+	{
+		{"debug_shareinput_xslice", PGC_SUSET, LOGGING_WHAT,
+		 gettext_noop("Prints cross-slice share input scan information to server log."),
+		 NULL,
+		 GUC_SUPERUSER_ONLY | GUC_NO_SHOW_ALL | GUC_NOT_IN_SAMPLE
+		},
+		&Debug_shareinput_xslice,
+		false,
+		NULL, NULL, NULL
 	},
 
 	{
