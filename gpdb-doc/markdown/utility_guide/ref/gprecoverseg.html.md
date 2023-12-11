@@ -149,6 +149,10 @@ The recovery process marks the segment as up again in the Greenplum Database sys
 -l logfile\_directory
 :   The directory to write the log file. Defaults to `~/gpAdminLogs`.
 
+--max-rate <max_rate>
+
+:   Optional. Specifies the maximum bandwidth rate for a full recovery of failed segments. The rate is specified in kB/s. You may use the suffix `k` or `M` to signify kB/s or MB/s. The valid values ranges from 32kB/s to 1048576kB/s (1024MB/s). The default value is to use the entire available network bandwidth to perform the full recovery. Note that incremental and differential recoveries do not support this option, they use the entire available network bandwidth.
+
 -o output\_recover\_config\_file
 :   Specifies a file name and location to output a sample recovery configuration file. This file can be edited to supply alternate recovery locations if needed. The following example outputs the default recovery configuration file:
 
@@ -186,9 +190,6 @@ The recovery process marks the segment as up again in the Greenplum Database sys
 
     >**Note**
     >The `--differential` option cannot be combined with any of the following `gprecoverseg` options: `-i`, `-o`, `-F`, or `-p`.
-
---max-rate max\_rate
-:    Optional. Maximum transfer rate for Full recovery of failed segments. Rate is in kB/s, suffix `k` or `M` can be used to signify kB/s or MB/s. Valid options are from 32kB/s to 1048576kB/s(1024MB/s).
 
 -v \| --verbose
 :   Sets logging output to verbose.
