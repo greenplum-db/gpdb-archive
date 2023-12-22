@@ -3625,6 +3625,12 @@ CREATE TABLE schema_test_table(a numeric, b numeric(5,2), c char(10) NOT NULL) d
 EXPLAIN (VERBOSE, COSTS OFF) SELECT * FROM schema_test_table WHERE 1=0;
 ---------------------------------------------------------------------------------
 
+---------------------------------------------------------------------------------
+-- Test ALL NULL scalar array compare 
+create table DatumSortedSet_core (a int, b character varying NOT NULL) distributed by (a);
+explain select * from DatumSortedSet_core where b in (NULL, NULL);
+---------------------------------------------------------------------------------
+
 -- start_ignore
 DROP SCHEMA orca CASCADE;
 -- end_ignore
