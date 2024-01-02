@@ -107,7 +107,9 @@ class GpRecoverSegmentProgram:
             return GpSegmentRebalanceOperation(gpEnv, gpArray, self.__options.parallelDegree, self.__options.parallelPerHost, self.__options.disableReplayLag, self.__options.replayLag)
 
         instance = RecoveryTripletsFactory.instance(gpArray, self.__options.recoveryConfigFile, self.__options.newRecoverHosts, self.__options.outputSampleConfigFile, self.__options.parallelDegree)
-        segs = [GpMirrorToBuild(t.failed, t.live, t.failover, self.__options.forceFullResynchronization, self.__options.differentialResynchronization) for t in instance.getTriplets()]
+
+        segs = [GpMirrorToBuild(t.failed, t.live, t.failover, self.__options.forceFullResynchronization, self.__options.differentialResynchronization, t.recovery_type) for t in instance.getTriplets()]
+
         return GpMirrorListToBuild(segs, self.__pool, self.__options.quiet,
                                    self.__options.parallelDegree,
                                    instance.getInterfaceHostnameWarnings(),
@@ -278,14 +280,15 @@ class GpRecoverSegmentProgram:
         optionCnt = 0
         if self.__options.newRecoverHosts is not None:
             optionCnt += 1
-        if self.__options.recoveryConfigFile is not None:
-            optionCnt += 1
         if self.__options.rebalanceSegments:
             optionCnt += 1
-        if self.__options.differentialResynchronization:
-            optionCnt += 1
         if optionCnt > 1:
-            raise ProgramArgumentValidationException("Only one of -i, -p, -r and --differential may be specified")
+            raise ProgramArgumentValidationException("Only one of -p and -r may be specified")
+        if optionCnt > 0 and self.__options.recoveryConfigFile is not None:
+            raise ProgramArgumentValidationException("Only one of -i, -p and -r may be specified")
+
+        if optionCnt > 0 and self.__options.differentialResynchronization:
+            raise ProgramArgumentValidationException("Only one of -p, -r and --differential may be specified")
 
         # verify "mode to recover" options
         if self.__options.forceFullResynchronization and self.__options.differentialResynchronization:

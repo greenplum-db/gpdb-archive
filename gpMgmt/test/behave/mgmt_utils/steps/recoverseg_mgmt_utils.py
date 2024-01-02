@@ -13,6 +13,7 @@ from test.behave_utils.utils import *
 import platform, shutil
 from behave import given, when, then
 from gppylib.utils import writeLinesToFile
+from gppylib.parseutils import canonicalize_address
 
 #TODO remove duplication of these functions
 def _get_gpAdminLogs_directory():
@@ -694,7 +695,7 @@ def impl(context, filename):
     context.recovery_host_address = address
     context.recovery_host_name = hostname
 
-    line = "{0}|{1}|{2}|{3}" .format(hostname, address, port, datadir)
+    line = "D|{0}|{1}|{2}|{3}" .format(hostname, address, port, datadir)
 
     with open("/tmp/%s" % filename, "w") as fd:
         fd.write("%s\n" % line)
@@ -741,7 +742,7 @@ def impl(context, filename):
         content = row[3]
 
         if content == 0:
-            output_str += "{0}|{1}|{2}".format(address, port, datadir)
+            output_str += "I|{0}|{1}|{2}".format(address, port, datadir)
         elif content == 1:
             output_str += "{0}|{1}|{2} {3}|{4}|/tmp/newdir{5}".format(address, port, datadir, address, port, i)
         else:
@@ -925,3 +926,32 @@ def impl(context, action, content_ids):
         time.sleep(0.1)
         if attempt == num_retries:
             raise Exception('Timed out after {} retries'.format(num_retries))
+
+
+
+@when('a gprecoverseg input file "{filename}" is created with all the failed segments and {category} recovery type')
+def impl(context, filename, category):
+    lines = []
+    all_segments = GpArray.initFromCatalog(dbconn.DbURL()).getDbList()
+    failed_segments = filter(lambda seg: seg.getSegmentStatus() == 'd', all_segments)
+
+    for seg in failed_segments:
+        output_str = ""
+        port = seg.getSegmentPort()
+        address = canonicalize_address(seg.getSegmentAddress())
+        hostname = seg.getSegmentHostName()
+        datadir = seg.getSegmentDataDirectory()
+        content = seg.getSegmentContentId()
+
+        if content == 0:
+            if category == "valid":
+                output_str += "I|{0}|{1}|{2}|{3}".format(hostname, address, port, datadir)
+            else:
+                output_str += "Invalid_rtype|{0}|{1}|{2}|{3}".format(hostname, address, port, datadir)
+        elif content == 1:
+            output_str += "D|{0}|{1}|{2}".format(address, port, datadir)
+        else:
+            output_str += "{0}|{1}|{2} {0}|{1}|{2}" .format(address, port, datadir)
+
+        lines.append(output_str)
+    writeLinesToFile("/tmp/%s" % filename, lines)
