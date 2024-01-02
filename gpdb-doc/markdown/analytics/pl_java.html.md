@@ -26,7 +26,7 @@ With the Greenplum Database PL/Java extension, you can write Java methods using 
 
 Greenplum Database PL/Java package is based on the open source PL/Java 1.5.0. Greenplum Database PL/Java provides the following features.
 
--   Ability to run PL/Java functions with Java 8 or Java 11.
+-   Ability to run PL/Java functions with Java 8, Java 11 and Java 17.
 -   Ability to specify Java runtime.
 -   Standardized utilities \(modeled after the SQL 2003 proposal\) to install and maintain Java code in the database.
 -   Standardized mappings of parameters and result. Complex types as well as sets are supported.
@@ -98,13 +98,13 @@ See the *Greenplum Database Reference Guide* for information about the Greenplum
 
 PL/Java requires a Java runtime environment on each Greenplum Database host. Ensure that the same Java environment is at the same location on all hosts: coordinators and segments. The command `java -version` displays the Java version.
 
-The commands that you use to install Java depend on the host system operating system and Java version. To install OpenJDK 8 or 11 \(Java 8 JDK or Java 11 JDK\) on RHEL/Oracle/Rocky Linux:
+The commands that you use to install Java depend on the host system operating system and Java version. To install OpenJDK 8, OpenJDK 11 or OpenJDK 17 \(Java 8 JDK, Java 11 JDK, Java 17 JDK\) on RHEL/Oracle/Rocky Linux:
 
 ```
 $ sudo yum install java-<version>-openjdk-devel
 ```
 
-For OpenJDK 8 the version is `1.8.0`, for OpenJDK 11 the version is `11`.
+For OpenJDK 8 the version is `1.8.0`, for OpenJDK 11 the version is `11`, for OpenJDK 17 the version is `17`.
 
 After installing OpenJDK on a RHEL system, run this `update-alternatives` command to change the default Java. Enter the number that represents the OpenJDK version to use as the default.
 
@@ -136,7 +136,7 @@ Before you install the PL/Java extension, make sure that your Greenplum database
 2.  Follow the instructions in [Verifying the Greenplum Database Software Download](../install_guide/verify_sw.html) to verify the integrity of the **Greenplum Procedural Languages PL/Java** software.
 3.  Install the software extension package by running the `gppkg` command. This example installs the PL/Java extension package on a Linux system:
     ```
-    $ gppkg install pljava-1.4.3-gp5-rhel<osversion>_x86_64.gppkg
+    $ gppkg install pljava-2.0.9-gp7-rhel<osversion>_x86_64.gppkg
     ```
 
 4.  Ensure that the environment variables `JAVA_HOME` and `LD_LIBRARY_PATH` are set properly in `$GPHOME/greenplum_path.sh` on all Greenplum Database hosts.
@@ -145,7 +145,7 @@ Before you install the PL/Java extension, make sure that your Greenplum database
         ```
         export JAVA_HOME=/usr/lib/jvm
         ```
-    -   Set the `LD_LIBRARY_PATH` to include the directory with the Java server runtime libraries. PL/Java depends on `libjvm.so` and the shared object should be in your `LD_LIBRARY_PATH`. By default, `libjvm.so` is available in `$JAVA_HOME/lib/server` with JDK 11, or in `$JAVA_HOME/jre/lib/amd64/server` with JDK 8. This example adds the JDK 11 directory to the environment variable.
+    -   Set the `LD_LIBRARY_PATH` to include the directory with the Java server runtime libraries. PL/Java depends on `libjvm.so` and the shared object should be in your `LD_LIBRARY_PATH`. By default, `libjvm.so` is available in `$JAVA_HOME/lib/server` with JDK 11 and JDK 17, or in `$JAVA_HOME/jre/lib/amd64/server` with JDK 8. This example adds the JDK 11 directory to the environment variable.
         ```
         export LD_LIBRARY_PATH=$GPHOME/lib:$GPHOME/ext/python/lib:$JAVA_HOME/lib/server:$LD_LIBRARY_PATH
         ```
