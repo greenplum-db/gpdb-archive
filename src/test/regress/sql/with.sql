@@ -414,6 +414,29 @@ SELECT * FROM y;
 
 DROP TABLE y;
 
+
+-- although there is a distinct or group by in recursive part of cte,
+-- but there is no motion above worktablescan, that is ok.
+WITH RECURSIVE x(n) AS (SELECT 1 UNION ALL SELECT distinct(n+1) FROM x)
+  SELECT * FROM x limit 10;
+
+CREATE TEMPORARY TABLE z(x int primary key);
+WITH RECURSIVE x(n) AS (SELECT 1 UNION ALL SELECT n+1 FROM (SELECT * FROM x UNION SELECT * FROM z)foo)
+	SELECT * FROM x limit 10;
+
+CREATE TEMPORARY TABLE bar(c int);
+WITH RECURSIVE x(level, id) AS (
+	SELECT 1,2
+	UNION ALL
+	SELECT level+1, c FROM x, bar GROUP BY 1,2)
+  SELECT * FROM x LIMIT 10;
+
+WITH RECURSIVE x(level, id) AS (
+	SELECT 1,2::bigint
+	UNION ALL
+	SELECT level+1, row_number() over() FROM x, bar)
+  SELECT * FROM x LIMIT 10;
+
 --
 -- error cases
 --
@@ -435,15 +458,7 @@ WITH RECURSIVE x(n) AS (SELECT 1 EXCEPT SELECT n+1 FROM x)
 WITH RECURSIVE x(n) AS (SELECT 1 EXCEPT ALL SELECT n+1 FROM x)
 	SELECT * FROM x;
 
--- GPDB Specific Error Cases
--- Set operations within the recursive term with a self-reference.
--- Currently set operations in the recursive term involving the cte itself must
--- be prevented. The reason for this is that such a query may lead to a plan
--- where there is a motion between the RecursiveUnion node and the
--- WorkTableScan node.
-CREATE TEMPORARY TABLE z(x int primary key);
-WITH RECURSIVE x(n) AS (SELECT 1 UNION ALL SELECT n+1 FROM (SELECT * FROM x UNION SELECT * FROM z)foo)
-	SELECT * FROM x;
+
 
 -- Set operation in recursive term that does not have a self-reference
 -- This is supported
@@ -466,24 +481,6 @@ WITH RECURSIVE cte(level, id) as (
 	UNION ALL
 	SELECT level+1, c FROM (SELECT * FROM cte OFFSET 0) foo, bar)
 SELECT * FROM cte LIMIT 10;
-
--- recursive term with a distinct operation is not allowed
-WITH RECURSIVE x(n) AS (SELECT 1 UNION ALL SELECT distinct(n+1) FROM x)
-  SELECT * FROM x;
-
--- recursive term with a group by operation is not allowed
-CREATE TEMPORARY TABLE bar(c int);
-WITH RECURSIVE x(n) AS (
-	SELECT 1,2
-	UNION ALL
-	SELECT level+1, c FROM x, bar GROUP BY 1,2)
-  SELECT * FROM x LIMIT 10;
-
-WITH RECURSIVE x(n) AS (
-	SELECT 1,2
-	UNION ALL
-	SELECT level+1, row_number() over() FROM x, bar)
-  SELECT * FROM x LIMIT 10;
 
 CREATE TEMPORARY TABLE y (a INTEGER) DISTRIBUTED RANDOMLY;
 INSERT INTO y SELECT generate_series(1, 10);

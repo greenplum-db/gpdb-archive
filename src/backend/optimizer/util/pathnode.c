@@ -3276,16 +3276,15 @@ create_worktablescan_path(PlannerInfo *root, RelOptInfo *rel,
 		CdbPathLocus_MakeEntry(&result);
 	else if (ctelocus.locustype == CdbLocusType_SingleQE)
 		CdbPathLocus_MakeSingleQE(&result, ctelocus.numsegments);
-	else if (ctelocus.locustype == CdbLocusType_General)
-		CdbPathLocus_MakeGeneral(&result);
 	else if (ctelocus.locustype == CdbLocusType_OuterQuery)
 		CdbPathLocus_MakeOuterQuery(&result);
-	else if (ctelocus.locustype == CdbLocusType_SegmentGeneral)
+	else if (ctelocus.locustype == CdbLocusType_SegmentGeneral
+				|| ctelocus.locustype == CdbLocusType_General)
 	{
 		/* See comments in set_worktable_pathlist */
 		elog(ERROR,
 			 "worktable scan path can never have "
-			 "segmentgeneral locus.");
+			 "segmentgeneral or general locus.");
 	}
 	else
 		CdbPathLocus_MakeStrewn(&result, ctelocus.numsegments);

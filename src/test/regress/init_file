@@ -170,6 +170,9 @@ s/.//gs
 m/\(dbsize\.c\:\d+\)/
 s/\(dbsize\.c:\d+\)/\(dbsize\.c:XXX\)/
 
+m/\(cdbmutate\.c\:\d+\)/
+s/\(cdbmutate\.c:\d+\)/\(cdbmutate\.c:XXX\)/
+
 # remove the cdbdisp_async suffix of some ERROR messages
 m/ \(cdbdisp_async\.c.*\)/
 s/ \(cdbdisp_async\.c.*\)//

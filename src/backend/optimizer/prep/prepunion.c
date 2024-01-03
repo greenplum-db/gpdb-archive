@@ -55,8 +55,8 @@
 #include "cdb/cdbpath.h"
 #include "cdb/cdbsetop.h"
 #include "cdb/cdbvars.h"
+#include "cdb/cdbutil.h"
 #include "commands/tablecmds.h"
-
 
 static RelOptInfo *recurse_set_operations(Node *setOp, PlannerInfo *root,
 										  List *colTypes, List *colCollations,
@@ -490,6 +490,22 @@ generate_recursion_path(SetOperationStmt *setOp, PlannerInfo *root,
 
 		CdbPathLocus_MakeSingleQE(&gather_locus, lpath->locus.numsegments);
 		lpath = cdbpath_create_motion_path(root, lpath, NIL, false, gather_locus);
+	}
+	/*
+	 * If the non-recursive side is General, the result of following sql
+	 * is wrong. The worktable scan we build on the recursive
+	 * side will use the same locus as the non-recursive side, and if it's
+	 * General, the result of the join may end up having a different locus.
+	 * So force it to be executed on exactly one segment.
+	 * with recursive cte (a) as (
+	 *     select 1
+	 *     union all
+	 *     select a from (select cte.a+1 from cte offset 0) foo, tmp1)
+	 * select * from cte;
+	 */
+	if (CdbPathLocus_IsGeneral(lpath->locus))
+	{
+		CdbPathLocus_MakeSingleQE(&(lpath->locus), getgpsegmentCount());
 	}
 
 	/* The right path will want to look at the left one ... */

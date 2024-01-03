@@ -92,8 +92,6 @@ static void checkWellFormedRecursion(CteState *cstate);
 static bool checkWellFormedRecursionWalker(Node *node, CteState *cstate);
 static void checkWellFormedSelectStmt(SelectStmt *stmt, CteState *cstate);
 
-static void checkSelfRefInRangeSubSelect(SelectStmt *stmt, CteState *cstate);
-static void checkWindowFuncInRecursiveTerm(SelectStmt *stmt, CteState *cstate);
 
 /*
  * transformWithClause -
@@ -857,26 +855,6 @@ checkWellFormedRecursionWalker(Node *node, CteState *cstate)
 		else
 			checkWellFormedSelectStmt(stmt, cstate);
 
-		if (cstate->context == RECURSION_OK)
-		{
-			if (stmt->distinctClause)
-				ereport(ERROR,
-						(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-						 errmsg("DISTINCT in a recursive query is not implemented"),
-						 parser_errposition(cstate->pstate,
-											exprLocation((Node *) stmt->distinctClause))));
-			if (stmt->groupClause)
-				ereport(ERROR,
-						(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
-						 errmsg("GROUP BY in a recursive query is not implemented"),
-						 parser_errposition(cstate->pstate,
-											exprLocation((Node *) stmt->groupClause))));
-
-			checkWindowFuncInRecursiveTerm(stmt, cstate);
-		}
-
-		checkSelfRefInRangeSubSelect(stmt, cstate);
-
 		/* We're done examining the SelectStmt */
 		return false;
 	}
@@ -1017,84 +995,5 @@ checkWellFormedSelectStmt(SelectStmt *stmt, CteState *cstate)
 				elog(ERROR, "unrecognized set op: %d",
 					 (int) stmt->op);
 		}
-	}
-}
-
-/*
- * Check if a recursive cte is referred to in a RangeSubSelect's SelectStmt.
- * This is currently not supported and is checked for in the parsing stage
- */
-static void
-checkSelfRefInRangeSubSelect(SelectStmt *stmt, CteState *cstate)
-{
-	ListCell *lc;
-	RecursionContext cxt = cstate->context;
-
-	foreach(lc, stmt->fromClause)
-	{
-		if (IsA((Node *) lfirst(lc), RangeSubselect))
-		{
-			cstate->context = RECURSION_SUBLINK;
-			RangeSubselect *rs = (RangeSubselect *) lfirst(lc);
-			SelectStmt *subquery = (SelectStmt *) rs->subquery;
-			checkWellFormedSelectStmt(subquery, cstate);
-		}
-	}
-	cstate->context = cxt;
-}
-
-/*
- * GPDB:
- * Check if the recursive term of a recursive cte contains a window function
- * or ordered set aggregate function (special aggs). This is currently not
- * supported and is checked for in the parsing stage. Refer to dicussion:
- * https://groups.google.com/a/greenplum.org/g/gpdb-dev/c/GIYw6t-uX7s
- */
-typedef struct CTEWindowAggSearchContext
-{
-	bool       found; /* flag to show if we have found */
-	FuncCall  *func;  /* if found is true, this field is the Agg */
-} CTEWindowAggSearchContext;
-
-static bool
-cte_window_agg_walker(Node *node, CTEWindowAggSearchContext *context)
-{
-	if (node == NULL)
-		return false;
-
-	if (IsA(node, FuncCall))
-	{
-		FuncCall *fc = (FuncCall *) node;
-		if (fc->over != NULL)
-		{
-			context->found = true;
-			context->func  = fc;
-
-			return true;
-		}
-	}
-
-	return raw_expression_tree_walker(node, cte_window_agg_walker, context);
-}
-
-static void
-checkWindowFuncInRecursiveTerm(SelectStmt *stmt, CteState *cstate)
-{
-	CTEWindowAggSearchContext context;
-
-	context.found = false;
-	context.func  = NULL;
-
-	(void) raw_expression_tree_walker((Node *) stmt->targetList,
-									  cte_window_agg_walker,
-									  (void *) &context);
-
-	if (context.found)
-	{
-		ereport(ERROR,
-				(errcode(ERRCODE_GP_FEATURE_NOT_YET),
-				 errmsg("window functions in the target list of a recursive query is not supported in Greenplum"),
-				 parser_errposition(cstate->pstate,
-									exprLocation((Node *) context.func))));
 	}
 }
