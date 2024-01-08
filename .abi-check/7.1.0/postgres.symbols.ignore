@@ -3,3 +3,5 @@ ConfigureNamesInt_gp
 child_triggers
 has_update_triggers
 ConfigureNamesBool_gp
+aocs_beginscan
+AppendOnlyBlockDirectory_GetEntry
