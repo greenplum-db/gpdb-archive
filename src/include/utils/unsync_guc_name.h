@@ -202,6 +202,7 @@
 		"gp_max_parallel_cursors",
 		"gp_max_plan_size",
 		"gp_max_slices",
+		"gp_max_system_slices",
 		"gp_motion_cost_per_row",
 		"gp_pause_on_restore_point_replay",
 		"gp_postmaster_inet_address_family",

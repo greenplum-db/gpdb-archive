@@ -13259,7 +13259,7 @@ explain (costs off) select count(*), t2.c from roj1 t1 left join roj2 t2 on t1.a
 -- check that ROJ can be disabled via GUC
 set optimizer_enable_right_outer_join=off;
 explain (costs off) select count(*), t2.c from roj1 t1 left join roj2 t2 on t1.a = t2.c group by t2.c;
-                            QUERY PLAN                            
+                            QUERY PLAN
 ------------------------------------------------------------------
  GroupAggregate
    Group Key: roj2.c
@@ -14907,7 +14907,7 @@ CREATE TABLE schema_test_table(a numeric, b numeric(5,2), c char(10) NOT NULL) d
 -- Below query is used by external libraries to fetch schema of table.
 -- Test that the typmod of column type is correct in explain plan.
 EXPLAIN (VERBOSE, COSTS OFF) SELECT * FROM schema_test_table WHERE 1=0;
-                                                            QUERY PLAN                                                             
+                                                            QUERY PLAN
 -----------------------------------------------------------------------------------------------------------------------------------
  Result
    Output: NULL::numeric, NULL::numeric(5,2), NULL::character(10)
@@ -14921,7 +14921,7 @@ EXPLAIN (VERBOSE, COSTS OFF) SELECT * FROM schema_test_table WHERE 1=0;
 -- Test ALL NULL scalar array compare 
 create table DatumSortedSet_core (a int, b character varying NOT NULL) distributed by (a);
 explain select * from DatumSortedSet_core where b in (NULL, NULL);
-                QUERY PLAN                 
+                QUERY PLAN
 -------------------------------------------
  Result  (cost=0.00..0.00 rows=0 width=12)
    One-Time Filter: false
@@ -14929,3 +14929,46 @@ explain select * from DatumSortedSet_core where b in (NULL, NULL);
 (3 rows)
 
 ---------------------------------------------------------------------------------
+-- Testcases to validate the behavior of the GUC gp_max_system_slices
+-- start_ignore
+drop table if exists foo;
+drop table if exists bar;
+-- end_ignore
+create table foo (a int, b int) distributed by(a);
+create table bar (a int, b int) distributed by(a);
+-- gp_max_slices : 0 (unlimited) and gp_max_system_slices : 0 (unlimited)
+explain (costs off) select foo.a, foo.b from foo, bar where foo.b=bar.b;
+                          QUERY PLAN
+---------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Hash Join
+         Hash Cond: (foo.b = bar.b)
+         ->  Seq Scan on foo
+         ->  Hash
+               ->  Broadcast Motion 3:3  (slice2; segments: 3)
+                     ->  Seq Scan on bar
+ Optimizer: GPORCA
+(8 rows)
+
+-- gp_max_slices : 1 and gp_max_system_slices : 0 (unlimited)
+-- Query should generate an error because the number of slices in the query exceeds the gp_max_slices
+set gp_max_slices=1;
+explain (costs off) select foo.a, foo.b from foo, bar where foo.b=bar.b;
+ERROR:  at most 1 slices are allowed in a query, current number: 3
+HINT:  rewrite your query
+-- gp_max_slices : 0 (unlimited) and gp_max_system_slices : 1
+-- Query should generate an error because the number of slices in the query exceeds the gp_max_system_slices
+set gp_max_system_slices=1;
+reset gp_max_slices;
+explain (costs off) select foo.a, foo.b from foo, bar where foo.b=bar.b;
+ERROR:  at most 1 slices are allowed in a query, current number: 3
+HINT:  rewrite your query
+reset gp_max_system_slices;
+-- Ensure that a regular user cannot set the GUC gp_max_system_slices
+create user ruser;
+set session authorization ruser;
+set gp_max_system_slices=10;
+ERROR:  permission denied to set parameter "gp_max_system_slices"
+reset session authorization;
+drop user ruser;
+drop table foo, bar;

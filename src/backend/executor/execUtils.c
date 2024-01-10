@@ -1164,17 +1164,28 @@ InitSliceTable(EState *estate, PlannedStmt *plannedstmt)
 	SliceTable *table;
 	int			i;
 	int			numSlices;
+	int			max_slices;
 	MemoryContext oldcontext;
 
 	numSlices = plannedstmt->numSlices;
 	Assert(numSlices > 0);
+	/*
+	 * Select the maximum slices based on configuration settings, If
+	 * `gp_max_system_slices` is set, choose the minimum of `gp_max_slices`
+	 * and `gp_max_system_slices`, otherwise use `gp_max_slices`
+	 */
+	max_slices = gp_max_slices;
+	if (gp_max_system_slices > 0  && (gp_max_slices == 0 ||
+				gp_max_system_slices < gp_max_slices)) {
+		max_slices = gp_max_system_slices;
+	}
 
-	if (gp_max_slices > 0 && numSlices > gp_max_slices)
+	if (max_slices > 0 && numSlices > max_slices)
 		ereport(ERROR,
 				(errcode(ERRCODE_PROGRAM_LIMIT_EXCEEDED),
 				 errmsg("at most %d slices are allowed in a query, current number: %d",
-						gp_max_slices, numSlices),
-				 errhint("rewrite your query or adjust GUC gp_max_slices")));
+						max_slices, numSlices),
+				 errhint("rewrite your query")));
 
 	oldcontext = MemoryContextSwitchTo(estate->es_query_cxt);
 
