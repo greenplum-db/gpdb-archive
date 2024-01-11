@@ -20,7 +20,7 @@ The following table summarizes some of the differences between resource queues a
 |Queueing|Queue when no slot available or not enough available memory|Queue only when no slot is available|
 |Query Failure|Query may fail immediately if the allocated memory for the query surpasses the available system memory and spill limits|Query may fail if the allocated memory for the query surpasses the available system memory and spill limits|
 |Limit Bypass|Limits are not enforced for `SUPERUSER` roles and certain operators and functions|Limits are not enforced on `SET`, `RESET`, and `SHOW` commands. Additionally, certain queries may be configured to bypass the concurrency limit|
-|External Components|None|None|
+|External Components|None|Manage PL/Container CPU resources|
 
 **Parent topic:** [Managing Performance](partV.html)
 

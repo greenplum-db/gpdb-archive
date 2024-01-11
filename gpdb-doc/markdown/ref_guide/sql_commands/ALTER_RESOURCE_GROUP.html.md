@@ -50,6 +50,8 @@ When you alter the CPU resource management mode or limit of a resource group, th
 
 When you alter a memory limit of a resource group that you create for roles, the new resource limit is immediately applied if current resource usage is less than or equal to the new value and there are no running transactions in the resource group. If the current resource usage exceeds the new memory limit value, or if there are running transactions in other resource groups that hold some of the resource, then Greenplum Database defers assigning the new limit until resource usage falls within the range of the new value.
 
+When you increase the memory limit of a resource group that you create for external components, the new resource limit is phased in as system memory resources become available. If you decrease the memory limit of a resource group that you create for external components, the behavior is component-specific. 
+
 You can alter one limit type in a single `ALTER RESOURCE GROUP` call.
 
 ## <a id="parameters"></a>Parameters 

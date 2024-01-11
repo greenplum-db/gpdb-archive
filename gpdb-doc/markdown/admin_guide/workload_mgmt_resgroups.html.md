@@ -2,7 +2,7 @@
 title: Using Resource Groups 
 ---
 
-You use resource groups to manage and protect the resource allocation of CPU, memory, concurrent transaction limits, and disk I/O in Greenplum Database. Once you define a resource group, you assign the group to one or more Greenplum Database roles in order to control the resources used by them. 
+You use resource groups to manage and protect the resource allocation of CPU, memory, concurrent transaction limits, and disk I/O in Greenplum Database. Once you define a resource group, you assign the group to one or more Greenplum Database roles, or to an external component such as PL/Container, in order to control the resources used by them. 
 
 When you assign a resource group to a role, the resource limits that you define for the group apply to all of the roles to which you assign the group. For example, the memory limit for a resource group identifies the maximum memory usage for all running transactions submitted by Greenplum Database users in all roles to which you assign the group.
 
@@ -14,11 +14,15 @@ When using resource groups to control resources like CPU cores, review the Hyper
 
 ## <a id="topic8339intro"></a>Understanding Role and Component Resource Groups 
 
+Greenplum Database supports two types of resource groups: groups that manage resources for roles, and groups that manage resources for external components such as PL/Container.
+
 The most common application for resource groups is to manage the number of active queries that different roles may run concurrently in your Greenplum Database cluster. You can also manage the amount of CPU, memory resources, and disk I/O that Greenplum allocates to each query.
 
 When a user runs a query, Greenplum Database evaluates the query against a set of limits defined for the resource group. Greenplum Database runs the query immediately if the group's resource limits have not yet been reached and the query does not cause the group to exceed the concurrent transaction limit. If these conditions are not met, Greenplum Database queues the query. For example, if the maximum number of concurrent transactions for the resource group has already been reached, a subsequent query is queued and must wait until other queries complete before it runs. Greenplum Database may also run a pending query when the resource group's concurrency and memory limits are altered to large enough values.
 
 Within a resource group for roles, transactions are evaluated on a first in, first out basis. Greenplum Database periodically assesses the active workload of the system, reallocating resources and starting/queuing jobs as necessary.
+
+You can also use resource groups to manage the CPU and memory resources of external components such as PL/Container. Resource groups for external components use Linux cgroups to manage the total CPU resources for the component.
 
 ## <a id="topic8339introattrlim"></a>Resource Group Attributes and Limits 
 
@@ -308,36 +312,37 @@ You may encounter the error `Invalid argument` after running the above commands.
     ```
 Since resource groups manually manage cgroup files, the above settings will become ineffective after a system reboot. Add the following bash script for systemd so it runs automatically during system startup. Perform the following steps as user root:
 
-1. Create `greenplum-cgroup-v2-config.service`.
+1. Create `gpdb.service`.
    ```
-   vim /etc/systemd/system/greenplum-cgroup-v2-config.service
+   vim /etc/systemd/system/gpdb.service 
    ```
 
-2. Write the following content into `greenplum-cgroup-v2-config.service`, if the user is not `gpadmin`, replace it with the appropriate user.
+2. Write the following content into `gpdb.service`, if the user is not `gpadmin`, replace it with the appropriate user.
 
    ```
    [Unit]
    Description=Greenplum Cgroup v2 Configuration Service
-   
    [Service]
-   Type=oneshot
-   RemainAfterExit=yes
-   WorkingDirectory=/sys/fs/cgroup
+   Type=simple
+   WorkingDirectory=/sys/fs/cgroup/gpdb.service
    Delegate=yes
+   Slice=-.slice
+
    # set hierarchies only if cgroup v2 mounted
    ExecCondition=bash -c '[ xcgroup2fs = x$(stat -fc "%%T" /sys/fs/cgroup) ] || exit 1'
-   ExecStart=bash -ec " \
-                       [ -d gpdb ] || mkdir gpdb; \
-                       chown -R gpadmin:gpadmin gpdb; \
-                       chmod a+w cgroup.procs;"
-   
+   ExecStartPre=bash -ec " \
+   chown -R gpadmin:gpadmin .; \
+   chmod a+w ../cgroup.procs; \
+   mkdir -p helper.scope"
+   ExecStart=sleep infinity
+   ExecStartPost=bash -ec "echo $MAINPID > ./helper.scope/cgroup.procs;"
    [Install]
    WantedBy=basic.target
    ```
 1. Reload systemd daemon and enable the service:
    ```
    systemctl daemon-reload
-   systemctl enable greenplum-cgroup-v2-config.service
+   systemctl enable gpdb.service
    ```
 
 ## <a id="topic8"></a>Enabling Resource Groups 
@@ -488,6 +493,8 @@ To view a resource group's running queries, pending queries, and how long the pe
 SELECT query, rsgname,wait_event_type, wait_event 
 FROM pg_stat_activity;
 ```
+
+`pg_stat_activity` displays information about the user/role that initiated a query. A query that uses an external component such as PL/Container is composed of two parts: the query operator that runs in Greenplum Database and the UDF that runs in a PL/Container instance. Greenplum Database processes the query operators under the resource group assigned to the role that initiated the query. A UDF running in a PL/Container instance runs under the resource group assigned to the PL/Container runtime. The latter is not represented in the `pg_stat_activity` view; Greenplum Database does not have any insight into how external components such as PL/Container manage memory in running instances.
 
 ### <a id="topic27"></a>Cancelling a Running or Queued Transaction in a Resource Group 
 

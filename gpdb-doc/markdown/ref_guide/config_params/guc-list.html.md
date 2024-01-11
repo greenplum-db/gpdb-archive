@@ -1455,6 +1455,16 @@ When set to `true` (the default) Greenplum Database's resource group scheduler b
 |-----------|-------|-------------------|
 |Boolean|true|local, session, reload|
 
+## <a id="gp_resource_group_cgroup_parent"></a>gp_resource_group_cgroup_parent
+
+> **Note** The `gp_resource_group_cgroup_parent` server configuration parameter is enforced only when resource group-based resource management is active and cgroup v2 is used.
+
+Identifies the root path of the `gpdb` cgroup hierarchy.
+
+|Value Range|Default|Set Classifications|
+|-----------|-------|-------------------|
+|char|"gpdb.service"|local, system, restart, superuser|
+
 ## <a id="gp_resource_group_cpu_limit"></a>gp\_resource\_group\_cpu\_limit 
 
 > **Note** The `gp_resource_group_cpu_limit` server configuration parameter is enforced only when resource group-based resource management is active.
