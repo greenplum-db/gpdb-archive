@@ -4,6 +4,7 @@ Greenplum Database provides the following system catalog functions:
 
 > **Note** This list is provisional and may be incomplete.
 
+-   [gp_get_suboverflowed_backends](#gp_get_suboverflowed_backends)
 -   [pg_stat_get_backend_subxact](#pg_stat_get_backend_subxact)
 
 ## <a id="statistics"></a>Statistics Functions
