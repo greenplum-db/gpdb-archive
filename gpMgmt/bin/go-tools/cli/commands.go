@@ -59,19 +59,36 @@ func InitializeCommand(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	hubLogDir = Conf.LogDir
-	InitializeLogger(cmd, args)
+
+	err = InitializeLogger(cmd, args)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func InitializeLogger(cmd *cobra.Command, args []string) {
+func InitializeLogger(cmd *cobra.Command, args []string) error {
 	// CommandPath lists the names of the called command and all of its parent commands, so this
 	// turns e.g. "gp stop hub" into "gp_stop_hub" to generate a unique log file name for each command.
 	logName := strings.ReplaceAll(cmd.CommandPath(), " ", "_")
+
+	// Create the log directory if it does not exist, otherwise gplog panics
+	if _, err := os.Stat(hubLogDir); err != nil {
+		if os.IsNotExist(err) {
+			err = os.MkdirAll(hubLogDir, 0755)
+			if err != nil {
+				return err
+			}
+		}
+
+		return err
+	}
+
 	gplog.SetLogFileNameFunc(func(program string, logdir string) string {
-		// TODO: Check if this path exists or not, otherwise gplog panics
 		return filepath.Join(hubLogDir, fmt.Sprintf("%s.log", logName))
 	})
+
 	gplog.InitializeLogging(logName, "")
 
 	timeFormat := time.Now().Format("2006-01-02 15:04:05.000000")
@@ -82,6 +99,8 @@ func InitializeLogger(cmd *cobra.Command, args []string) {
 	if Verbose {
 		gplog.SetVerbosity(gplog.LOGDEBUG)
 	}
+
+	return nil
 }
 
 func ConnectToHubFunc(conf *hub.Config) (idl.HubClient, error) {

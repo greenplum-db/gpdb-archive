@@ -38,7 +38,7 @@ func (c GpCredentials) LoadServerCredentials() (credentials.TransportCredentials
 func (c GpCredentials) LoadClientCredentials() (credentials.TransportCredentials, error) {
 	caCert, err := os.ReadFile(c.CACertPath)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error while loading server certificate: %v", err)
 	}
 	certPool := x509.NewCertPool()
 	if !certPool.AppendCertsFromPEM(caCert) {

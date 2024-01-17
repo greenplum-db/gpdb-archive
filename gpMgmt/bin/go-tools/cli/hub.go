@@ -60,7 +60,7 @@ func configureCmd() *cobra.Command {
 	configureCmd := &cobra.Command{
 		Use:    "configure",
 		Short:  "Configure gp as a systemd daemon",
-		PreRun: InitializeLogger,
+		PreRunE: InitializeLogger,
 		RunE:   RunConfigure,
 	}
 
@@ -83,10 +83,22 @@ func configureCmd() *cobra.Command {
 	configureCmd.Flags().StringVar(&hostfilePath, "hostfile", "", `Path to file containing a list of segment hostnames`)
 	configureCmd.MarkFlagsMutuallyExclusive("host", "hostfile")
 
-	viper.BindPFlag("gphome", configureCmd.Flags().Lookup("gphome")) //nolint
+	requiredFlags := []string{
+		"ca-certificate",
+		"ca-key",
+		"server-certificate",
+		"server-key",
+	}
+	for _, flag := range requiredFlags {
+		configureCmd.MarkFlagRequired(flag) // nolint
+	}
+
+	viper.BindPFlag("gphome", configureCmd.Flags().Lookup("gphome")) // nolint
 	gphome = viper.GetString("gphome")
+
 	return configureCmd
 }
+
 func RunConfigure(cmd *cobra.Command, args []string) (err error) {
 	if gphome == "" {
 		return fmt.Errorf("not a valid gphome found\n")
@@ -103,6 +115,10 @@ func RunConfigure(cmd *cobra.Command, args []string) (err error) {
 
 	if !cmd.Flags().Lookup("host").Changed && !cmd.Flags().Lookup("hostfile").Changed {
 		return errors.New("at least one hostname must be provided using either --host or --hostfile")
+	}
+	
+	if agentPort == hubPort {
+		return errors.New("hub port and agent port must be different")
 	}
 
 	// Convert file/directory paths to absolute path before writing to gp.Conf file

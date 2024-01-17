@@ -10,7 +10,7 @@ MAC_ENV := env GOOS=darwin GOARCH=amd64
 
 .PHONY: unit test
 TEST_PACKAGES := ./...
-unit: TEST_PACKAGES := $(shell go list ./...)
+unit: TEST_PACKAGES := $(shell go list ./... | grep -v ./test/integration)
 unit:
 	go test -v -count=1 $(TEST_PACKAGES) --cover -coverprofile=coverage.out;
 	@cat coverage.out | \
@@ -100,3 +100,9 @@ clean:
 
 uninstall:
 	rm -rf $(GPHOME)/bin/gp
+
+.PHONY: integration-test
+TEST_PACKAGES := ./test/integration/...
+integration-test: TEST_PACKAGES := $(shell go list ./test/integration/...)
+integration-test:
+	go test -v -count=1 $(TEST_PACKAGES) -timeout 0 -p 1 -args -hostfile=$(FILE)

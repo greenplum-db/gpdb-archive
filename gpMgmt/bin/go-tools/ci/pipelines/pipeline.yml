@@ -160,7 +160,9 @@ groups:
     jobs:
       - lint
       - build
-      - run_tests
+      - unit_tests
+      - integration_tests
+
 
 jobs:
   - name: lint
@@ -217,18 +219,15 @@ jobs:
           params:
             file: gp_binary/gp.tgz
 
-  # TODO: Create seperate jobs for unit tests and integration tests.
-  - name: run_tests
+  # TODO: Convert this to use a docker container
+  - name: unit_tests
     plan:
     - in_parallel:
         steps:
         - do:
-          - get: gp_binary
-            resource: gp_binary
-            passed: [build]
-            trigger: true
           - get: gpdb_binary
           - get: gpdb_src
+            trigger: true
           - get: ccp_src
           - get: ccp-image
           - get: terraform.d
@@ -240,12 +239,12 @@ jobs:
               vars:
                 <<: *ccp_default_vars
                 instance_type: n1-standard-2
-                number_of_nodes: 4
+                number_of_nodes: 1
           - task: gen_cluster
             file: ccp_src/ci/tasks/gen_cluster.yml
             params:
               <<: *ccp_gen_cluster_default_params
-          - task: run_tests
+          - task: unit_tests
             image: ccp-image
             config:
               platform: linux
@@ -253,11 +252,88 @@ jobs:
                 - name: gpdb_src
                 - name: ccp_src
                 - name: cluster_env_files
-                - name: gp_binary
               run:
-                path: gpdb_src/gpMgmt/bin/go-tools/ci/scripts/run_tests.bash
+                path: bash
+                args:
+                  - -c
+                  - |
+                    set -eux -o pipefail
+                    ccp_src/scripts/setup_ssh_to_cluster.sh
+                    ssh -n cdw "
+                        set -eux -o pipefail
+                        cd /home/gpadmin/gpdb_src/gpMgmt/bin/go-tools
+                        make unit
+                    "
 
             on_success:
               <<: *ccp_destroy
             ensure:
               <<: *set_failed
+
+  - name: integration_tests
+    plan:
+      - get: gp_binary
+        resource: gp_binary
+        passed: [ build ]
+        trigger: true
+      - get: gpdb_binary
+      - get: gpdb_src
+      - get: ccp_src
+      - get: ccp-image
+      - get: terraform.d
+        params:
+          unpack: true
+      - in_parallel:
+          steps:
+            - do:
+                - put: terraform
+                  params:
+                    <<: *ccp_default_params
+                    vars:
+                      <<: *ccp_default_vars
+                      instance_type: n1-standard-2
+                      number_of_nodes: 1
+                - task: gen_cluster
+                  file: ccp_src/ci/tasks/gen_cluster.yml
+                  params:
+                    <<: *ccp_gen_cluster_default_params
+                - task: single_host_tests
+                  config:
+                    platform: linux
+                    inputs:
+                      - name: gpdb_src
+                      - name: ccp_src
+                      - name: cluster_env_files
+                      - name: gp_binary
+                      - name: ccp-image
+                    run:
+                      path: gpdb_src/gpMgmt/bin/go-tools/ci/scripts/run_integration_tests.bash
+                  image: ccp-image
+            - do:
+                - put: terraform
+                  params:
+                    <<: *ccp_default_params
+                    vars:
+                      <<: *ccp_default_vars
+                      instance_type: n1-standard-2
+                      number_of_nodes: 4
+                - task: gen_cluster
+                  file: ccp_src/ci/tasks/gen_cluster.yml
+                  params:
+                    <<: *ccp_gen_cluster_default_params
+                - task: multi_host_tests
+                  config:
+                    platform: linux
+                    inputs:
+                      - name: gpdb_src
+                      - name: ccp_src
+                      - name: cluster_env_files
+                      - name: gp_binary
+                      - name: ccp-image
+                    run:
+                      path: gpdb_src/gpMgmt/bin/go-tools/ci/scripts/run_integration_tests.bash
+                  image: ccp-image
+                  on_success:
+                    <<: *ccp_destroy
+                  ensure:
+                    <<: *set_failed
