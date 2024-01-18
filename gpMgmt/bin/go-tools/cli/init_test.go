@@ -317,7 +317,7 @@ func TestValidateInputConfigAndSetDefaults(t *testing.T) {
 		defer resetCLIVars()
 		defer initializeRequest()
 
-		expectedError := "no coordinator segments are provided in input config file"
+		expectedError := "no coordinator segment provided in input config file"
 		request.GpArray.Coordinator = nil
 		v := viper.New()
 		err := cli.ValidateInputConfigAndSetDefaults(request, v)

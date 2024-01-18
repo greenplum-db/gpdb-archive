@@ -15,7 +15,7 @@ func TestStartSuccess(t *testing.T) {
 	t.Run("start hub successfully", func(t *testing.T) {
 		testutils.InitService(*hostfile, testutils.CertificateParams)
 		cliParams := []string{"hub"}
-		expectedOut := []string{"[INFO] Hub gp started successfully"}
+		expectedOut := []string{"[INFO]:-Hub gp started successfully"}
 
 		runStartCmdAndCheckOutput(t, cliParams, expectedOut)
 		// check if service is running
@@ -30,8 +30,8 @@ func TestStartSuccess(t *testing.T) {
 
 		cliParams := []string{"services"}
 		expectedOut := []string{
-			"[INFO] Hub gp started successfully",
-			"[INFO] Agents gp started successfully",
+			"[INFO]:-Hub gp started successfully",
+			"[INFO]:-Agents gp started successfully",
 		}
 		runStartCmdAndCheckOutput(t, cliParams, expectedOut)
 		// check if service is running
@@ -58,8 +58,8 @@ func TestStartSuccess(t *testing.T) {
 
 		cliParams := []string{"services"}
 		expectedOut := []string{
-			"[INFO] Hub dummySvc started successfully",
-			"[INFO] Agents dummySvc started successfully",
+			"[INFO]:-Hub dummySvc started successfully",
+			"[INFO]:-Agents dummySvc started successfully",
 		}
 		runStartCmdAndCheckOutput(t, cliParams, expectedOut)
 		// check if service is running
@@ -83,8 +83,8 @@ func TestStartSuccess(t *testing.T) {
 
 		cliParams := []string{"services", "--verbose"}
 		expectedOut := []string{
-			"[INFO] Hub gp started successfully",
-			"[INFO] Agents gp started successfully",
+			"[INFO]:-Hub gp started successfully",
+			"[INFO]:-Agents gp started successfully",
 			"ROLE", "HOST", "STATUS", "PID", "UPTIME",
 		}
 
@@ -109,7 +109,7 @@ func TestStartSuccess(t *testing.T) {
 		testutils.InitService(*hostfile, testutils.CertificateParams)
 
 		cliParams := []string{"hub", "--verbose"}
-		expectedOut := []string{"[INFO] Hub gp started successfully", "Hub", "running"}
+		expectedOut := []string{"[INFO]:-Hub gp started successfully", "Hub", "running"}
 
 		runStartCmdAndCheckOutput(t, cliParams, expectedOut)
 		// check if service is running

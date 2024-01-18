@@ -5,6 +5,11 @@ import (
 	"os"
 )
 
+const (
+	DEFAULT_COORDINATOR_PORT    = 7000
+	DEFAULT_COORDINATOR_DATADIR = "/data/qddir/gpseg-1"
+)
+
 var (
 	GpHome                   = os.Getenv("GPHOME")
 	DefaultHost              = "localhost"

@@ -107,6 +107,18 @@ func TestGetStatus(t *testing.T) {
 	testhelper.SetupTestLogger()
 
 	t.Run("returns appropriate status when no agent is running", func(t *testing.T) {
+		expected := &idl.ServiceStatus{
+			Status: "not running",
+			Pid:    0,
+			Uptime: "",
+		}
+		platform := &testutils.MockPlatform{
+			RetStatus: expected,
+			Err:       nil,
+		}
+		agent.SetPlatform(platform)
+		defer agent.ResetPlatform()
+
 		credentials := &testutils.MockCredentials{}
 		agentServer := agent.New(agent.Config{
 			Port:        constants.DefaultAgentPort,
@@ -119,11 +131,6 @@ func TestGetStatus(t *testing.T) {
 			t.Fatalf("unexpected error: %#v", err)
 		}
 
-		expected := &idl.ServiceStatus{
-			Status: "not running",
-			Pid:    0,
-			Uptime: "",
-		}
 		if !reflect.DeepEqual(result, expected) {
 			t.Fatalf("got %+v, want %+v", result, expected)
 		}

@@ -13,6 +13,7 @@ import (
 
 	"github.com/greenplum-db/gpdb/gp/constants"
 	"github.com/greenplum-db/gpdb/gp/utils/greenplum"
+	"golang.org/x/exp/maps"
 
 	"github.com/greenplum-db/gp-common-go-libs/gplog"
 	"github.com/greenplum-db/gpdb/gp/idl"
@@ -205,14 +206,14 @@ func ValidatePortsFn(portList []string) error {
 			_, err := utils.CheckIfPortFree(ip, port)
 			if err != nil {
 				usedPortList[port] = true
-				gplog.Error("ports already in use: %s, address:%s check if cluster already running. Error:%v", port, ip, err)
+				gplog.Error("ports already in use: %s, address: %s check if cluster already running. Error: %v", port, ip, err)
 
 			}
 		}
 	}
 
 	if len(usedPortList) > 0 {
-		err := fmt.Errorf("ports already in use: %v, check if cluster already running", usedPortList)
+		err := fmt.Errorf("ports already in use: %+v, check if cluster already running", maps.Keys(usedPortList))
 		return err
 	}
 	return nil

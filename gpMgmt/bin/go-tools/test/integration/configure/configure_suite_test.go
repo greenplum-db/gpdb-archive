@@ -3,7 +3,7 @@ package configure
 import (
 	"flag"
 	"fmt"
-	"github.com/greenplum-db/gpdb/gp/utils/greenplum"
+	"log"
 	"os"
 	"testing"
 
@@ -11,6 +11,7 @@ import (
 	"github.com/greenplum-db/gpdb/gp/hub"
 	"github.com/greenplum-db/gpdb/gp/test/integration/testutils"
 	"github.com/greenplum-db/gpdb/gp/utils"
+	"github.com/greenplum-db/gpdb/gp/utils/greenplum"
 )
 
 const (
@@ -25,9 +26,9 @@ var (
 
 var (
 	expectedOutput = []string{
-		"[INFO] Created service file directory",
-		"[INFO] Wrote hub service file",
-		"[INFO] Wrote agent service file",
+		"[INFO]:-Created service file directory",
+		"[INFO]:-Wrote hub service file",
+		"[INFO]:-Wrote agent service file",
 	}
 	helpTxt = []string{
 		"Configure gp as a systemd daemon",
@@ -65,8 +66,12 @@ func TestMain(m *testing.M) {
 	flag.Parse()
 	// if hostfile is not provided as input argument, create it with default host
 	if *hostfile == "" {
+		os.Exit(1)
 		*hostfile = testutils.DefaultHostfile
 		_ = os.WriteFile(*hostfile, []byte(testutils.DefaultHost), 0644)
+	} else {
+		log.Print(*hostfile)
+		os.Exit(1)
 	}
 	exitVal := m.Run()
 	tearDownTest()

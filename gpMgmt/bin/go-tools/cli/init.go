@@ -18,20 +18,20 @@ import (
 )
 
 type Locale struct {
-	LcAll      string `mapstructure:"lc-all"`
-	LcCollate  string `mapstructure:"lc-collate"`
-	LcCtype    string `mapstructure:"lc-ctype"`
-	LcMessages string `mapstructure:"lc-messages"`
-	LcMonetary string `mapstructure:"lc-monetary"`
-	LcNumeric  string `mapstructure:"lc-numeric"`
-	LcTime     string `mapstructure:"lc-time"`
+	LcAll      string `mapstructure:"lc-all" json:"lc-all"`
+	LcCollate  string `mapstructure:"lc-collate" json:"lc-collate"`
+	LcCtype    string `mapstructure:"lc-ctype" json:"lc-ctype"`
+	LcMessages string `mapstructure:"lc-messages" json:"lc-messages"`
+	LcMonetary string `mapstructure:"lc-monetary" json:"lc-monetary"`
+	LcNumeric  string `mapstructure:"lc-numeric" json:"lc-numeric"`
+	LcTime     string `mapstructure:"lc-time" json:"lc-time"`
 }
 
 type Segment struct {
-	Hostname      string `mapstructure:"hostname"`
-	Address       string `mapstructure:"address"`
-	Port          int    `mapstructure:"port"`
-	DataDirectory string `mapstructure:"data-directory"`
+	Hostname      string `mapstructure:"hostname" json:"hostname"`
+	Address       string `mapstructure:"address" json:"address"`
+	Port          int    `mapstructure:"port" json:"port"`
+	DataDirectory string `mapstructure:"data-directory" json:"data-directory" yaml:"data-directory" toml:"data-directory"`
 }
 
 type SegmentPair struct {
@@ -241,7 +241,7 @@ ValidateInputConfigAndSetDefaultsFn performs various validation checks on the co
 func ValidateInputConfigAndSetDefaultsFn(request *idl.MakeClusterRequest, cliHandler *viper.Viper) error {
 	//Check if coordinator details are provided
 	if !cliHandler.IsSet("coordinator") {
-		return fmt.Errorf("no coordinator segments are provided in input config file")
+		return fmt.Errorf("no coordinator segment provided in input config file")
 	}
 
 	//Check if primary segment details are provided

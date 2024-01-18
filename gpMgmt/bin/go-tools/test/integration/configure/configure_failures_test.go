@@ -77,7 +77,7 @@ func TestConfigureFailure(t *testing.T) {
 			cliParams: []string{"--host", testutils.DefaultHost,
 				"--hostfile", "abc"},
 			expectedOut: []string{
-				"[ERROR] if any flags in the group [host hostfile] are set none of the others can be; [host hostfile] were all set",
+				"[ERROR]:-if any flags in the group [host hostfile] are set none of the others can be; [host hostfile] were all set",
 			},
 		},
 		{
@@ -150,7 +150,7 @@ func TestConfigureFailure(t *testing.T) {
 				"--hub-port", "2000",
 			},
 			expectedOut: []string{
-				"[ERROR] hub port and agent port must be different",
+				"[ERROR]:-hub port and agent port must be different",
 			},
 		},
 		{
