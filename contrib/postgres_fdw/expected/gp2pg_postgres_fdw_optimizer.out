@@ -645,47 +645,48 @@ SELECT t1."C 1" FROM "S 1"."T 1" t1 left join ft1 t2 join ft2 t3 on (t2.c1 = t3.
 -- included in join restrictions.
 EXPLAIN (VERBOSE, COSTS OFF)
 	SELECT t1."C 1", t2.c1, t3.c1 FROM "S 1"."T 1" t1 left join ft1 t2 full join ft2 t3 on (t2.c1 = t3.c1) on (t3.c1 = t1."C 1") order by t1."C 1" OFFSET 100 LIMIT 10;
-                                      QUERY PLAN                                       
----------------------------------------------------------------------------------------
+                                         QUERY PLAN                                          
+---------------------------------------------------------------------------------------------
  Limit
    Output: "T 1"."C 1", c1, c1
-   ->  Gather Motion 3:1  (slice1; segments: 3)
+   ->  Sort
          Output: "T 1"."C 1", c1, c1
-         Merge Key: "T 1"."C 1"
-         ->  Sort
+         Sort Key: "T 1"."C 1"
+         ->  Hash Left Join
                Output: "T 1"."C 1", c1, c1
-               Sort Key: "T 1"."C 1"
-               ->  Hash Right Join
-                     Output: "T 1"."C 1", c1, c1
-                     Hash Cond: (c1 = "T 1"."C 1")
-                     ->  Merge Full Join
-                           Output: c1, c1
-                           Merge Cond: (c1 = c1)
-                           ->  Sort
-                                 Output: c1
-                                 Sort Key: c1
-                                 ->  Redistribute Motion 1:3  (slice2)
-                                       Output: c1
-                                       Hash Key: c1
-                                       ->  Foreign Scan on public.ft1 t2
-                                             Output: c1
-                                             Remote SQL: SELECT "C 1" FROM "S 1"."T 1"
-                           ->  Sort
-                                 Output: c1
-                                 Sort Key: c1
-                                 ->  Redistribute Motion 1:3  (slice3)
-                                       Output: c1
-                                       Hash Key: c1
-                                       ->  Foreign Scan on public.ft2 t3
-                                             Output: c1
-                                             Remote SQL: SELECT "C 1" FROM "S 1"."T 1"
-                     ->  Hash
+               Hash Cond: ("T 1"."C 1" = c1)
+               ->  Gather Motion 3:1  (slice1; segments: 3)
+                     Output: "T 1"."C 1"
+                     ->  Seq Scan on "S 1"."T 1"
                            Output: "T 1"."C 1"
-                           ->  Seq Scan on "S 1"."T 1"
-                                 Output: "T 1"."C 1"
- Optimizer: Pivotal Optimizer (GPORCA)
+               ->  Hash
+                     Output: c1, c1
+                     ->  Gather Motion 3:1  (slice2; segments: 3)
+                           Output: c1, c1
+                           ->  Merge Full Join
+                                 Output: c1, c1
+                                 Merge Cond: (c1 = c1)
+                                 ->  Sort
+                                       Output: c1
+                                       Sort Key: c1
+                                       ->  Redistribute Motion 1:3  (slice3)
+                                             Output: c1
+                                             Hash Key: c1
+                                             ->  Foreign Scan on public.ft1 t2
+                                                   Output: c1
+                                                   Remote SQL: SELECT "C 1" FROM "S 1"."T 1"
+                                 ->  Sort
+                                       Output: c1
+                                       Sort Key: c1
+                                       ->  Redistribute Motion 1:3  (slice4)
+                                             Output: c1
+                                             Hash Key: c1
+                                             ->  Foreign Scan on public.ft2 t3
+                                                   Output: c1
+                                                   Remote SQL: SELECT "C 1" FROM "S 1"."T 1"
+ Optimizer: GPORCA
  Settings: enable_hashjoin = 'off', enable_mergejoin = 'on'
-(38 rows)
+(39 rows)
 
 SELECT t1."C 1", t2.c1, t3.c1 FROM "S 1"."T 1" t1 left join ft1 t2 full join ft2 t3 on (t2.c1 = t3.c1) on (t3.c1 = t1."C 1") order by t1."C 1" OFFSET 100 LIMIT 10;
  C 1 | c1  | c1  

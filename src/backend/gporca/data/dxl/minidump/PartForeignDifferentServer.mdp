@@ -362,7 +362,7 @@ explain select a, word1 from part;
     <dxl:Plan Id="0" SpaceSize="2">
       <dxl:GatherMotion InputSegments="0,1,2" OutputSegments="-1">
         <dxl:Properties>
-          <dxl:Cost StartupCost="0" TotalCost="1293.000247" Rows="1.000000" Width="12"/>
+          <dxl:Cost StartupCost="0" TotalCost="1293.000217" Rows="1.000000" Width="12"/>
         </dxl:Properties>
         <dxl:ProjList>
           <dxl:ProjElem ColId="1" Alias="a">
@@ -376,7 +376,7 @@ explain select a, word1 from part;
         <dxl:SortingColumnList/>
         <dxl:Result>
           <dxl:Properties>
-            <dxl:Cost StartupCost="0" TotalCost="1293.000203" Rows="1.000000" Width="12"/>
+            <dxl:Cost StartupCost="0" TotalCost="1293.000172" Rows="1.000000" Width="12"/>
           </dxl:Properties>
           <dxl:ProjList>
             <dxl:ProjElem ColId="1" Alias="a">
@@ -390,7 +390,7 @@ explain select a, word1 from part;
           <dxl:OneTimeFilter/>
           <dxl:Append IsTarget="false" IsZapped="false">
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="1293.000203" Rows="1.000000" Width="12"/>
+              <dxl:Cost StartupCost="0" TotalCost="1293.000172" Rows="1.000000" Width="12"/>
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="0" Alias="word1">
@@ -403,7 +403,7 @@ explain select a, word1 from part;
             <dxl:Filter/>
             <dxl:DynamicTableScan SelectorIds="">
               <dxl:Properties>
-                <dxl:Cost StartupCost="0" TotalCost="431.000023" Rows="1.000000" Width="12"/>
+                <dxl:Cost StartupCost="0" TotalCost="431.000008" Rows="1.000000" Width="12"/>
               </dxl:Properties>
               <dxl:ProjList>
                 <dxl:ProjElem ColId="9" Alias="word1">

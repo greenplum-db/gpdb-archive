@@ -373,10 +373,10 @@ explain select * from R1 inner join S1 on a = b union all select * from R2 inner
         </dxl:LogicalJoin>
       </dxl:UnionAll>
     </dxl:Query>
-    <dxl:Plan Id="0" SpaceSize="96">
+    <dxl:Plan Id="0" SpaceSize="112">
       <dxl:GatherMotion InputSegments="0,1,2" OutputSegments="-1">
         <dxl:Properties>
-          <dxl:Cost StartupCost="0" TotalCost="1265.966969" Rows="1.000000" Width="16"/>
+          <dxl:Cost StartupCost="0" TotalCost="1259.295736" Rows="1.000000" Width="16"/>
         </dxl:Properties>
         <dxl:ProjList>
           <dxl:ProjElem ColId="0" Alias="a">
@@ -390,7 +390,7 @@ explain select * from R1 inner join S1 on a = b union all select * from R2 inner
         <dxl:SortingColumnList/>
         <dxl:Append IsTarget="false" IsZapped="false">
           <dxl:Properties>
-            <dxl:Cost StartupCost="0" TotalCost="1265.966909" Rows="1.000000" Width="16"/>
+            <dxl:Cost StartupCost="0" TotalCost="1259.295676" Rows="1.000000" Width="16"/>
           </dxl:Properties>
           <dxl:ProjList>
             <dxl:ProjElem ColId="0" Alias="a">
@@ -403,7 +403,7 @@ explain select * from R1 inner join S1 on a = b union all select * from R2 inner
           <dxl:Filter/>
           <dxl:NestedLoopJoin JoinType="Inner" IndexNestedLoopJoin="true" OuterRefAsParam="false">
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="828.966488" Rows="1.000000" Width="4"/>
+              <dxl:Cost StartupCost="0" TotalCost="822.295505" Rows="1.000000" Width="4"/>
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="0" Alias="a">
@@ -438,7 +438,7 @@ explain select * from R1 inner join S1 on a = b union all select * from R2 inner
             </dxl:TableScan>
             <dxl:BitmapTableScan>
               <dxl:Properties>
-                <dxl:Cost StartupCost="0" TotalCost="397.966457" Rows="1.000000" Width="2"/>
+                <dxl:Cost StartupCost="0" TotalCost="391.295486" Rows="1.000000" Width="2"/>
               </dxl:Properties>
               <dxl:ProjList>
                 <dxl:ProjElem ColId="0" Alias="a">
@@ -481,7 +481,7 @@ explain select * from R1 inner join S1 on a = b union all select * from R2 inner
           </dxl:NestedLoopJoin>
           <dxl:NestedLoopJoin JoinType="Inner" IndexNestedLoopJoin="true" OuterRefAsParam="false">
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="437.000416" Rows="1.000000" Width="16"/>
+              <dxl:Cost StartupCost="0" TotalCost="437.000166" Rows="1.000000" Width="16"/>
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="8" Alias="a">
@@ -520,7 +520,7 @@ explain select * from R1 inner join S1 on a = b union all select * from R2 inner
             </dxl:TableScan>
             <dxl:IndexScan IndexScanDirection="Forward">
               <dxl:Properties>
-                <dxl:Cost StartupCost="0" TotalCost="6.000304" Rows="1.000000" Width="8"/>
+                <dxl:Cost StartupCost="0" TotalCost="6.000101" Rows="1.000000" Width="8"/>
               </dxl:Properties>
               <dxl:ProjList>
                 <dxl:ProjElem ColId="16" Alias="b">
@@ -538,7 +538,7 @@ explain select * from R1 inner join S1 on a = b union all select * from R2 inner
                   </dxl:Cast>
                 </dxl:Comparison>
               </dxl:IndexCondList>
-	      <dxl:Partitions/>
+              <dxl:Partitions/>
               <dxl:IndexDescriptor Mdid="0.130113.1.0" IndexName="s2_pkey"/>
               <dxl:TableDescriptor Mdid="6.130094.1.0" TableName="s2">
                 <dxl:Columns>

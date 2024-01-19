@@ -280,10 +280,10 @@ and ei.entity_id  = i.ad_id;
         </dxl:And>
       </dxl:LogicalJoin>
     </dxl:Query>
-    <dxl:Plan Id="0" SpaceSize="5422">
+    <dxl:Plan Id="0" SpaceSize="6334">
       <dxl:GatherMotion InputSegments="0,1" OutputSegments="-1">
         <dxl:Properties>
-          <dxl:Cost StartupCost="0" TotalCost="2586.003217" Rows="2.000000" Width="24"/>
+          <dxl:Cost StartupCost="0" TotalCost="2586.003186" Rows="2.000000" Width="24"/>
         </dxl:Properties>
         <dxl:ProjList>
           <dxl:ProjElem ColId="0" Alias="user_id">
@@ -300,7 +300,7 @@ and ei.entity_id  = i.ad_id;
         <dxl:SortingColumnList/>
         <dxl:Sequence>
           <dxl:Properties>
-            <dxl:Cost StartupCost="0" TotalCost="2586.003002" Rows="2.000000" Width="24"/>
+            <dxl:Cost StartupCost="0" TotalCost="2586.002971" Rows="2.000000" Width="24"/>
           </dxl:Properties>
           <dxl:ProjList>
             <dxl:ProjElem ColId="0" Alias="user_id">
@@ -404,7 +404,7 @@ and ei.entity_id  = i.ad_id;
           </dxl:CTEProducer>
           <dxl:Sequence>
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="2155.002918" Rows="2.000000" Width="20"/>
+              <dxl:Cost StartupCost="0" TotalCost="2155.002887" Rows="2.000000" Width="16"/>
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="0" Alias="user_id">
@@ -419,7 +419,7 @@ and ei.entity_id  = i.ad_id;
             </dxl:ProjList>
             <dxl:CTEProducer CTEId="1" Columns="29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47">
               <dxl:Properties>
-                <dxl:Cost StartupCost="0" TotalCost="862.002018" Rows="1.000000" Width="1"/>
+                <dxl:Cost StartupCost="0" TotalCost="862.002037" Rows="1.000000" Width="1"/>
               </dxl:Properties>
               <dxl:ProjList>
                 <dxl:ProjElem ColId="29" Alias="user_id">
@@ -482,7 +482,7 @@ and ei.entity_id  = i.ad_id;
               </dxl:ProjList>
               <dxl:HashJoin JoinType="Inner">
                 <dxl:Properties>
-                  <dxl:Cost StartupCost="0" TotalCost="862.002017" Rows="1.000000" Width="96"/>
+                  <dxl:Cost StartupCost="0" TotalCost="862.002036" Rows="1.000000" Width="100"/>
                 </dxl:Properties>
                 <dxl:ProjList>
                   <dxl:ProjElem ColId="29" Alias="user_id">
@@ -557,7 +557,7 @@ and ei.entity_id  = i.ad_id;
                 </dxl:HashCondList>
                 <dxl:CTEConsumer CTEId="0" Columns="29,30,31,32,33,34,35,36,37,38">
                   <dxl:Properties>
-                    <dxl:Cost StartupCost="0" TotalCost="431.000120" Rows="1.000000" Width="50"/>
+                    <dxl:Cost StartupCost="0" TotalCost="431.000130" Rows="1.000000" Width="54"/>
                   </dxl:Properties>
                   <dxl:ProjList>
                     <dxl:ProjElem ColId="29" Alias="user_id">
@@ -644,7 +644,7 @@ and ei.entity_id  = i.ad_id;
             </dxl:CTEProducer>
             <dxl:Append IsTarget="false" IsZapped="false">
               <dxl:Properties>
-                <dxl:Cost StartupCost="0" TotalCost="1293.000881" Rows="2.000000" Width="20"/>
+                <dxl:Cost StartupCost="0" TotalCost="1293.000834" Rows="2.000000" Width="16"/>
               </dxl:Properties>
               <dxl:ProjList>
                 <dxl:ProjElem ColId="0" Alias="user_id">
@@ -660,7 +660,7 @@ and ei.entity_id  = i.ad_id;
               <dxl:Filter/>
               <dxl:Result>
                 <dxl:Properties>
-                  <dxl:Cost StartupCost="0" TotalCost="431.000048" Rows="1.000000" Width="20"/>
+                  <dxl:Cost StartupCost="0" TotalCost="431.000029" Rows="1.000000" Width="24"/>
                 </dxl:Properties>
                 <dxl:ProjList>
                   <dxl:ProjElem ColId="0" Alias="user_id">
@@ -677,7 +677,7 @@ and ei.entity_id  = i.ad_id;
                 <dxl:OneTimeFilter/>
                 <dxl:CTEConsumer CTEId="1" Columns="0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18">
                   <dxl:Properties>
-                    <dxl:Cost StartupCost="0" TotalCost="431.000048" Rows="1.000000" Width="20"/>
+                    <dxl:Cost StartupCost="0" TotalCost="431.000029" Rows="1.000000" Width="24"/>
                   </dxl:Properties>
                   <dxl:ProjList>
                     <dxl:ProjElem ColId="0" Alias="user_id">
@@ -742,7 +742,7 @@ and ei.entity_id  = i.ad_id;
               </dxl:Result>
               <dxl:Result>
                 <dxl:Properties>
-                  <dxl:Cost StartupCost="0" TotalCost="862.000812" Rows="1.000000" Width="20"/>
+                  <dxl:Cost StartupCost="0" TotalCost="862.000789" Rows="1.000000" Width="16"/>
                 </dxl:Properties>
                 <dxl:ProjList>
                   <dxl:ProjElem ColId="48" Alias="user_id">
@@ -759,7 +759,7 @@ and ei.entity_id  = i.ad_id;
                 <dxl:OneTimeFilter/>
                 <dxl:HashJoin JoinType="LeftAntiSemiJoin">
                   <dxl:Properties>
-                    <dxl:Cost StartupCost="0" TotalCost="862.000792" Rows="1.000000" Width="16"/>
+                    <dxl:Cost StartupCost="0" TotalCost="862.000781" Rows="1.000000" Width="16"/>
                   </dxl:Properties>
                   <dxl:ProjList>
                     <dxl:ProjElem ColId="48" Alias="user_id">
@@ -787,7 +787,7 @@ and ei.entity_id  = i.ad_id;
                   </dxl:HashCondList>
                   <dxl:CTEConsumer CTEId="0" Columns="48,49,50,51,52,53,54,55,56,57">
                     <dxl:Properties>
-                      <dxl:Cost StartupCost="0" TotalCost="431.000048" Rows="1.000000" Width="20"/>
+                      <dxl:Cost StartupCost="0" TotalCost="431.000058" Rows="1.000000" Width="24"/>
                     </dxl:Properties>
                     <dxl:ProjList>
                       <dxl:ProjElem ColId="48" Alias="user_id">
@@ -824,7 +824,7 @@ and ei.entity_id  = i.ad_id;
                   </dxl:CTEConsumer>
                   <dxl:Aggregate AggregationStrategy="Hashed" StreamSafe="false">
                     <dxl:Properties>
-                      <dxl:Cost StartupCost="0" TotalCost="431.000138" Rows="1.000000" Width="8"/>
+                      <dxl:Cost StartupCost="0" TotalCost="431.000142" Rows="1.000000" Width="8"/>
                     </dxl:Properties>
                     <dxl:GroupingColumns>
                       <dxl:GroupingColumn ColId="58"/>
@@ -841,7 +841,7 @@ and ei.entity_id  = i.ad_id;
                     <dxl:Filter/>
                     <dxl:CTEConsumer CTEId="1" Columns="58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76">
                       <dxl:Properties>
-                        <dxl:Cost StartupCost="0" TotalCost="431.000014" Rows="1.000000" Width="12"/>
+                        <dxl:Cost StartupCost="0" TotalCost="431.000019" Rows="1.000000" Width="16"/>
                       </dxl:Properties>
                       <dxl:ProjList>
                         <dxl:ProjElem ColId="58" Alias="user_id">

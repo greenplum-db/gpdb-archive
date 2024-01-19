@@ -96,6 +96,9 @@ public:
 	IStatistics *PstatsDerive(CMemoryPool *mp, CExpressionHandle &exprhdl,
 							  IStatisticsArray *stats_ctxt) const override;
 
+	CColRefSet *PcrsStat(CMemoryPool *mp, CExpressionHandle &exprhdl,
+						 CColRefSet *pcrsInput,
+						 ULONG child_index) const override;
 
 	// conversion function
 	static CLogicalUnionAll *
@@ -109,7 +112,9 @@ public:
 
 	// derive statistics based on union all semantics
 	static IStatistics *PstatsDeriveUnionAll(CMemoryPool *mp,
-											 CExpressionHandle &exprhdl);
+											 CExpressionHandle &exprhdl,
+											 CColRefArray *pdrgpcrOutput,
+											 CColRef2dArray *pdrgpdrgpcrInput);
 
 };	// class CLogicalUnionAll
 

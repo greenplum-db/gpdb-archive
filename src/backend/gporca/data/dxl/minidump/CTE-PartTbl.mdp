@@ -465,7 +465,7 @@
     <dxl:Plan Id="0" SpaceSize="1320">
       <dxl:Sequence>
         <dxl:Properties>
-          <dxl:Cost StartupCost="0" TotalCost="1293.000374" Rows="2.000000" Width="12"/>
+          <dxl:Cost StartupCost="0" TotalCost="1293.000350" Rows="2.000000" Width="8"/>
         </dxl:Properties>
         <dxl:ProjList>
           <dxl:ProjElem ColId="22" Alias="a">
@@ -539,7 +539,7 @@
         </dxl:CTEProducer>
         <dxl:Append IsTarget="false" IsZapped="false">
           <dxl:Properties>
-            <dxl:Cost StartupCost="0" TotalCost="862.000293" Rows="2.000000" Width="12"/>
+            <dxl:Cost StartupCost="0" TotalCost="862.000277" Rows="2.000000" Width="8"/>
           </dxl:Properties>
           <dxl:ProjList>
             <dxl:ProjElem ColId="22" Alias="a">
@@ -552,7 +552,7 @@
           <dxl:Filter/>
           <dxl:Result>
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="431.000134" Rows="1.000000" Width="12"/>
+              <dxl:Cost StartupCost="0" TotalCost="431.000130" Rows="1.000000" Width="8"/>
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="22" Alias="a">
@@ -613,7 +613,7 @@
           </dxl:Result>
           <dxl:Result>
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="431.000134" Rows="1.000000" Width="12"/>
+              <dxl:Cost StartupCost="0" TotalCost="431.000130" Rows="1.000000" Width="8"/>
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="23" Alias="a">

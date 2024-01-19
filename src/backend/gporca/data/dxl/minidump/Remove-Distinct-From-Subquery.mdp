@@ -504,7 +504,7 @@ select * from bar where c not in (select distinct a from foo);
     <dxl:Plan Id="0" SpaceSize="2613306696">
       <dxl:GatherMotion InputSegments="0,1,2" OutputSegments="-1">
         <dxl:Properties>
-          <dxl:Cost StartupCost="0" TotalCost="4310.001444" Rows="4.000000" Width="8"/>
+          <dxl:Cost StartupCost="0" TotalCost="4310.001330" Rows="4.000000" Width="8"/>
         </dxl:Properties>
         <dxl:ProjList>
           <dxl:ProjElem ColId="0" Alias="c">
@@ -518,7 +518,7 @@ select * from bar where c not in (select distinct a from foo);
         <dxl:SortingColumnList/>
         <dxl:Append IsTarget="false" IsZapped="false">
           <dxl:Properties>
-            <dxl:Cost StartupCost="0" TotalCost="4310.001324" Rows="4.000000" Width="8"/>
+            <dxl:Cost StartupCost="0" TotalCost="4310.001211" Rows="4.000000" Width="8"/>
           </dxl:Properties>
           <dxl:ProjList>
             <dxl:ProjElem ColId="0" Alias="c">
@@ -531,7 +531,7 @@ select * from bar where c not in (select distinct a from foo);
           <dxl:Filter/>
           <dxl:NestedLoopJoin JoinType="In" IndexNestedLoopJoin="false" OuterRefAsParam="false">
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="1293.000138" Rows="1.000000" Width="8"/>
+              <dxl:Cost StartupCost="0" TotalCost="1293.000091" Rows="1.000000" Width="8"/>
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="0" Alias="c">
@@ -547,7 +547,7 @@ select * from bar where c not in (select distinct a from foo);
             </dxl:JoinFilter>
             <dxl:TableScan>
               <dxl:Properties>
-                <dxl:Cost StartupCost="0" TotalCost="431.000021" Rows="1.000000" Width="8"/>
+                <dxl:Cost StartupCost="0" TotalCost="431.000007" Rows="1.000000" Width="8"/>
               </dxl:Properties>
               <dxl:ProjList>
                 <dxl:ProjElem ColId="0" Alias="c">
@@ -629,7 +629,7 @@ select * from bar where c not in (select distinct a from foo);
           </dxl:NestedLoopJoin>
           <dxl:HashJoin JoinType="In">
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="862.000462" Rows="1.000000" Width="8"/>
+              <dxl:Cost StartupCost="0" TotalCost="862.000443" Rows="1.000000" Width="8"/>
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="18" Alias="c">
@@ -700,7 +700,7 @@ select * from bar where c not in (select distinct a from foo);
           </dxl:HashJoin>
           <dxl:NestedLoopJoin JoinType="LeftAntiSemiJoin" IndexNestedLoopJoin="false" OuterRefAsParam="false">
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="1293.000098" Rows="1.000000" Width="8"/>
+              <dxl:Cost StartupCost="0" TotalCost="1293.000050" Rows="1.000000" Width="8"/>
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="36" Alias="c">
@@ -716,7 +716,7 @@ select * from bar where c not in (select distinct a from foo);
             </dxl:JoinFilter>
             <dxl:TableScan>
               <dxl:Properties>
-                <dxl:Cost StartupCost="0" TotalCost="431.000021" Rows="1.000000" Width="8"/>
+                <dxl:Cost StartupCost="0" TotalCost="431.000007" Rows="1.000000" Width="8"/>
               </dxl:Properties>
               <dxl:ProjList>
                 <dxl:ProjElem ColId="36" Alias="c">

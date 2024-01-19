@@ -136,8 +136,12 @@ CLogicalUnion::PstatsDerive(CMemoryPool *mp, CExpressionHandle &exprhdl,
 
 	// union is transformed into a group by over an union all
 	// we follow the same route to compute statistics
-	IStatistics *pstatsUnionAll =
-		CLogicalUnionAll::PstatsDeriveUnionAll(mp, exprhdl);
+	CColRefArray *pdrgpcrOutput =
+		CLogicalSetOp::PopConvert(exprhdl.Pop())->PdrgpcrOutput();
+	CColRef2dArray *pdrgpdrgpcrInput =
+		CLogicalSetOp::PopConvert(exprhdl.Pop())->PdrgpdrgpcrInput();
+	IStatistics *pstatsUnionAll = CLogicalUnionAll::PstatsDeriveUnionAll(
+		mp, exprhdl, pdrgpcrOutput, pdrgpdrgpcrInput);
 
 	// computed columns
 	ULongPtrArray *pdrgpulComputedCols = GPOS_NEW(mp) ULongPtrArray(mp);

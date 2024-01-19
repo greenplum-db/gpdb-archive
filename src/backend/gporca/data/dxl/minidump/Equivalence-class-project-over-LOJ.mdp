@@ -349,14 +349,14 @@
     <dxl:Plan Id="0" SpaceSize="42">
       <dxl:Aggregate AggregationStrategy="Plain" StreamSafe="false">
         <dxl:Properties>
-          <dxl:Cost StartupCost="0" TotalCost="1293.000573" Rows="1.000000" Width="8"/>
+          <dxl:Cost StartupCost="0" TotalCost="1293.000558" Rows="1.000000" Width="8"/>
         </dxl:Properties>
         <dxl:GroupingColumns/>
         <dxl:ProjList>
           <dxl:ProjElem ColId="28" Alias="count">
             <dxl:AggFunc AggMdid="0.2803.1.0" AggDistinct="false" AggStage="Final" AggKind="n" AggArgTypes="">
               <dxl:ValuesList ParamType="aggargs">
-              <dxl:Ident ColId="29" ColName="ColRef_0029" TypeMdid="0.20.1.0"/>
+                <dxl:Ident ColId="29" ColName="ColRef_0029" TypeMdid="0.20.1.0"/>
               </dxl:ValuesList>
               <dxl:ValuesList ParamType="aggdirectargs"/>
               <dxl:ValuesList ParamType="aggorder"/>
@@ -367,7 +367,7 @@
         <dxl:Filter/>
         <dxl:GatherMotion InputSegments="0,1,2" OutputSegments="-1">
           <dxl:Properties>
-            <dxl:Cost StartupCost="0" TotalCost="1293.000572" Rows="1.000000" Width="8"/>
+            <dxl:Cost StartupCost="0" TotalCost="1293.000557" Rows="1.000000" Width="8"/>
           </dxl:Properties>
           <dxl:ProjList>
             <dxl:ProjElem ColId="29" Alias="ColRef_0029">
@@ -378,7 +378,7 @@
           <dxl:SortingColumnList/>
           <dxl:Aggregate AggregationStrategy="Plain" StreamSafe="false">
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="1293.000542" Rows="1.000000" Width="8"/>
+              <dxl:Cost StartupCost="0" TotalCost="1293.000527" Rows="1.000000" Width="8"/>
             </dxl:Properties>
             <dxl:GroupingColumns/>
             <dxl:ProjList>
@@ -394,7 +394,7 @@
             <dxl:Filter/>
             <dxl:Append IsTarget="false" IsZapped="false">
               <dxl:Properties>
-                <dxl:Cost StartupCost="0" TotalCost="1293.000542" Rows="1.000000" Width="1"/>
+                <dxl:Cost StartupCost="0" TotalCost="1293.000527" Rows="1.000000" Width="1"/>
               </dxl:Properties>
               <dxl:ProjList/>
               <dxl:Filter/>
@@ -497,7 +497,7 @@
               </dxl:Result>
               <dxl:TableScan>
                 <dxl:Properties>
-                  <dxl:Cost StartupCost="0" TotalCost="431.000021" Rows="1.000000" Width="1"/>
+                  <dxl:Cost StartupCost="0" TotalCost="431.000007" Rows="1.000000" Width="1"/>
                 </dxl:Properties>
                 <dxl:ProjList/>
                 <dxl:Filter/>

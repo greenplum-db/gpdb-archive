@@ -154,9 +154,6 @@ CParseHandlerStatsDerivedRelation::EndElement(
 				   str->GetBuffer());
 	}
 
-	// must have at least one column stats
-	GPOS_ASSERT(0 < this->Length());
-
 	// array of derived column statistics
 	CDXLStatsDerivedColumnArray *dxl_stats_derived_col_array =
 		GPOS_NEW(m_mp) CDXLStatsDerivedColumnArray(m_mp);

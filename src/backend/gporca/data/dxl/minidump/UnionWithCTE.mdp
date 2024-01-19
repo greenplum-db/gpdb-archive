@@ -273,7 +273,7 @@
     <dxl:Plan Id="0" SpaceSize="200">
       <dxl:GatherMotion InputSegments="0,1,2" OutputSegments="-1">
         <dxl:Properties>
-          <dxl:Cost StartupCost="0" TotalCost="1293.000457" Rows="1.000000" Width="16"/>
+          <dxl:Cost StartupCost="0" TotalCost="1293.000427" Rows="1.000000" Width="16"/>
         </dxl:Properties>
         <dxl:ProjList>
           <dxl:ProjElem ColId="10" Alias="id">
@@ -290,7 +290,7 @@
         <dxl:SortingColumnList/>
         <dxl:Sequence>
           <dxl:Properties>
-            <dxl:Cost StartupCost="0" TotalCost="1293.000397" Rows="1.000000" Width="16"/>
+            <dxl:Cost StartupCost="0" TotalCost="1293.000367" Rows="1.000000" Width="16"/>
           </dxl:Properties>
           <dxl:ProjList>
             <dxl:ProjElem ColId="10" Alias="id">
@@ -436,7 +436,7 @@
           </dxl:CTEProducer>
           <dxl:Append IsTarget="false" IsZapped="false">
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="862.000161" Rows="1.000000" Width="16"/>
+              <dxl:Cost StartupCost="0" TotalCost="862.000131" Rows="1.000000" Width="16"/>
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="10" Alias="id">
@@ -506,7 +506,7 @@
             </dxl:Result>
             <dxl:Result>
               <dxl:Properties>
-                <dxl:Cost StartupCost="0" TotalCost="431.000045" Rows="1.000000" Width="16"/>
+                <dxl:Cost StartupCost="0" TotalCost="431.000015" Rows="1.000000" Width="16"/>
               </dxl:Properties>
               <dxl:ProjList>
                 <dxl:ProjElem ColId="21" Alias="id">
@@ -523,7 +523,7 @@
               <dxl:OneTimeFilter/>
               <dxl:CTEConsumer CTEId="0" Columns="21,22">
                 <dxl:Properties>
-                  <dxl:Cost StartupCost="0" TotalCost="431.000029" Rows="1.000000" Width="12"/>
+                  <dxl:Cost StartupCost="0" TotalCost="431.000010" Rows="1.000000" Width="12"/>
                 </dxl:Properties>
                 <dxl:ProjList>
                   <dxl:ProjElem ColId="21" Alias="id">

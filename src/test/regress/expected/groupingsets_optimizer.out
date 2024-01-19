@@ -1525,24 +1525,24 @@ select a, b, sum(v), count(*) from gstest_empty group by grouping sets ((a,b),a)
 
 explain (costs off)
   select a, b, sum(v), count(*) from gstest_empty group by grouping sets ((a,b),a);
-                         QUERY PLAN                         
-------------------------------------------------------------
- Sequence
-   ->  Shared Scan (share slice:id 0:0)
-         ->  Gather Motion 3:1  (slice1; segments: 3)
+                            QUERY PLAN                            
+------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Sequence
+         ->  Shared Scan (share slice:id 1:0)
                ->  Seq Scan on gstest_empty
-   ->  Append
-         ->  GroupAggregate
-               Group Key: share0_ref2.a
-               ->  Sort
-                     Sort Key: share0_ref2.a
-                     ->  Shared Scan (share slice:id 0:0)
-         ->  GroupAggregate
-               Group Key: share0_ref3.a, share0_ref3.b
-               ->  Sort
-                     Sort Key: share0_ref3.a, share0_ref3.b
-                     ->  Shared Scan (share slice:id 0:0)
- Optimizer: Pivotal Optimizer (GPORCA)
+         ->  Append
+               ->  GroupAggregate
+                     Group Key: share0_ref2.a
+                     ->  Sort
+                           Sort Key: share0_ref2.a
+                           ->  Shared Scan (share slice:id 1:0)
+               ->  GroupAggregate
+                     Group Key: share0_ref3.a, share0_ref3.b
+                     ->  Sort
+                           Sort Key: share0_ref3.a, share0_ref3.b
+                           ->  Shared Scan (share slice:id 1:0)
+ Optimizer: GPORCA
 (16 rows)
 
 select a, b, sum(v), count(*) from gstest_empty group by grouping sets ((a,b),());

@@ -215,7 +215,7 @@ EXPLAIN SELECT * FROM foo UNION ALL SELECT * FROM bar;
     <dxl:Plan Id="0" SpaceSize="0">
       <dxl:GatherMotion InputSegments="0,1,2" OutputSegments="-1">
         <dxl:Properties>
-          <dxl:Cost StartupCost="0" TotalCost="431.000041" Rows="1.000000" Width="4"/>
+          <dxl:Cost StartupCost="0" TotalCost="431.000024" Rows="1.000000" Width="4"/>
         </dxl:Properties>
         <dxl:ProjList>
           <dxl:ProjElem ColId="0" Alias="i">
@@ -226,7 +226,7 @@ EXPLAIN SELECT * FROM foo UNION ALL SELECT * FROM bar;
         <dxl:SortingColumnList/>
         <dxl:Append IsTarget="false" IsZapped="false">
           <dxl:Properties>
-            <dxl:Cost StartupCost="0" TotalCost="431.000026" Rows="1.000000" Width="4"/>
+            <dxl:Cost StartupCost="0" TotalCost="431.000009" Rows="1.000000" Width="4"/>
           </dxl:Properties>
           <dxl:ProjList>
             <dxl:ProjElem ColId="0" Alias="i">
@@ -236,7 +236,7 @@ EXPLAIN SELECT * FROM foo UNION ALL SELECT * FROM bar;
           <dxl:Filter/>
           <dxl:RedistributeMotion InputSegments="0,1,2" OutputSegments="0,1,2">
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="431.000026" Rows="1.000000" Width="4"/>
+              <dxl:Cost StartupCost="0" TotalCost="431.000009" Rows="1.000000" Width="4"/>
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="0" Alias="i">
@@ -252,7 +252,7 @@ EXPLAIN SELECT * FROM foo UNION ALL SELECT * FROM bar;
             </dxl:HashExprList>
             <dxl:TableScan>
               <dxl:Properties>
-                <dxl:Cost StartupCost="0" TotalCost="431.000019" Rows="1.000000" Width="4"/>
+                <dxl:Cost StartupCost="0" TotalCost="431.000006" Rows="1.000000" Width="4"/>
               </dxl:Properties>
               <dxl:ProjList>
                 <dxl:ProjElem ColId="0" Alias="i">
@@ -276,7 +276,7 @@ EXPLAIN SELECT * FROM foo UNION ALL SELECT * FROM bar;
           </dxl:RedistributeMotion>
           <dxl:RedistributeMotion InputSegments="0,1,2" OutputSegments="0,1,2">
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="431.000026" Rows="1.000000" Width="4"/>
+              <dxl:Cost StartupCost="0" TotalCost="431.000009" Rows="1.000000" Width="4"/>
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="8" Alias="j">
@@ -292,7 +292,7 @@ EXPLAIN SELECT * FROM foo UNION ALL SELECT * FROM bar;
             </dxl:HashExprList>
             <dxl:TableScan>
               <dxl:Properties>
-                <dxl:Cost StartupCost="0" TotalCost="431.000019" Rows="1.000000" Width="4"/>
+                <dxl:Cost StartupCost="0" TotalCost="431.000006" Rows="1.000000" Width="4"/>
               </dxl:Properties>
               <dxl:ProjList>
                 <dxl:ProjElem ColId="8" Alias="j">

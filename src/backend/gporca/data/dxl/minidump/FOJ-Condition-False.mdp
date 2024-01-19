@@ -176,7 +176,7 @@ select * from foo a full join foo b on false;
     <dxl:Plan Id="0" SpaceSize="84">
       <dxl:GatherMotion InputSegments="0,1,2" OutputSegments="-1">
         <dxl:Properties>
-          <dxl:Cost StartupCost="0" TotalCost="3017.008465" Rows="80.000000" Width="16"/>
+          <dxl:Cost StartupCost="0" TotalCost="3017.005429" Rows="80.000000" Width="8"/>
         </dxl:Properties>
         <dxl:ProjList>
           <dxl:ProjElem ColId="0" Alias="a">
@@ -190,7 +190,7 @@ select * from foo a full join foo b on false;
         <dxl:SortingColumnList/>
         <dxl:Sequence>
           <dxl:Properties>
-            <dxl:Cost StartupCost="0" TotalCost="3017.003694" Rows="80.000000" Width="16"/>
+            <dxl:Cost StartupCost="0" TotalCost="3017.003044" Rows="80.000000" Width="8"/>
           </dxl:Properties>
           <dxl:ProjList>
             <dxl:ProjElem ColId="0" Alias="a">
@@ -277,7 +277,7 @@ select * from foo a full join foo b on false;
           </dxl:CTEProducer>
           <dxl:Sequence>
             <dxl:Properties>
-              <dxl:Cost StartupCost="0" TotalCost="2586.003027" Rows="80.000000" Width="16"/>
+              <dxl:Cost StartupCost="0" TotalCost="2586.002589" Rows="80.000000" Width="8"/>
             </dxl:Properties>
             <dxl:ProjList>
               <dxl:ProjElem ColId="0" Alias="a">
@@ -364,7 +364,7 @@ select * from foo a full join foo b on false;
             </dxl:CTEProducer>
             <dxl:Append IsTarget="false" IsZapped="false">
               <dxl:Properties>
-                <dxl:Cost StartupCost="0" TotalCost="2155.002359" Rows="80.000000" Width="16"/>
+                <dxl:Cost StartupCost="0" TotalCost="2155.002135" Rows="80.000000" Width="8"/>
               </dxl:Properties>
               <dxl:ProjList>
                 <dxl:ProjElem ColId="0" Alias="a">
@@ -460,7 +460,7 @@ select * from foo a full join foo b on false;
               </dxl:NestedLoopJoin>
               <dxl:Result>
                 <dxl:Properties>
-                  <dxl:Cost StartupCost="0" TotalCost="1293.000345" Rows="8.000000" Width="12"/>
+                  <dxl:Cost StartupCost="0" TotalCost="1293.000335" Rows="8.000000" Width="8"/>
                 </dxl:Properties>
                 <dxl:ProjList>
                   <dxl:ProjElem ColId="48" Alias="a">

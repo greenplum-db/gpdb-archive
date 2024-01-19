@@ -144,15 +144,13 @@ CLogicalUnionAll::PxfsCandidates(CMemoryPool *mp) const
 //---------------------------------------------------------------------------
 IStatistics *
 CLogicalUnionAll::PstatsDeriveUnionAll(CMemoryPool *mp,
-									   CExpressionHandle &exprhdl)
+									   CExpressionHandle &exprhdl,
+									   CColRefArray *pdrgpcrOutput,
+									   CColRef2dArray *pdrgpdrgpcrInput)
 {
 	GPOS_ASSERT(COperator::EopLogicalUnionAll == exprhdl.Pop()->Eopid() ||
 				COperator::EopLogicalUnion == exprhdl.Pop()->Eopid());
 
-	CColRefArray *pdrgpcrOutput =
-		CLogicalSetOp::PopConvert(exprhdl.Pop())->PdrgpcrOutput();
-	CColRef2dArray *pdrgpdrgpcrInput =
-		CLogicalSetOp::PopConvert(exprhdl.Pop())->PdrgpdrgpcrInput();
 	GPOS_ASSERT(nullptr != pdrgpcrOutput);
 	GPOS_ASSERT(nullptr != pdrgpdrgpcrInput);
 
@@ -189,8 +187,85 @@ CLogicalUnionAll::PstatsDerive(CMemoryPool *mp, CExpressionHandle &exprhdl,
 ) const
 {
 	GPOS_ASSERT(EspNone < Esp(exprhdl));
+	CColRefArray *pdrgpcrOutput =
+		CLogicalSetOp::PopConvert(exprhdl.Pop())->PdrgpcrOutput();
+	CColRef2dArray *pdrgpdrgpcrInput =
+		CLogicalSetOp::PopConvert(exprhdl.Pop())->PdrgpdrgpcrInput();
 
-	return PstatsDeriveUnionAll(mp, exprhdl);
+	CReqdPropRelational *prprel =
+		CReqdPropRelational::GetReqdRelationalProps(exprhdl.Prp());
+	CColRefArray *pdrgpcrOutputStats = prprel->PcrsStat()->Pdrgpcr(mp);
+
+	CColRef2dArray *pdrgpdrgpcrInputStats = GPOS_NEW(mp) CColRef2dArray(mp);
+	/* 
+	 * In CLogicalUnionAll, output columns are the same as the input columns
+	 * of the first union all child
+	 */
+	pdrgpdrgpcrInputStats->Append(pdrgpcrOutputStats);
+	/*
+	 * We iteratively remap the stats columns for the 2nd (index 1) union all
+	 * child and subsequent ones. Each of the stat columns, which are a subset
+	 * of output columns, is mapped to the corresponding input column. The 
+	 * first (index 0) union all child doesn't require remapping, because union
+	 * all output columns align directly with the input columns of the first 
+	 * union all child.
+	 */
+	const ULONG arity = exprhdl.Arity();
+	for (ULONG ul = 1; ul < arity; ul++)
+	{
+		UlongToColRefMap *mapping =
+			CUtils::PhmulcrMapping(mp, pdrgpcrOutput, (*pdrgpdrgpcrInput)[ul]);
+		CColRefArray *pdrgpcrInputStats =
+			CUtils::PdrgpcrRemap(mp, pdrgpcrOutputStats, mapping, true);
+		pdrgpdrgpcrInputStats->Append(pdrgpcrInputStats);
+		mapping->Release();
+	}
+
+	IStatistics *result = PstatsDeriveUnionAll(mp, exprhdl, pdrgpcrOutputStats,
+											   pdrgpdrgpcrInputStats);
+	pdrgpdrgpcrInputStats->Release();
+
+	return result;
+}
+
+//---------------------------------------------------------------------------
+//	@function:
+//		CLogicalUnionAll::PcrsStat
+//
+//	@doc:
+//		compute required stats columns of the n-th child
+//
+//---------------------------------------------------------------------------
+CColRefSet *
+CLogicalUnionAll::PcrsStat(CMemoryPool *mp,
+						   CExpressionHandle &,	 // exprhdl
+						   CColRefSet *pcrsInput, ULONG child_index) const
+{
+	/*
+	 * We only need compute stats for columns required from parent of UnionAll
+	 * operator. But the output columns of UnionAll are different from it`s 
+	 * children, so we need to remap the stats columns to the corresponding input.
+	 */
+	if (0 == pcrsInput->Size())
+	{
+		pcrsInput->AddRef();
+		return pcrsInput;
+	}
+
+	CColRefSet *pcrsChildInput = (*m_pdrgpcrsInput)[child_index];
+	if (pcrsChildInput->ContainsAll(pcrsInput))
+	{
+		pcrsInput->AddRef();
+		return pcrsInput;
+	}
+	else
+	{
+		UlongToColRefMap *mapping = CUtils::PhmulcrMapping(
+			mp, m_pdrgpcrOutput, (*m_pdrgpdrgpcrInput)[child_index]);
+		CColRefSet *pcrs = CUtils::PcrsRemap(mp, pcrsInput, mapping, true);
+		mapping->Release();
+		return pcrs;
+	}
 }
 
 // EOF
