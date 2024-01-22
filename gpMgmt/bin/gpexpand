@@ -1999,6 +1999,53 @@ class gpexpand:
         else:
             self.logger.info("Heap checksum setting consistent across cluster")
 
+    def validate_icproxy_addr(self, inputFileEntryList):
+        """
+        If we are in icproxy mode: the proxy addresses of newly added segments are still empty after
+        expansion. It will cause queries to hang forever.
+        So, we have to check if the user have already set gp_interconnect_proxy_addresses before.
+        And prompt user to set a proper value via gpconfig before expansion.
+        """
+
+        # get GUC value
+        sql = "show gp_interconnect_proxy_addresses;"
+        conn = dbconn.connect(_gp_expand.dburl, encoding='UTF8')
+        icproxy_addresses_string = dbconn.queryRow(conn, sql)[0].strip()
+        sql = "show gp_interconnect_type;"
+        ic_type = dbconn.queryRow(conn, sql)[0].strip()
+        conn.close()
+
+        # check if newly added dbid exists in gp_interconnect_proxy_addresses
+        need_prompt = False
+        new_addresses_string = icproxy_addresses_string
+        if icproxy_addresses_string:
+            self.logger.info("ICProxy addresses has been set to: %s, start to checking if it contains newly added segs", icproxy_addresses_string)
+
+            dbid_set = set()
+            # icproxy_addresses_string example: 1:-1:gpdb:1432,2:0:gpdb:2000,3:1:gpdb:2001
+            for addr in icproxy_addresses_string.split(','):
+                db_id, content_id, host, port = addr.split(':')
+                dbid_set.add(db_id)
+
+            for seg in inputFileEntryList:
+                if seg.dbid not in dbid_set:
+                    need_prompt = True
+                    new_addresses_string += ",%s:%s:%s:{port}" % (seg.dbid, seg.contentId, seg.hostname.strip())
+                    self.logger.warning(" Missing the address of dbid %s in gp_interconnect_proxy_addresses" % (seg.dbid))
+
+            # prompt user to use gpconfig to set the proper value of gp_interconnect_proxy_addresses
+            if need_prompt:
+                if ic_type == "proxy":
+                    self.logger.error("Please run gpconfig to set gp_interconnect_proxy_addresses (replace the {port} with a proper value):")
+                    self.logger.error(" gpconfig -c gp_interconnect_proxy_addresses -v \"'%s'\" --skipvalidation" % (new_addresses_string))
+                    self.logger.error('then rerun gpexpand -i {input_file}')
+                    raise Exception("Checking ICProxy addresses failed")
+                else:
+                    self.logger.warning("Recommended that run gpconfig to set gp_interconnect_proxy_addresses (replace the {port} with a proper value):")
+                    self.logger.warning(" gpconfig -c gp_interconnect_proxy_addresses -v \"'%s'\" --skipvalidation" % (new_addresses_string))
+            else:
+                self.logger.info("Checking ICProxy addresses passed")
+        return
 
 # -----------------------------------------------
 class ExpandTable():
@@ -2548,6 +2595,7 @@ def main(options, args, parser):
         elif gpexpand_db_status is None and gpexpand_file_status is None and options.filename:
             _gp_expand.validate_heap_checksums()
             newSegList = _gp_expand.read_input_files()
+            _gp_expand.validate_icproxy_addr(newSegList)
             _gp_expand.addNewSegments(newSegList)
             newTableSpaceInfo = _gp_expand.read_tablespace_file()
             _gp_expand.sync_packages()

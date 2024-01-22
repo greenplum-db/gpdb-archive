@@ -234,6 +234,59 @@ Feature: expand the cluster by adding more segments
         When the user runs gpexpand to redistribute
         Then the tablespace is valid after gpexpand
 
+    @gpexpand_icproxy
+    Scenario: Cluster expansion failed (no new proxy address) with IC proxy mode enabled
+        Given the database is not running
+        And a working directory of the test as '/data/gpdata/gpexpand'
+        And the user runs command "rm -rf /data/gpdata/gpexpand/*"
+        And a temporary directory under "/data/gpdata/gpexpand/expandedData" to expand into
+        And a cluster is created with no mirrors on "cdw" and "sdw1"
+        And the coordinator pid has been saved
+        And database "gptest" exists
+        And there are no gpexpand_inputfiles
+        And the cluster is running in IC proxy mode
+        And the cluster is setup for an expansion on hosts "cdw"
+        And the user runs gpexpand interview to add 1 new segment and 0 new host "ignore.host"
+        And the number of segments have been saved
+        When the user runs gpexpand with the latest gpexpand_inputfile without ret code check
+        Then gpexpand should return a return code of 3
+        And gpexpand should print "Checking ICProxy addresses failed" to stdout
+
+    @gpexpand_icproxy
+    Scenario: Cluster expansion failed (bind an wrong proxy address) with IC proxy mode enabled
+        Given the database is not running
+        And a working directory of the test as '/data/gpdata/gpexpand'
+        And the user runs command "rm -rf /data/gpdata/gpexpand/*"
+        And a temporary directory under "/data/gpdata/gpexpand/expandedData" to expand into
+        And a cluster is created with no mirrors on "cdw" and "sdw1"
+        And the coordinator pid has been saved
+        And database "gptest" exists
+        And there are no gpexpand_inputfiles
+        And the cluster is running in IC proxy mode with new proxy address 4:2:cdw:16502
+        And the cluster is setup for an expansion on hosts "cdw"
+        And the user runs gpexpand interview to add 1 new segment and 0 new host "ignore.host"
+        And the number of segments have been saved
+        When the user runs gpexpand with the latest gpexpand_inputfile without ret code check
+        Then gpexpand should return a return code of 3
+        And gpexpand should print "The ic_proxy process failed to bind or listen" to stdout
+
+    @gpexpand_icproxy
+    Scenario: Cluster expansion successful with IC proxy mode enabled
+        Given the database is not running
+        And a working directory of the test as '/data/gpdata/gpexpand'
+        And the user runs command "rm -rf /data/gpdata/gpexpand/*"
+        And a temporary directory under "/data/gpdata/gpexpand/expandedData" to expand into
+        And a cluster is created with no mirrors on "cdw" and "sdw1"
+        And the coordinator pid has been saved
+        And database "gptest" exists
+        And there are no gpexpand_inputfiles
+        And the cluster is running in IC proxy mode with new proxy address 4:2:sdw1:16502
+        And the cluster is setup for an expansion on hosts "cdw"
+        And the user runs gpexpand interview to add 1 new segment and 0 new host "ignore.host"
+        And the number of segments have been saved
+        When the user runs gpexpand with the latest gpexpand_inputfile without ret code check
+        Then gpexpand should return a return code of 0
+
     @gpexpand_verify_redistribution
     Scenario: Verify data is correctly redistributed after expansion
         Given the database is not running

@@ -4286,3 +4286,54 @@ def verify_elements_in_file(filename, elements):
                 return False
 
         return True
+
+def set_ic_proxy_and_address(context, new_addr):
+    """
+        set the proper proxy addresses and enable proxy mode
+    """
+    with closing(dbconn.connect(dbconn.DbURL(), unsetSearchPath=False)) as conn:
+        # get segment_configuration
+        sql = "SELECT dbid, content, address, port FROM gp_segment_configuration order by dbid"
+        rows = dbconn.query(conn, sql).fetchall()
+        if len(rows) <= 0:
+            raise Exception("Found no entries in gp_segment_configuration table")
+
+        # generate the proper proxy addresses by segment_configuration
+        cmd = "gpconfig -c gp_interconnect_proxy_addresses -v \"'"
+        for row in rows:
+            delta = 4000
+            dbid = row[0]
+            contentid = row[1]
+            host = row[2].strip()
+            port = int(row[3]) - delta
+            # an icproxy_addresses_string example: 1:-1:gpdb:1432,2:0:gpdb:2000,3:1:gpdb:2001
+            if dbid != 1:
+                cmd += ","
+            cmd += "%d:%d:%s:%d" % (dbid, contentid, host, port)
+        # append new address
+        if new_addr:
+            cmd += ","
+            cmd += new_addr
+        cmd += "'\" --skipvalidation"
+        run_command(context, cmd)
+        if context.ret_code != 0:
+            raise Exception("cannot run %s: %s, stdout: %s" % (cmd, context.error_message, context.stdout_message))
+
+        # set interconnect_type to proxy
+        cmd = "gpconfig -c gp_interconnect_type -v proxy"
+        run_command(context, cmd)
+        if context.ret_code != 0:
+            raise Exception("cannot run %s: %s, stdout: %s" % (cmd, context.error_message, context.stdout_message))
+        # let all config take effects
+        cmd = "gpstop -u"
+        run_command(context, cmd)
+        if context.ret_code != 0:
+            raise Exception("cannot run %s: %s, stdout: %s" % (cmd, context.error_message, context.stdout_message))
+
+@given(u'the cluster is running in IC proxy mode')
+def step_impl(context):
+    set_ic_proxy_and_address(context, "")
+
+@given(u'the cluster is running in IC proxy mode with new proxy address {address}')
+def step_impl(context, address):
+    set_ic_proxy_and_address(context, address)
