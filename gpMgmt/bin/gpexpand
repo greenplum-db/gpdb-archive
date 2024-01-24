@@ -2595,8 +2595,8 @@ def main(options, args, parser):
         elif gpexpand_db_status is None and gpexpand_file_status is None and options.filename:
             _gp_expand.validate_heap_checksums()
             newSegList = _gp_expand.read_input_files()
-            _gp_expand.validate_icproxy_addr(newSegList)
             _gp_expand.addNewSegments(newSegList)
+            _gp_expand.validate_icproxy_addr(newSegList)
             newTableSpaceInfo = _gp_expand.read_tablespace_file()
             _gp_expand.sync_packages()
             _gp_expand.start_prepare()
