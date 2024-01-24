@@ -1350,6 +1350,14 @@ Sets the Postgres-based planner cost estimate for a Motion operator to transfer 
 |-----------|-------|-------------------|
 |floating point|0|coordinator, session, reload|
 
+## <a id="gp_postmaster_address_family"></a>gp\_postmaster\_address\_family
+
+When starting a cluster, this server configuration parameter tells a node which type of IP address to use. When set to `auto`, VMware Greenplum loops through all the ipv4 and ipv6 addresses specified in `listen_addresses`, trying to open a “listening” port on each one.
+
+|Value Range|Default|Set Classifications|
+|-----------|-------|-------------------|
+|auto, ipv4, ipv6|auto|local, system, restart, superuser|
+
 ## <a id="gp_print_create_gang_time"></a>gp\_print\_create\_gang\_time 
 
 When a user starts a session with Greenplum Database and issues a query, the system creates groups or 'gangs' of worker processes on each segment to do the work. `gp_print_create_gang_time` controls the display of additional information about gang creation, including gang reuse status and the shortest and longest connection establishment time to the segment.
