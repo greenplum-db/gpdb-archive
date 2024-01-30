@@ -79,6 +79,7 @@ select gp_inject_fault('execsort_sort_mergeruns', 'reset', 2);
 select gp_inject_fault('execsort_dumptuples', 'reset', 2);
 select gp_inject_fault('execsort_sort_bounded_heap', 'reset', 2);
 select gp_inject_fault('execshare_input_next', 'reset', 2);
+reset optimizer;
 
 -- test if a query can be canceled when cancel signal arrives fast than the query dispatched.
 create table _tmp_table1 as select i as c1, i as c2 from generate_series(1, 10) i;
@@ -104,3 +105,33 @@ select gp_inject_fault('fts_probe', 'reset', 1);
 drop table _tmp_table1;
 drop table _tmp_table2;
 drop table testsisc;
+
+-- test if a query with dynamic bitmapscan plan does not crash when QueryFinishPending set to true
+-- Planner doesn't generate dynamic bitmap heap scan plan for below query.
+create table t1_bm(a int, b int, c text, d int)
+distributed randomly
+partition by range(a)
+(
+   start (1) end (10) every (1),
+   default partition extra
+);
+
+create table t2_bm(b int, c text);
+
+create index idx1_bm ON t1_bm USING bitmap (b);
+
+set optimizer_enable_hashjoin = off;
+set optimizer_enable_materialize = off;
+
+-- set QueryFinishPending to true befor bitmap heap scan retrieve results from bitmap
+select gp_inject_fault('before_retrieve_from_bitmap', 'finish_pending', dbid) FROM gp_segment_configuration WHERE role = 'p' AND content = 0;
+
+select count(distinct a.d) from t1_bm a, t2_bm b
+where a.c = b.c and a.b < 10 and b.b < 10;
+
+select gp_inject_fault('before_retrieve_from_bitmap', 'reset', dbid) FROM gp_segment_configuration WHERE role = 'p' AND content = 0;
+
+reset optimizer_enable_hashjoin;
+reset optimizer_enable_materialize;
+drop table t1_bm;
+drop table t2_bm;
