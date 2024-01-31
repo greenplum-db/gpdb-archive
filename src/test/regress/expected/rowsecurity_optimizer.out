@@ -46,6 +46,8 @@ INSERT INTO uaccount VALUES
     ('regress_rls_bob', 1),
     ('regress_rls_carol', 2),
     ('regress_rls_dave', 3);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
 ANALYZE uaccount;
 CREATE TABLE category (
     cid        int primary key,
@@ -65,6 +67,7 @@ CREATE TABLE document (
     dauthor     name,
     dtitle      text
 );
+WARNING:  referential integrity (FOREIGN KEY) constraints are not supported in Greenplum Database, will not be enforced
 GRANT ALL ON document TO public;
 INSERT INTO document VALUES
     ( 1, 11, 1, 'regress_rls_bob', 'my first novel'),
@@ -77,6 +80,8 @@ INSERT INTO document VALUES
     ( 8, 44, 1, 'regress_rls_carol', 'great manga'),
     ( 9, 22, 1, 'regress_rls_dave', 'awesome science fiction'),
     (10, 33, 2, 'regress_rls_dave', 'awesome technology book');
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
 ANALYZE document;
 ALTER TABLE document ENABLE ROW LEVEL SECURITY;
 -- user's security level must be higher than or equal to document's
@@ -99,6 +104,8 @@ CREATE POLICY p2r ON document AS RESTRICTIVE TO regress_rls_dave
 CREATE POLICY p1r ON document AS RESTRICTIVE TO regress_rls_dave
     USING (cid <> 44);
 \dp
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
                                                                   Access privileges
        Schema       |   Name   | Type  |              Access privileges              | Column privileges |                  Policies                  
 --------------------+----------+-------+---------------------------------------------+-------------------+--------------------------------------------
@@ -119,6 +126,32 @@ CREATE POLICY p1r ON document AS RESTRICTIVE TO regress_rls_dave
 (3 rows)
 
 \d document
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Queries on coordinator-only tables
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Queries on coordinator-only tables
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Queries on coordinator-only tables
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Queries on coordinator-only tables
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Queries on coordinator-only tables
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
         Table "regress_rls_schema.document"
  Column  |  Type   | Collation | Nullable | Default 
 ---------+---------+-----------+----------+---------
@@ -142,8 +175,11 @@ Policies:
     POLICY "p2r" AS RESTRICTIVE
       TO regress_rls_dave
       USING (((cid <> 44) AND (cid < 50)))
+Distributed by: (did)
 
 SELECT * FROM pg_policies WHERE schemaname = 'regress_rls_schema' AND tablename = 'document' ORDER BY policyname;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
      schemaname     | tablename | policyname | permissive  |       roles        | cmd |                    qual                    | with_check 
 --------------------+-----------+------------+-------------+--------------------+-----+--------------------------------------------+------------
  regress_rls_schema | document  | p1         | PERMISSIVE  | {public}           | ALL | (dlevel <= ( SELECT uaccount.seclv        +| 
@@ -157,11 +193,13 @@ SELECT * FROM pg_policies WHERE schemaname = 'regress_rls_schema' AND tablename 
 SET SESSION AUTHORIZATION regress_rls_bob;
 SET row_security TO ON;
 SELECT * FROM document WHERE f_leak(dtitle) ORDER BY did;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
 NOTICE:  f_leak => my first novel
-NOTICE:  f_leak => my first manga
 NOTICE:  f_leak => great science fiction
-NOTICE:  f_leak => great manga
+NOTICE:  f_leak => my first manga
 NOTICE:  f_leak => awesome science fiction
+NOTICE:  f_leak => great manga
  did | cid | dlevel |      dauthor      |         dtitle          
 -----+-----+--------+-------------------+-------------------------
    1 |  11 |      1 | regress_rls_bob   | my first novel
@@ -172,11 +210,13 @@ NOTICE:  f_leak => awesome science fiction
 (5 rows)
 
 SELECT * FROM document NATURAL JOIN category WHERE f_leak(dtitle) ORDER BY did;
-NOTICE:  f_leak => my first novel
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
 NOTICE:  f_leak => my first manga
+NOTICE:  f_leak => my first novel
 NOTICE:  f_leak => great science fiction
-NOTICE:  f_leak => great manga
 NOTICE:  f_leak => awesome science fiction
+NOTICE:  f_leak => great manga
  cid | did | dlevel |      dauthor      |         dtitle          |      cname      
 -----+-----+--------+-------------------+-------------------------+-----------------
   11 |   1 |      1 | regress_rls_bob   | my first novel          | novel
@@ -189,6 +229,8 @@ NOTICE:  f_leak => awesome science fiction
 -- try a sampled version
 SELECT * FROM document TABLESAMPLE BERNOULLI(50) REPEATABLE(0)
   WHERE f_leak(dtitle) ORDER BY did;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
 NOTICE:  f_leak => great manga
  did | cid | dlevel |      dauthor      |   dtitle    
 -----+-----+--------+-------------------+-------------
@@ -198,16 +240,18 @@ NOTICE:  f_leak => great manga
 -- viewpoint from regress_rls_carol
 SET SESSION AUTHORIZATION regress_rls_carol;
 SELECT * FROM document WHERE f_leak(dtitle) ORDER BY did;
-NOTICE:  f_leak => my first novel
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
+NOTICE:  f_leak => my second manga
 NOTICE:  f_leak => my second novel
 NOTICE:  f_leak => my science fiction
-NOTICE:  f_leak => my first manga
-NOTICE:  f_leak => my second manga
 NOTICE:  f_leak => great science fiction
-NOTICE:  f_leak => great technology book
-NOTICE:  f_leak => great manga
 NOTICE:  f_leak => awesome science fiction
 NOTICE:  f_leak => awesome technology book
+NOTICE:  f_leak => my first manga
+NOTICE:  f_leak => great technology book
+NOTICE:  f_leak => my first novel
+NOTICE:  f_leak => great manga
  did | cid | dlevel |      dauthor      |         dtitle          
 -----+-----+--------+-------------------+-------------------------
    1 |  11 |      1 | regress_rls_bob   | my first novel
@@ -223,16 +267,18 @@ NOTICE:  f_leak => awesome technology book
 (10 rows)
 
 SELECT * FROM document NATURAL JOIN category WHERE f_leak(dtitle) ORDER BY did;
-NOTICE:  f_leak => my first novel
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
 NOTICE:  f_leak => my second novel
+NOTICE:  f_leak => my first novel
+NOTICE:  f_leak => my second manga
 NOTICE:  f_leak => my science fiction
 NOTICE:  f_leak => my first manga
-NOTICE:  f_leak => my second manga
-NOTICE:  f_leak => great science fiction
 NOTICE:  f_leak => great technology book
-NOTICE:  f_leak => great manga
+NOTICE:  f_leak => great science fiction
 NOTICE:  f_leak => awesome science fiction
 NOTICE:  f_leak => awesome technology book
+NOTICE:  f_leak => great manga
  cid | did | dlevel |      dauthor      |         dtitle          |      cname      
 -----+-----+--------+-------------------+-------------------------+-----------------
   11 |   1 |      1 | regress_rls_bob   | my first novel          | novel
@@ -250,6 +296,8 @@ NOTICE:  f_leak => awesome technology book
 -- try a sampled version
 SELECT * FROM document TABLESAMPLE BERNOULLI(50) REPEATABLE(0)
   WHERE f_leak(dtitle) ORDER BY did;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
 NOTICE:  f_leak => great technology book
 NOTICE:  f_leak => great manga
 NOTICE:  f_leak => awesome technology book
@@ -261,8 +309,10 @@ NOTICE:  f_leak => awesome technology book
 (3 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM document WHERE f_leak(dtitle);
-                     QUERY PLAN                      
------------------------------------------------------
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
+                          QUERY PLAN                          
+--------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    InitPlan 1 (returns $0)  (slice2)
      ->  Gather Motion 1:1  (slice3; segments: 1)
@@ -274,6 +324,8 @@ EXPLAIN (COSTS OFF) SELECT * FROM document WHERE f_leak(dtitle);
 (8 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM document NATURAL JOIN category WHERE f_leak(dtitle);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
                            QUERY PLAN                            
 -----------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -294,13 +346,15 @@ EXPLAIN (COSTS OFF) SELECT * FROM document NATURAL JOIN category WHERE f_leak(dt
 -- viewpoint from regress_rls_dave
 SET SESSION AUTHORIZATION regress_rls_dave;
 SELECT * FROM document WHERE f_leak(dtitle) ORDER BY did;
-NOTICE:  f_leak => my first novel
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
 NOTICE:  f_leak => my second novel
-NOTICE:  f_leak => my science fiction
+NOTICE:  f_leak => my first novel
 NOTICE:  f_leak => great science fiction
-NOTICE:  f_leak => great technology book
 NOTICE:  f_leak => awesome science fiction
 NOTICE:  f_leak => awesome technology book
+NOTICE:  f_leak => my science fiction
+NOTICE:  f_leak => great technology book
  did | cid | dlevel |      dauthor      |         dtitle          
 -----+-----+--------+-------------------+-------------------------
    1 |  11 |      1 | regress_rls_bob   | my first novel
@@ -313,12 +367,14 @@ NOTICE:  f_leak => awesome technology book
 (7 rows)
 
 SELECT * FROM document NATURAL JOIN category WHERE f_leak(dtitle) ORDER BY did;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
 NOTICE:  f_leak => my first novel
 NOTICE:  f_leak => my second novel
-NOTICE:  f_leak => my science fiction
 NOTICE:  f_leak => great science fiction
-NOTICE:  f_leak => great technology book
 NOTICE:  f_leak => awesome science fiction
+NOTICE:  f_leak => my science fiction
+NOTICE:  f_leak => great technology book
 NOTICE:  f_leak => awesome technology book
  cid | did | dlevel |      dauthor      |         dtitle          |      cname      
 -----+-----+--------+-------------------+-------------------------+-----------------
@@ -332,6 +388,8 @@ NOTICE:  f_leak => awesome technology book
 (7 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM document WHERE f_leak(dtitle);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
                                              QUERY PLAN                                             
 ----------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -345,6 +403,8 @@ EXPLAIN (COSTS OFF) SELECT * FROM document WHERE f_leak(dtitle);
 (8 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM document NATURAL JOIN category WHERE f_leak(dtitle);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
                                                    QUERY PLAN                                                   
 ----------------------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -366,9 +426,13 @@ EXPLAIN (COSTS OFF) SELECT * FROM document NATURAL JOIN category WHERE f_leak(dt
 -- 44 would technically fail for both p2r and p1r, but we should get an error
 -- back from p1r for this because it sorts first
 INSERT INTO document VALUES (100, 44, 1, 'regress_rls_dave', 'testing sorting of policies'); -- fail
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy "p1r" for table "document"
 -- Just to see a p2r error
 INSERT INTO document VALUES (100, 55, 1, 'regress_rls_dave', 'testing sorting of policies'); -- fail
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy "p2r" for table "document"
 -- only owner can change policies
 ALTER POLICY p1 ON document USING (true);    --fail
@@ -380,11 +444,13 @@ ALTER POLICY p1 ON document USING (dauthor = current_user);
 -- viewpoint from regress_rls_bob again
 SET SESSION AUTHORIZATION regress_rls_bob;
 SELECT * FROM document WHERE f_leak(dtitle) ORDER BY did;
-NOTICE:  f_leak => my first novel
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
 NOTICE:  f_leak => my second novel
+NOTICE:  f_leak => my first novel
+NOTICE:  f_leak => my second manga
 NOTICE:  f_leak => my science fiction
 NOTICE:  f_leak => my first manga
-NOTICE:  f_leak => my second manga
  did | cid | dlevel |     dauthor     |       dtitle       
 -----+-----+--------+-----------------+--------------------
    1 |  11 |      1 | regress_rls_bob | my first novel
@@ -395,8 +461,10 @@ NOTICE:  f_leak => my second manga
 (5 rows)
 
 SELECT * FROM document NATURAL JOIN category WHERE f_leak(dtitle) ORDER by did;
-NOTICE:  f_leak => my first novel
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
 NOTICE:  f_leak => my second novel
+NOTICE:  f_leak => my first novel
 NOTICE:  f_leak => my science fiction
 NOTICE:  f_leak => my first manga
 NOTICE:  f_leak => my second manga
@@ -412,8 +480,10 @@ NOTICE:  f_leak => my second manga
 -- viewpoint from rls_regres_carol again
 SET SESSION AUTHORIZATION regress_rls_carol;
 SELECT * FROM document WHERE f_leak(dtitle) ORDER BY did;
-NOTICE:  f_leak => great science fiction
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
 NOTICE:  f_leak => great technology book
+NOTICE:  f_leak => great science fiction
 NOTICE:  f_leak => great manga
  did | cid | dlevel |      dauthor      |        dtitle         
 -----+-----+--------+-------------------+-----------------------
@@ -423,9 +493,11 @@ NOTICE:  f_leak => great manga
 (3 rows)
 
 SELECT * FROM document NATURAL JOIN category WHERE f_leak(dtitle) ORDER by did;
-NOTICE:  f_leak => great science fiction
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
 NOTICE:  f_leak => great technology book
 NOTICE:  f_leak => great manga
+NOTICE:  f_leak => great science fiction
  cid | did | dlevel |      dauthor      |        dtitle         |      cname      
 -----+-----+--------+-------------------+-----------------------+-----------------
   22 |   6 |      1 | regress_rls_carol | great science fiction | science fiction
@@ -434,8 +506,10 @@ NOTICE:  f_leak => great manga
 (3 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM document WHERE f_leak(dtitle);
-                          QUERY PLAN                           
----------------------------------------------------------------
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+                                 QUERY PLAN                                 
+----------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on document
          Filter: ((dauthor = 'regress_rls_carol'::name) AND f_leak(dtitle))
@@ -443,8 +517,10 @@ EXPLAIN (COSTS OFF) SELECT * FROM document WHERE f_leak(dtitle);
 (4 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM document NATURAL JOIN category WHERE f_leak(dtitle);
-                                QUERY PLAN                                 
----------------------------------------------------------------------------
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+                                       QUERY PLAN                                       
+----------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
          Hash Cond: (category.cid = document.cid)
@@ -466,6 +542,8 @@ ALTER TABLE category ENABLE ROW LEVEL SECURITY;
 -- cannot delete PK referenced by invisible FK
 SET SESSION AUTHORIZATION regress_rls_bob;
 SELECT * FROM document d FULL OUTER JOIN category c on d.cid = c.cid ORDER BY d.did, c.cid;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
  did | cid | dlevel |     dauthor     |       dtitle       | cid |   cname    
 -----+-----+--------+-----------------+--------------------+-----+------------
    1 |  11 |      1 | regress_rls_bob | my first novel     |  11 | novel
@@ -485,6 +563,8 @@ DETAIL:  Key is still referenced from table "document".
 -- can insert FK referencing invisible PK
 SET SESSION AUTHORIZATION regress_rls_carol;
 SELECT * FROM document d FULL OUTER JOIN category c on d.cid = c.cid ORDER BY d.did, c.cid;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
  did | cid | dlevel |      dauthor      |        dtitle         | cid |      cname      
 -----+-----+--------+-------------------+-----------------------+-----+-----------------
    6 |  22 |      1 | regress_rls_carol | great science fiction |  22 | science fiction
@@ -493,21 +573,31 @@ SELECT * FROM document d FULL OUTER JOIN category c on d.cid = c.cid ORDER BY d.
 (3 rows)
 
 INSERT INTO document VALUES (11, 33, 1, current_user, 'hoge');
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 -- UNIQUE or PRIMARY KEY constraint violation DOES reveal presence of row
 SET SESSION AUTHORIZATION regress_rls_bob;
 INSERT INTO document VALUES (8, 44, 1, 'regress_rls_bob', 'my third manga'); -- Must fail with unique violation, revealing presence of did we can't see
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  duplicate key value violates unique constraint "document_pkey"
 SELECT * FROM document WHERE did = 8; -- and confirm we can't see it
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
  did | cid | dlevel | dauthor | dtitle 
 -----+-----+--------+---------+--------
 (0 rows)
 
 -- RLS policies are checked before constraints
 INSERT INTO document VALUES (8, 44, 1, 'regress_rls_carol', 'my third manga'); -- Should fail with RLS check violation, not duplicate key violation
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "document"
 -- GPDB: UPDATE on distributed key column not allowed on relation with update triggers
 -- start_ignore
 UPDATE document SET did = 8, dauthor = 'regress_rls_carol' WHERE did = 5; -- Should fail with RLS check violation, not duplicate key violation
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "document"
 -- end_ignore
 -- database superuser does bypass RLS policy when enabled
@@ -661,6 +751,7 @@ GRANT ALL ON t1 TO public;
 COPY t1 FROM stdin WITH ;
 ANALYZE t1;
 CREATE TABLE t2 (c float) INHERITS (t1);
+NOTICE:  table has parent, setting distribution columns to match parent table
 GRANT ALL ON t2 TO public;
 COPY t2 FROM stdin;
 ANALYZE t2;
@@ -675,6 +766,8 @@ ALTER TABLE t1 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE t2 ENABLE ROW LEVEL SECURITY;
 SET SESSION AUTHORIZATION regress_rls_bob;
 SELECT * FROM t1;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
  id  | a |  b  
 -----+---+-----
  102 | 2 | bbb
@@ -685,6 +778,8 @@ SELECT * FROM t1;
 (5 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM t1;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
                 QUERY PLAN                
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -699,6 +794,8 @@ EXPLAIN (COSTS OFF) SELECT * FROM t1;
 (9 rows)
 
 SELECT * FROM t1 WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
 NOTICE:  f_leak => bbb
 NOTICE:  f_leak => dad
 NOTICE:  f_leak => bcd
@@ -714,6 +811,8 @@ NOTICE:  f_leak => yyy
 (5 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM t1 WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
                      QUERY PLAN                      
 -----------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -729,6 +828,8 @@ EXPLAIN (COSTS OFF) SELECT * FROM t1 WHERE f_leak(b);
 
 -- reference to system column
 SELECT tableoid::regclass, * FROM t1;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
  tableoid | id  | a |  b  
 ----------+-----+---+-----
  t1       | 102 | 2 | bbb
@@ -739,6 +840,8 @@ SELECT tableoid::regclass, * FROM t1;
 (5 rows)
 
 EXPLAIN (COSTS OFF) SELECT *, t1 FROM t1;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
                 QUERY PLAN                
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -749,10 +852,13 @@ EXPLAIN (COSTS OFF) SELECT *, t1 FROM t1;
                Filter: ((a % 2) = 0)
          ->  Seq Scan on t3
                Filter: ((a % 2) = 0)
+ Optimizer: Postgres-based planner
 (9 rows)
 
 -- reference to whole-row reference
 SELECT *, t1 FROM t1;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
  id  | a |  b  |     t1      
 -----+---+-----+-------------
  102 | 2 | bbb | (102,2,bbb)
@@ -763,6 +869,8 @@ SELECT *, t1 FROM t1;
 (5 rows)
 
 EXPLAIN (COSTS OFF) SELECT *, t1 FROM t1;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
                 QUERY PLAN                
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -778,6 +886,8 @@ EXPLAIN (COSTS OFF) SELECT *, t1 FROM t1;
 
 -- for share/update lock
 SELECT * FROM t1 FOR SHARE;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
  id  | a |  b  
 -----+---+-----
  102 | 2 | bbb
@@ -788,6 +898,8 @@ SELECT * FROM t1 FOR SHARE;
 (5 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM t1 FOR SHARE;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
                 QUERY PLAN                
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -802,6 +914,8 @@ EXPLAIN (COSTS OFF) SELECT * FROM t1 FOR SHARE;
 (9 rows)
 
 SELECT * FROM t1 WHERE f_leak(b) FOR SHARE;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
 NOTICE:  f_leak => bbb
 NOTICE:  f_leak => dad
 NOTICE:  f_leak => bcd
@@ -817,6 +931,8 @@ NOTICE:  f_leak => yyy
 (5 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM t1 WHERE f_leak(b) FOR SHARE;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
                      QUERY PLAN                      
 -----------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -849,24 +965,26 @@ EXPLAIN (COSTS OFF) SELECT a, b, tableoid::regclass FROM t2 UNION ALL SELECT a, 
          ->  Seq Scan on t2
                Filter: ((a % 2) = 1)
          ->  Seq Scan on t3
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (6 rows)
 
 -- superuser is allowed to bypass RLS checks
 RESET SESSION AUTHORIZATION;
 SET row_security TO OFF;
 SELECT * FROM t1 WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
 NOTICE:  f_leak => aba
 NOTICE:  f_leak => bbb
 NOTICE:  f_leak => ccc
 NOTICE:  f_leak => dad
 NOTICE:  f_leak => abc
 NOTICE:  f_leak => bcd
-NOTICE:  f_leak => cde
 NOTICE:  f_leak => def
-NOTICE:  f_leak => xxx
+NOTICE:  f_leak => cde
 NOTICE:  f_leak => yyy
 NOTICE:  f_leak => zzz
+NOTICE:  f_leak => xxx
  id  | a |  b  
 -----+---+-----
  101 | 1 | aba
@@ -883,6 +1001,8 @@ NOTICE:  f_leak => zzz
 (11 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM t1 WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
                 QUERY PLAN                
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -900,17 +1020,19 @@ EXPLAIN (COSTS OFF) SELECT * FROM t1 WHERE f_leak(b);
 SET SESSION AUTHORIZATION regress_rls_exempt_user;
 SET row_security TO OFF;
 SELECT * FROM t1 WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
 NOTICE:  f_leak => aba
 NOTICE:  f_leak => bbb
 NOTICE:  f_leak => ccc
 NOTICE:  f_leak => dad
 NOTICE:  f_leak => abc
+NOTICE:  f_leak => def
 NOTICE:  f_leak => bcd
 NOTICE:  f_leak => cde
-NOTICE:  f_leak => def
-NOTICE:  f_leak => xxx
 NOTICE:  f_leak => yyy
 NOTICE:  f_leak => zzz
+NOTICE:  f_leak => xxx
  id  | a |  b  
 -----+---+-----
  101 | 1 | aba
@@ -927,6 +1049,8 @@ NOTICE:  f_leak => zzz
 (11 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM t1 WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
                 QUERY PLAN                
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -951,11 +1075,16 @@ CREATE TABLE part_document (
     dauthor     name,
     dtitle      text
 ) PARTITION BY RANGE (cid);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'did' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 GRANT ALL ON part_document TO public;
 -- Create partitions for document categories
 CREATE TABLE part_document_fiction PARTITION OF part_document FOR VALUES FROM (11) to (12);
+NOTICE:  table has parent, setting distribution columns to match parent table
 CREATE TABLE part_document_satire PARTITION OF part_document FOR VALUES FROM (55) to (56);
+NOTICE:  table has parent, setting distribution columns to match parent table
 CREATE TABLE part_document_nonfiction PARTITION OF part_document FOR VALUES FROM (99) to (100);
+NOTICE:  table has parent, setting distribution columns to match parent table
 GRANT ALL ON part_document_fiction TO public;
 GRANT ALL ON part_document_satire TO public;
 GRANT ALL ON part_document_nonfiction TO public;
@@ -970,6 +1099,8 @@ INSERT INTO part_document VALUES
     ( 8, 55, 2, 'regress_rls_carol', 'great satire'),
     ( 9, 11, 1, 'regress_rls_dave', 'awesome science fiction'),
     (10, 99, 2, 'regress_rls_dave', 'awesome technology book');
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
 ALTER TABLE part_document ENABLE ROW LEVEL SECURITY;
 -- Create policy on parent
 -- user's security level must be higher than or equal to document's
@@ -979,6 +1110,30 @@ CREATE POLICY pp1 ON part_document AS PERMISSIVE
 CREATE POLICY pp1r ON part_document AS RESTRICTIVE TO regress_rls_dave
     USING (cid < 55);
 \d+ part_document
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Queries on coordinator-only tables
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Queries on coordinator-only tables
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Queries on coordinator-only tables
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Queries on coordinator-only tables
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
                     Partitioned table "regress_rls_schema.part_document"
  Column  |  Type   | Collation | Nullable | Default | Storage  | Stats target | Description 
 ---------+---------+-----------+----------+---------+----------+--------------+-------------
@@ -999,8 +1154,11 @@ Policies:
 Partitions: part_document_fiction FOR VALUES FROM (11) TO (12),
             part_document_nonfiction FOR VALUES FROM (99) TO (100),
             part_document_satire FOR VALUES FROM (55) TO (56)
+Distributed by: (did)
 
 SELECT * FROM pg_policies WHERE schemaname = 'regress_rls_schema' AND tablename like '%part_document%' ORDER BY policyname;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
      schemaname     |   tablename   | policyname | permissive  |       roles        | cmd |                    qual                    | with_check 
 --------------------+---------------+------------+-------------+--------------------+-----+--------------------------------------------+------------
  regress_rls_schema | part_document | pp1        | PERMISSIVE  | {public}           | ALL | (dlevel <= ( SELECT uaccount.seclv        +| 
@@ -1013,9 +1171,11 @@ SELECT * FROM pg_policies WHERE schemaname = 'regress_rls_schema' AND tablename 
 SET SESSION AUTHORIZATION regress_rls_bob;
 SET row_security TO ON;
 SELECT * FROM part_document WHERE f_leak(dtitle) ORDER BY did;
-NOTICE:  f_leak => my first novel
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
 NOTICE:  f_leak => great science fiction
 NOTICE:  f_leak => awesome science fiction
+NOTICE:  f_leak => my first novel
 NOTICE:  f_leak => my first satire
  did | cid | dlevel |      dauthor      |         dtitle          
 -----+-----+--------+-------------------+-------------------------
@@ -1026,8 +1186,10 @@ NOTICE:  f_leak => my first satire
 (4 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM part_document WHERE f_leak(dtitle);
-                        QUERY PLAN                         
------------------------------------------------------------
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
+                         QUERY PLAN                         
+------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    InitPlan 1 (returns $0)  (slice2)
      ->  Gather Motion 1:1  (slice3; segments: 1)
@@ -1046,15 +1208,17 @@ EXPLAIN (COSTS OFF) SELECT * FROM part_document WHERE f_leak(dtitle);
 -- viewpoint from regress_rls_carol
 SET SESSION AUTHORIZATION regress_rls_carol;
 SELECT * FROM part_document WHERE f_leak(dtitle) ORDER BY did;
-NOTICE:  f_leak => my first novel
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
 NOTICE:  f_leak => my second novel
+NOTICE:  f_leak => my first novel
 NOTICE:  f_leak => great science fiction
-NOTICE:  f_leak => awesome science fiction
 NOTICE:  f_leak => my first satire
+NOTICE:  f_leak => awesome science fiction
 NOTICE:  f_leak => great satire
 NOTICE:  f_leak => my science textbook
-NOTICE:  f_leak => my history book
 NOTICE:  f_leak => great technology book
+NOTICE:  f_leak => my history book
 NOTICE:  f_leak => awesome technology book
  did | cid | dlevel |      dauthor      |         dtitle          
 -----+-----+--------+-------------------+-------------------------
@@ -1071,8 +1235,10 @@ NOTICE:  f_leak => awesome technology book
 (10 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM part_document WHERE f_leak(dtitle);
-                        QUERY PLAN                         
------------------------------------------------------------
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
+                          QUERY PLAN                          
+--------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    InitPlan 1 (returns $0)  (slice2)
      ->  Gather Motion 1:1  (slice3; segments: 1)
@@ -1091,8 +1257,10 @@ EXPLAIN (COSTS OFF) SELECT * FROM part_document WHERE f_leak(dtitle);
 -- viewpoint from regress_rls_dave
 SET SESSION AUTHORIZATION regress_rls_dave;
 SELECT * FROM part_document WHERE f_leak(dtitle) ORDER BY did;
-NOTICE:  f_leak => my first novel
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
 NOTICE:  f_leak => my second novel
+NOTICE:  f_leak => my first novel
 NOTICE:  f_leak => great science fiction
 NOTICE:  f_leak => awesome science fiction
  did | cid | dlevel |      dauthor      |         dtitle          
@@ -1104,6 +1272,8 @@ NOTICE:  f_leak => awesome science fiction
 (4 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM part_document WHERE f_leak(dtitle);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
                              QUERY PLAN                             
 --------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -1118,18 +1288,26 @@ EXPLAIN (COSTS OFF) SELECT * FROM part_document WHERE f_leak(dtitle);
 
 -- pp1 ERROR
 INSERT INTO part_document VALUES (100, 11, 5, 'regress_rls_dave', 'testing pp1'); -- fail
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "part_document"
 -- pp1r ERROR
 INSERT INTO part_document VALUES (100, 99, 1, 'regress_rls_dave', 'testing pp1r'); -- fail
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy "pp1r" for table "part_document"
 -- Show that RLS policy does not apply for direct inserts to children
 -- This should fail with RLS POLICY pp1r violation.
 INSERT INTO part_document VALUES (100, 55, 1, 'regress_rls_dave', 'testing RLS with partitions'); -- fail
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy "pp1r" for table "part_document"
 -- But this should succeed.
 INSERT INTO part_document_satire VALUES (100, 55, 1, 'regress_rls_dave', 'testing RLS with partitions'); -- success
 -- We still cannot see the row using the parent
 SELECT * FROM part_document WHERE f_leak(dtitle) ORDER BY did;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
 NOTICE:  f_leak => my first novel
 NOTICE:  f_leak => my second novel
 NOTICE:  f_leak => great science fiction
@@ -1162,6 +1340,8 @@ CREATE POLICY pp3 ON part_document_satire AS RESTRICTIVE
 -- This should fail with RLS violation now.
 SET SESSION AUTHORIZATION regress_rls_dave;
 INSERT INTO part_document_satire VALUES (101, 55, 1, 'regress_rls_dave', 'testing RLS with partitions'); -- fail
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "part_document_satire"
 -- And now we cannot see directly into the partition either, due to RLS
 SELECT * FROM part_document_satire WHERE f_leak(dtitle) ORDER BY did;
@@ -1172,8 +1352,10 @@ SELECT * FROM part_document_satire WHERE f_leak(dtitle) ORDER BY did;
 -- The parent looks same as before
 -- viewpoint from regress_rls_dave
 SELECT * FROM part_document WHERE f_leak(dtitle) ORDER BY did;
-NOTICE:  f_leak => my first novel
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
 NOTICE:  f_leak => my second novel
+NOTICE:  f_leak => my first novel
 NOTICE:  f_leak => great science fiction
 NOTICE:  f_leak => awesome science fiction
  did | cid | dlevel |      dauthor      |         dtitle          
@@ -1185,6 +1367,8 @@ NOTICE:  f_leak => awesome science fiction
 (4 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM part_document WHERE f_leak(dtitle);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
                              QUERY PLAN                             
 --------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -1200,6 +1384,8 @@ EXPLAIN (COSTS OFF) SELECT * FROM part_document WHERE f_leak(dtitle);
 -- viewpoint from regress_rls_carol
 SET SESSION AUTHORIZATION regress_rls_carol;
 SELECT * FROM part_document WHERE f_leak(dtitle) ORDER BY did;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
 NOTICE:  f_leak => my first novel
 NOTICE:  f_leak => my second novel
 NOTICE:  f_leak => great science fiction
@@ -1209,8 +1395,8 @@ NOTICE:  f_leak => great satire
 NOTICE:  f_leak => testing RLS with partitions
 NOTICE:  f_leak => my science textbook
 NOTICE:  f_leak => my history book
-NOTICE:  f_leak => great technology book
 NOTICE:  f_leak => awesome technology book
+NOTICE:  f_leak => great technology book
  did | cid | dlevel |      dauthor      |           dtitle            
 -----+-----+--------+-------------------+-----------------------------
    1 |  11 |      1 | regress_rls_bob   | my first novel
@@ -1227,8 +1413,10 @@ NOTICE:  f_leak => awesome technology book
 (11 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM part_document WHERE f_leak(dtitle);
-                        QUERY PLAN                         
------------------------------------------------------------
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
+                          QUERY PLAN                          
+--------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    InitPlan 1 (returns $0)  (slice2)
      ->  Gather Motion 1:1  (slice3; segments: 1)
@@ -1254,11 +1442,13 @@ ALTER POLICY pp1 ON part_document USING (dauthor = current_user);
 -- viewpoint from regress_rls_bob again
 SET SESSION AUTHORIZATION regress_rls_bob;
 SELECT * FROM part_document WHERE f_leak(dtitle) ORDER BY did;
-NOTICE:  f_leak => my first novel
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
 NOTICE:  f_leak => my second novel
+NOTICE:  f_leak => my first novel
 NOTICE:  f_leak => my first satire
-NOTICE:  f_leak => my science textbook
 NOTICE:  f_leak => my history book
+NOTICE:  f_leak => my science textbook
  did | cid | dlevel |     dauthor     |       dtitle        
 -----+-----+--------+-----------------+---------------------
    1 |  11 |      1 | regress_rls_bob | my first novel
@@ -1271,6 +1461,8 @@ NOTICE:  f_leak => my history book
 -- viewpoint from rls_regres_carol again
 SET SESSION AUTHORIZATION regress_rls_carol;
 SELECT * FROM part_document WHERE f_leak(dtitle) ORDER BY did;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
 NOTICE:  f_leak => great science fiction
 NOTICE:  f_leak => great satire
 NOTICE:  f_leak => great technology book
@@ -1282,8 +1474,10 @@ NOTICE:  f_leak => great technology book
 (3 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM part_document WHERE f_leak(dtitle);
-                             QUERY PLAN                              
----------------------------------------------------------------------
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+                                    QUERY PLAN                                    
+----------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Append
          ->  Seq Scan on part_document_fiction
@@ -1390,12 +1584,18 @@ CREATE POLICY pp3 ON part_document AS RESTRICTIVE
     USING ((SELECT dlevel <= seclv FROM uaccount WHERE pguser = current_user));
 SET SESSION AUTHORIZATION regress_rls_carol;
 INSERT INTO part_document VALUES (100, 11, 5, 'regress_rls_carol', 'testing pp3'); -- fail
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy "pp3" for table "part_document"
 ----- Dependencies -----
 SET SESSION AUTHORIZATION regress_rls_alice;
 SET row_security TO ON;
 CREATE TABLE dependee (x integer, y integer);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'x' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE TABLE dependent (x integer, y integer);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'x' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE POLICY d1 ON dependent FOR ALL
     TO PUBLIC
     USING (x = (SELECT d.x FROM dependee d WHERE d.y = y));
@@ -1410,7 +1610,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM dependent; -- After drop, should be unqualifie
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on dependent
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (3 rows)
 
 -----   RECURSION    ----
@@ -1419,6 +1619,8 @@ EXPLAIN (COSTS OFF) SELECT * FROM dependent; -- After drop, should be unqualifie
 --
 SET SESSION AUTHORIZATION regress_rls_alice;
 CREATE TABLE rec1 (x integer, y integer);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'x' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE POLICY r1 ON rec1 USING (x = (SELECT r.x FROM rec1 r WHERE y = r.y));
 ALTER TABLE rec1 ENABLE ROW LEVEL SECURITY;
 SET SESSION AUTHORIZATION regress_rls_bob;
@@ -1429,6 +1631,8 @@ ERROR:  infinite recursion detected in policy for relation "rec1"
 --
 SET SESSION AUTHORIZATION regress_rls_alice;
 CREATE TABLE rec2 (a integer, b integer);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 ALTER POLICY r1 ON rec1 USING (x = (SELECT a FROM rec2 WHERE b = y));
 CREATE POLICY r2 ON rec2 USING (a = (SELECT x FROM rec1 WHERE y = b));
 ALTER TABLE rec2 ENABLE ROW LEVEL SECURITY;
@@ -1468,8 +1672,12 @@ ERROR:  infinite recursion detected in policy for relation "rec1"
 --
 SET SESSION AUTHORIZATION regress_rls_alice;
 CREATE TABLE s1 (a int, b text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 INSERT INTO s1 (SELECT x, md5(x::text) FROM generate_series(-10,10) x);
 CREATE TABLE s2 (x int, y text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'x' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 INSERT INTO s2 (SELECT x, md5(x::text) FROM generate_series(-6,6) x);
 GRANT SELECT ON s1, s2 TO regress_rls_bob;
 CREATE POLICY p1 ON s1 USING (a in (select x from s2 where y like '%2f%'));
@@ -1488,6 +1696,8 @@ DROP POLICY p3 on s1;
 ALTER POLICY p2 ON s2 USING (x % 2 = 0);
 SET SESSION AUTHORIZATION regress_rls_bob;
 SELECT * FROM s1 WHERE f_leak(b);	-- OK
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
 NOTICE:  f_leak => c81e728d9d4c2f636f067f89cc14862c
 NOTICE:  f_leak => a87ff679a2f3e71d9181a67b7542122c
  a |                b                 
@@ -1497,6 +1707,8 @@ NOTICE:  f_leak => a87ff679a2f3e71d9181a67b7542122c
 (2 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM only s1 WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
                               QUERY PLAN                               
 -----------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -1513,6 +1725,8 @@ SET SESSION AUTHORIZATION regress_rls_alice;
 ALTER POLICY p1 ON s1 USING (a in (select x from v2)); -- using VIEW in RLS policy
 SET SESSION AUTHORIZATION regress_rls_bob;
 SELECT * FROM s1 WHERE f_leak(b);	-- OK
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
 NOTICE:  f_leak => 0267aaf632e87a63288a08331f22c7c3
 NOTICE:  f_leak => 1679091c5a880faf6fb5e6087eb1b2dc
  a  |                b                 
@@ -1522,6 +1736,8 @@ NOTICE:  f_leak => 1679091c5a880faf6fb5e6087eb1b2dc
 (2 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM s1 WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
                               QUERY PLAN                               
 -----------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -1535,6 +1751,8 @@ EXPLAIN (COSTS OFF) SELECT * FROM s1 WHERE f_leak(b);
 (8 rows)
 
 SELECT (SELECT x FROM s1 LIMIT 1) xx, * FROM s2 WHERE y like '%28%';
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
  xx | x  |                y                 
 ----+----+----------------------------------
  -6 | -6 | 596a3d04481816330f07e4f97510c28f
@@ -1543,6 +1761,8 @@ SELECT (SELECT x FROM s1 LIMIT 1) xx, * FROM s2 WHERE y like '%28%';
 (3 rows)
 
 EXPLAIN (COSTS OFF) SELECT (SELECT x FROM s1 LIMIT 1) xx, * FROM s2 WHERE y like '%28%';
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
                                                  QUERY PLAN                                                  
 -------------------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -1571,6 +1791,8 @@ ERROR:  infinite recursion detected in policy for relation "s1"
 -- prepared statement with regress_rls_alice privilege
 PREPARE p1(int) AS SELECT * FROM t1 WHERE a <= $1;
 EXECUTE p1(2);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
  id  | a |  b  
 -----+---+-----
  102 | 2 | bbb
@@ -1579,6 +1801,8 @@ EXECUTE p1(2);
 (3 rows)
 
 EXPLAIN (COSTS OFF) EXECUTE p1(2);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
                      QUERY PLAN                     
 ----------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -1596,17 +1820,19 @@ EXPLAIN (COSTS OFF) EXECUTE p1(2);
 RESET SESSION AUTHORIZATION;
 SET row_security TO OFF;
 SELECT * FROM t1 WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
 NOTICE:  f_leak => aba
 NOTICE:  f_leak => bbb
 NOTICE:  f_leak => ccc
 NOTICE:  f_leak => dad
 NOTICE:  f_leak => abc
+NOTICE:  f_leak => def
 NOTICE:  f_leak => bcd
 NOTICE:  f_leak => cde
-NOTICE:  f_leak => def
-NOTICE:  f_leak => xxx
 NOTICE:  f_leak => yyy
 NOTICE:  f_leak => zzz
+NOTICE:  f_leak => xxx
  id  | a |  b  
 -----+---+-----
  101 | 1 | aba
@@ -1623,6 +1849,8 @@ NOTICE:  f_leak => zzz
 (11 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM t1 WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
                 QUERY PLAN                
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -1638,6 +1866,8 @@ EXPLAIN (COSTS OFF) SELECT * FROM t1 WHERE f_leak(b);
 
 -- plan cache should be invalidated
 EXECUTE p1(2);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
  id  | a |  b  
 -----+---+-----
  101 | 1 | aba
@@ -1649,6 +1879,8 @@ EXECUTE p1(2);
 (6 rows)
 
 EXPLAIN (COSTS OFF) EXECUTE p1(2);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
                 QUERY PLAN                
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -1664,6 +1896,8 @@ EXPLAIN (COSTS OFF) EXECUTE p1(2);
 
 PREPARE p2(int) AS SELECT * FROM t1 WHERE a = $1;
 EXECUTE p2(2);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
  id  | a |  b  
 -----+---+-----
  102 | 2 | bbb
@@ -1672,6 +1906,8 @@ EXECUTE p2(2);
 (3 rows)
 
 EXPLAIN (COSTS OFF) EXECUTE p2(2);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
                 QUERY PLAN                
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -1689,6 +1925,8 @@ EXPLAIN (COSTS OFF) EXECUTE p2(2);
 SET SESSION AUTHORIZATION regress_rls_bob;
 SET row_security TO ON;
 EXECUTE p2(2);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
  id  | a |  b  
 -----+---+-----
  102 | 2 | bbb
@@ -1697,6 +1935,8 @@ EXECUTE p2(2);
 (3 rows)
 
 EXPLAIN (COSTS OFF) EXECUTE p2(2);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
                     QUERY PLAN                     
 ---------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -1715,6 +1955,8 @@ EXPLAIN (COSTS OFF) EXECUTE p2(2);
 --
 SET SESSION AUTHORIZATION regress_rls_bob;
 EXPLAIN (COSTS OFF) UPDATE t1 SET b = b || b WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
                   QUERY PLAN                   
 -----------------------------------------------
  Update on t1
@@ -1727,27 +1969,37 @@ EXPLAIN (COSTS OFF) UPDATE t1 SET b = b || b WHERE f_leak(b);
          Filter: (((a % 2) = 0) AND f_leak(b))
    ->  Seq Scan on t3
          Filter: (((a % 2) = 0) AND f_leak(b))
-(10 rows)
+ Optimizer: Postgres-based planner
+(11 rows)
 
 UPDATE t1 SET b = b || b WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 NOTICE:  f_leak => bbb
 NOTICE:  f_leak => dad
 NOTICE:  f_leak => bcd
 NOTICE:  f_leak => def
 NOTICE:  f_leak => yyy
 EXPLAIN (COSTS OFF) UPDATE only t1 SET b = b || '_updt' WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
                   QUERY PLAN                   
 -----------------------------------------------
  Update on t1
    ->  Seq Scan on t1
          Filter: (((a % 2) = 0) AND f_leak(b))
-(3 rows)
+ Optimizer: Postgres-based planner
+(4 rows)
 
 UPDATE only t1 SET b = b || '_updt' WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 NOTICE:  f_leak => bbbbbb
 NOTICE:  f_leak => daddad
 -- returning clause with system column
 UPDATE only t1 SET b = b WHERE f_leak(b) RETURNING tableoid::regclass, *, t1;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 NOTICE:  f_leak => bbbbbb_updt
 NOTICE:  f_leak => daddad_updt
  tableoid | id  | a |      b      |         t1          
@@ -1757,9 +2009,11 @@ NOTICE:  f_leak => daddad_updt
 (2 rows)
 
 UPDATE t1 SET b = b WHERE f_leak(b) RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 NOTICE:  f_leak => bbbbbb_updt
-NOTICE:  f_leak => daddad_updt
 NOTICE:  f_leak => bcdbcd
+NOTICE:  f_leak => daddad_updt
 NOTICE:  f_leak => defdef
 NOTICE:  f_leak => yyyyyy
  id  | a |      b      
@@ -1772,10 +2026,12 @@ NOTICE:  f_leak => yyyyyy
 (5 rows)
 
 UPDATE t1 SET b = b WHERE f_leak(b) RETURNING tableoid::regclass, *, t1;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 NOTICE:  f_leak => bbbbbb_updt
-NOTICE:  f_leak => daddad_updt
-NOTICE:  f_leak => bcdbcd
 NOTICE:  f_leak => defdef
+NOTICE:  f_leak => bcdbcd
+NOTICE:  f_leak => daddad_updt
 NOTICE:  f_leak => yyyyyy
  tableoid | id  | a |      b      |         t1          
 ----------+-----+---+-------------+---------------------
@@ -1789,6 +2045,8 @@ NOTICE:  f_leak => yyyyyy
 -- updates with from clause
 EXPLAIN (COSTS OFF) UPDATE t2 SET b=t2.b FROM t3
 WHERE t2.a = 3 and t3.a = 2 AND f_leak(t2.b) AND f_leak(t3.b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
                            QUERY PLAN                            
 -----------------------------------------------------------------
  Update on t2
@@ -1804,10 +2062,14 @@ WHERE t2.a = 3 and t3.a = 2 AND f_leak(t2.b) AND f_leak(t3.b);
 
 UPDATE t2 SET b=t2.b FROM t3
 WHERE t2.a = 3 and t3.a = 2 AND f_leak(t2.b) AND f_leak(t3.b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 NOTICE:  f_leak => cde
 NOTICE:  f_leak => yyyyyy
 EXPLAIN (COSTS OFF) UPDATE t1 SET b=t1.b FROM t2
 WHERE t1.a = 3 and t2.a = 3 AND f_leak(t1.b) AND f_leak(t2.b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
                                  QUERY PLAN                                  
 -----------------------------------------------------------------------------
  Update on t1
@@ -1840,9 +2102,15 @@ WHERE t1.a = 3 and t2.a = 3 AND f_leak(t1.b) AND f_leak(t2.b);
 
 UPDATE t1 SET b=t1.b FROM t2
 WHERE t1.a = 3 and t2.a = 3 AND f_leak(t1.b) AND f_leak(t2.b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
+NOTICE:  f_leak => cde
+NOTICE:  f_leak => cde
 NOTICE:  f_leak => cde
 EXPLAIN (COSTS OFF) UPDATE t2 SET b=t2.b FROM t1
 WHERE t1.a = 3 and t2.a = 3 AND f_leak(t1.b) AND f_leak(t2.b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
                                     QUERY PLAN                                     
 -----------------------------------------------------------------------------------
  Update on t2
@@ -1863,11 +2131,15 @@ WHERE t1.a = 3 and t2.a = 3 AND f_leak(t1.b) AND f_leak(t2.b);
 
 UPDATE t2 SET b=t2.b FROM t1
 WHERE t1.a = 3 and t2.a = 3 AND f_leak(t1.b) AND f_leak(t2.b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 NOTICE:  f_leak => cde
 -- updates with from clause self join
 EXPLAIN (COSTS OFF) UPDATE t2 t2_1 SET b = t2_2.b FROM t2 t2_2
 WHERE t2_1.a = 3 AND t2_2.a = t2_1.a AND t2_2.b = t2_1.b
 AND f_leak(t2_1.b) AND f_leak(t2_2.b) RETURNING *, t2_1, t2_2;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
                                     QUERY PLAN                                     
 -----------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -1887,6 +2159,8 @@ AND f_leak(t2_1.b) AND f_leak(t2_2.b) RETURNING *, t2_1, t2_2;
 UPDATE t2 t2_1 SET b = t2_2.b FROM t2 t2_2
 WHERE t2_1.a = 3 AND t2_2.a = t2_1.a AND t2_2.b = t2_1.b
 AND f_leak(t2_1.b) AND f_leak(t2_2.b) RETURNING *, t2_1, t2_2;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 NOTICE:  f_leak => cde
 NOTICE:  f_leak => cde
  id  | a |  b  |  c  | id  | a |  b  |  c  |      t2_1       |      t2_2       
@@ -1897,6 +2171,8 @@ NOTICE:  f_leak => cde
 EXPLAIN (COSTS OFF) UPDATE t1 t1_1 SET b = t1_2.b FROM t1 t1_2
 WHERE t1_1.a = 4 AND t1_2.a = t1_1.a AND t1_2.b = t1_1.b
 AND f_leak(t1_1.b) AND f_leak(t1_2.b) RETURNING *, t1_1, t1_2;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
                                        QUERY PLAN                                        
 -----------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -1952,6 +2228,8 @@ AND f_leak(t1_1.b) AND f_leak(t1_2.b) RETURNING *, t1_1, t1_2;
 UPDATE t1 t1_1 SET b = t1_2.b FROM t1 t1_2
 WHERE t1_1.a = 4 AND t1_2.a = t1_1.a AND t1_2.b = t1_1.b
 AND f_leak(t1_1.b) AND f_leak(t1_2.b) RETURNING *, t1_1, t1_2;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 NOTICE:  f_leak => daddad_updt
 NOTICE:  f_leak => daddad_updt
 NOTICE:  f_leak => defdef
@@ -1967,6 +2245,8 @@ NOTICE:  f_leak => defdef
 RESET SESSION AUTHORIZATION;
 SET row_security TO OFF;
 SELECT * FROM t1 ORDER BY a,b;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
  id  | a |      b      
 -----+---+-------------
  101 | 1 | aba
@@ -1985,6 +2265,8 @@ SELECT * FROM t1 ORDER BY a,b;
 SET SESSION AUTHORIZATION regress_rls_bob;
 SET row_security TO ON;
 EXPLAIN (COSTS OFF) DELETE FROM only t1 WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: ONLY in the FROM clause
                   QUERY PLAN                   
 -----------------------------------------------
  Delete on t1
@@ -1994,6 +2276,8 @@ EXPLAIN (COSTS OFF) DELETE FROM only t1 WHERE f_leak(b);
 (4 rows)
 
 EXPLAIN (COSTS OFF) DELETE FROM t1 WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
                   QUERY PLAN                   
 -----------------------------------------------
  Delete on t1
@@ -2006,9 +2290,12 @@ EXPLAIN (COSTS OFF) DELETE FROM t1 WHERE f_leak(b);
          Filter: (((a % 2) = 0) AND f_leak(b))
    ->  Seq Scan on t3
          Filter: (((a % 2) = 0) AND f_leak(b))
-(10 rows)
+ Optimizer: Postgres-based planner
+(11 rows)
 
 DELETE FROM only t1 WHERE f_leak(b) RETURNING tableoid::regclass, *, t1;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: RETURNING clause
 NOTICE:  f_leak => bbbbbb_updt
 NOTICE:  f_leak => daddad_updt
  tableoid | id  | a |      b      |         t1          
@@ -2018,6 +2305,8 @@ NOTICE:  f_leak => daddad_updt
 (2 rows)
 
 DELETE FROM t1 WHERE f_leak(b) RETURNING tableoid::regclass, *, t1;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: RETURNING clause
 NOTICE:  f_leak => bcdbcd
 NOTICE:  f_leak => defdef
 NOTICE:  f_leak => yyyyyy
@@ -2033,6 +2322,8 @@ NOTICE:  f_leak => yyyyyy
 --
 SET SESSION AUTHORIZATION regress_rls_alice;
 CREATE TABLE b1 (a int, b text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 INSERT INTO b1 (SELECT x, md5(x::text) FROM generate_series(-10,10) x);
 CREATE POLICY p1 ON b1 USING (a % 2 = 0);
 ALTER TABLE b1 ENABLE ROW LEVEL SECURITY;
@@ -2042,6 +2333,8 @@ CREATE VIEW bv1 WITH (security_barrier) AS SELECT * FROM b1 WHERE a > 0 WITH CHE
 GRANT ALL ON bv1 TO regress_rls_carol;
 SET SESSION AUTHORIZATION regress_rls_carol;
 EXPLAIN (COSTS OFF) SELECT * FROM bv1 WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: views with security_barrier ON
                     QUERY PLAN                     
 ---------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -2053,11 +2346,13 @@ EXPLAIN (COSTS OFF) SELECT * FROM bv1 WHERE f_leak(b);
 (6 rows)
 
 SELECT * FROM bv1 WHERE f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: views with security_barrier ON
 NOTICE:  f_leak => c81e728d9d4c2f636f067f89cc14862c
-NOTICE:  f_leak => a87ff679a2f3e71d9181a67b7542122c
 NOTICE:  f_leak => 1679091c5a880faf6fb5e6087eb1b2dc
-NOTICE:  f_leak => c9f0f895fb98ab9159f51fd0297e236d
 NOTICE:  f_leak => d3d9446802a44259755d38e6d163e820
+NOTICE:  f_leak => a87ff679a2f3e71d9181a67b7542122c
+NOTICE:  f_leak => c9f0f895fb98ab9159f51fd0297e236d
  a  |                b                 
 ----+----------------------------------
   2 | c81e728d9d4c2f636f067f89cc14862c
@@ -2068,27 +2363,39 @@ NOTICE:  f_leak => d3d9446802a44259755d38e6d163e820
 (5 rows)
 
 INSERT INTO bv1 VALUES (-1, 'xxx'); -- should fail view WCO
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "b1"
 INSERT INTO bv1 VALUES (11, 'xxx'); -- should fail RLS check
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "b1"
 INSERT INTO bv1 VALUES (12, 'xxx'); -- ok
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 EXPLAIN (COSTS OFF) UPDATE bv1 SET b = 'yyy' WHERE a = 4 AND f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
                               QUERY PLAN                               
 -----------------------------------------------------------------------
  Update on b1
    ->  Seq Scan on b1
          Filter: ((a > 0) AND (a = 4) AND ((a % 2) = 0) AND f_leak(b))
-(3 rows)
+ Optimizer: Postgres-based planner
+(4 rows)
 
 UPDATE bv1 SET b = 'yyy' WHERE a = 4 AND f_leak(b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 NOTICE:  f_leak => a87ff679a2f3e71d9181a67b7542122c
 EXPLAIN (COSTS OFF) DELETE FROM bv1 WHERE a = 6 AND f_leak(b);
-                              QUERY PLAN                               
------------------------------------------------------------------------
+                               QUERY PLAN                                
+-------------------------------------------------------------------------
  Delete on b1
    ->  Seq Scan on b1
-         Filter: ((a > 0) AND (a = 6) AND ((a % 2) = 0) AND f_leak(b))
-(3 rows)
+         Filter: (((a % 2) = 0) AND (a > 0) AND ((a = 6) AND f_leak(b)))
+ Optimizer: GPORCA
+(4 rows)
 
 DELETE FROM bv1 WHERE a = 6 AND f_leak(b);
 NOTICE:  f_leak => 1679091c5a880faf6fb5e6087eb1b2dc
@@ -2142,6 +2449,8 @@ SELECT * FROM document WHERE did = 2;
 -- alternative UPDATE path happens to be taken):
 INSERT INTO document VALUES (2, (SELECT cid from category WHERE cname = 'novel'), 1, 'regress_rls_carol', 'my first novel')
     ON CONFLICT (did) DO UPDATE SET dtitle = EXCLUDED.dtitle, dauthor = EXCLUDED.dauthor;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "document"
 -- Violates USING qual for UPDATE policy p3.
 --
@@ -2149,13 +2458,19 @@ ERROR:  new row violates row-level security policy for table "document"
 -- updated is not a "novel"/cid 11 (row is not leaked, even though we have
 -- SELECT privileges sufficient to see the row in this instance):
 INSERT INTO document VALUES (33, 22, 1, 'regress_rls_bob', 'okay science fiction'); -- preparation for next statement
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 INSERT INTO document VALUES (33, (SELECT cid from category WHERE cname = 'novel'), 1, 'regress_rls_bob', 'Some novel, replaces sci-fi') -- takes UPDATE path
     ON CONFLICT (did) DO UPDATE SET dtitle = EXCLUDED.dtitle;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy (USING expression) for table "document"
 -- Fine (we UPDATE, since INSERT WCOs and UPDATE security barrier quals + WCOs
 -- not violated):
 INSERT INTO document VALUES (2, (SELECT cid from category WHERE cname = 'novel'), 1, 'regress_rls_bob', 'my first novel')
     ON CONFLICT (did) DO UPDATE SET dtitle = EXCLUDED.dtitle RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
  did | cid | dlevel |     dauthor     |     dtitle     
 -----+-----+--------+-----------------+----------------
    2 |  11 |      2 | regress_rls_bob | my first novel
@@ -2164,6 +2479,8 @@ INSERT INTO document VALUES (2, (SELECT cid from category WHERE cname = 'novel')
 -- Fine (we INSERT, so "cid = 33" ("technology") isn't evaluated):
 INSERT INTO document VALUES (78, (SELECT cid from category WHERE cname = 'novel'), 1, 'regress_rls_bob', 'some technology novel')
     ON CONFLICT (did) DO UPDATE SET dtitle = EXCLUDED.dtitle, cid = 33 RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
  did | cid | dlevel |     dauthor     |        dtitle         
 -----+-----+--------+-----------------+-----------------------
   78 |  11 |      1 | regress_rls_bob | some technology novel
@@ -2173,6 +2490,8 @@ INSERT INTO document VALUES (78, (SELECT cid from category WHERE cname = 'novel'
 -- case in respect of *existing* tuple):
 INSERT INTO document VALUES (78, (SELECT cid from category WHERE cname = 'novel'), 1, 'regress_rls_bob', 'some technology novel')
     ON CONFLICT (did) DO UPDATE SET dtitle = EXCLUDED.dtitle, cid = 33 RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
  did | cid | dlevel |     dauthor     |        dtitle         
 -----+-----+--------+-----------------+-----------------------
   78 |  33 |      1 | regress_rls_bob | some technology novel
@@ -2182,12 +2501,16 @@ INSERT INTO document VALUES (78, (SELECT cid from category WHERE cname = 'novel'
 -- passing quals:
 INSERT INTO document VALUES (78, (SELECT cid from category WHERE cname = 'novel'), 1, 'regress_rls_bob', 'some technology novel')
     ON CONFLICT (did) DO UPDATE SET dtitle = EXCLUDED.dtitle, cid = 33 RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy (USING expression) for table "document"
 -- Don't fail just because INSERT doesn't satisfy WITH CHECK option that
 -- originated as a barrier/USING() qual from the UPDATE.  Note that the UPDATE
 -- path *isn't* taken, and so UPDATE-related policy does not apply:
 INSERT INTO document VALUES (79, (SELECT cid from category WHERE cname = 'technology'), 1, 'regress_rls_bob', 'technology book, can only insert')
     ON CONFLICT (did) DO UPDATE SET dtitle = EXCLUDED.dtitle RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
  did | cid | dlevel |     dauthor     |              dtitle              
 -----+-----+--------+-----------------+----------------------------------
   79 |  33 |      1 | regress_rls_bob | technology book, can only insert
@@ -2199,6 +2522,8 @@ INSERT INTO document VALUES (79, (SELECT cid from category WHERE cname = 'techno
 -- irrelevant, in fact.
 INSERT INTO document VALUES (79, (SELECT cid from category WHERE cname = 'technology'), 1, 'regress_rls_bob', 'technology book, can only insert')
     ON CONFLICT (did) DO UPDATE SET dtitle = EXCLUDED.dtitle RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy (USING expression) for table "document"
 -- Test default USING qual enforced as WCO
 SET SESSION AUTHORIZATION regress_rls_alice;
@@ -2221,6 +2546,8 @@ SET SESSION AUTHORIZATION regress_rls_bob;
 -- UPDATE to make this fail:
 INSERT INTO document VALUES (79, (SELECT cid from category WHERE cname = 'technology'), 1, 'regress_rls_bob', 'technology book, can only insert')
     ON CONFLICT (did) DO UPDATE SET dtitle = EXCLUDED.dtitle RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "document"
 -- UPDATE path is taken here.  Existing tuple passes, since its cid
 -- corresponds to "novel", but default USING qual is enforced against
@@ -2228,6 +2555,8 @@ ERROR:  new row violates row-level security policy for table "document"
 -- explicit WCO), and so this fails:
 INSERT INTO document VALUES (2, (SELECT cid from category WHERE cname = 'technology'), 1, 'regress_rls_bob', 'my first novel')
     ON CONFLICT (did) DO UPDATE SET cid = EXCLUDED.cid, dtitle = EXCLUDED.dtitle RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "document"
 SET SESSION AUTHORIZATION regress_rls_alice;
 DROP POLICY p3_with_default ON document;
@@ -2242,22 +2571,32 @@ SET SESSION AUTHORIZATION regress_rls_bob;
 -- Fails, since ALL WCO is enforced in insert path:
 INSERT INTO document VALUES (80, (SELECT cid from category WHERE cname = 'novel'), 1, 'regress_rls_carol', 'my first novel')
     ON CONFLICT (did) DO UPDATE SET dtitle = EXCLUDED.dtitle, cid = 33;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "document"
 -- Fails, since ALL policy USING qual is enforced (existing, target tuple is in
 -- violation, since it has the "manga" cid):
 INSERT INTO document VALUES (4, (SELECT cid from category WHERE cname = 'novel'), 1, 'regress_rls_bob', 'my first novel')
     ON CONFLICT (did) DO UPDATE SET dtitle = EXCLUDED.dtitle;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy (USING expression) for table "document"
 -- Fails, since ALL WCO are enforced:
 INSERT INTO document VALUES (1, (SELECT cid from category WHERE cname = 'novel'), 1, 'regress_rls_bob', 'my first novel')
     ON CONFLICT (did) DO UPDATE SET dauthor = 'regress_rls_carol';
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "document"
 --
 -- ROLE/GROUP
 --
 SET SESSION AUTHORIZATION regress_rls_alice;
 CREATE TABLE z1 (a int, b text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE TABLE z2 (a int, b text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 GRANT SELECT ON z1,z2 TO regress_rls_group1, regress_rls_group2,
     regress_rls_bob, regress_rls_carol;
 INSERT INTO z1 VALUES
@@ -2284,7 +2623,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM z1 WHERE f_leak(b);
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on z1
          Filter: (((a % 2) = 0) AND f_leak(b))
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 PREPARE plancache_test AS SELECT * FROM z1 WHERE f_leak(b);
@@ -2294,23 +2633,26 @@ EXPLAIN (COSTS OFF) EXECUTE plancache_test;
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on z1
          Filter: (((a % 2) = 0) AND f_leak(b))
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 PREPARE plancache_test2 AS WITH q AS MATERIALIZED (SELECT * FROM z1 WHERE f_leak(b)) SELECT * FROM q,z2;
 EXPLAIN (COSTS OFF) EXECUTE plancache_test2;
-                           QUERY PLAN                            
------------------------------------------------------------------
- Gather Motion 3:1  (slice1; segments: 3)
+                         QUERY PLAN                         
+------------------------------------------------------------
+ Sequence
+   ->  Shared Scan (share slice:id 0:0)
+         ->  Gather Motion 3:1  (slice1; segments: 3)
+               ->  Seq Scan on z1
+                     Filter: (((a % 2) = 0) AND f_leak(b))
    ->  Nested Loop
-         ->  Broadcast Motion 3:3  (slice2; segments: 3)
-               ->  Shared Scan (share slice:id 2:0)
-                     ->  Seq Scan on z1
-                           Filter: (((a % 2) = 0) AND f_leak(b))
+         Join Filter: true
+         ->  Shared Scan (share slice:id 0:0)
          ->  Materialize
-               ->  Seq Scan on z2
- Optimizer: Postgres query optimizer
-(9 rows)
+               ->  Gather Motion 3:1  (slice2; segments: 3)
+                     ->  Seq Scan on z2
+ Optimizer: GPORCA
+(12 rows)
 
 PREPARE plancache_test3 AS WITH q AS MATERIALIZED (SELECT * FROM z2) SELECT * FROM q,z1 WHERE f_leak(z1.b);
 EXPLAIN (COSTS OFF) EXECUTE plancache_test3;
@@ -2318,14 +2660,13 @@ EXPLAIN (COSTS OFF) EXECUTE plancache_test3;
 -----------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Nested Loop
+         Join Filter: true
          ->  Broadcast Motion 3:3  (slice2; segments: 3)
                ->  Seq Scan on z1
                      Filter: (((a % 2) = 0) AND f_leak(b))
-         ->  Materialize
-               ->  Shared Scan (share slice:id 1:0)
-                     ->  Seq Scan on z2
- Optimizer: Postgres query optimizer
-(9 rows)
+         ->  Seq Scan on z2
+ Optimizer: GPORCA
+(8 rows)
 
 SET ROLE regress_rls_group1;
 SELECT * FROM z1 WHERE f_leak(b);
@@ -2343,7 +2684,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM z1 WHERE f_leak(b);
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on z1
          Filter: (((a % 2) = 0) AND f_leak(b))
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 EXPLAIN (COSTS OFF) EXECUTE plancache_test;
@@ -2352,36 +2693,38 @@ EXPLAIN (COSTS OFF) EXECUTE plancache_test;
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on z1
          Filter: (((a % 2) = 0) AND f_leak(b))
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 EXPLAIN (COSTS OFF) EXECUTE plancache_test2;
-                           QUERY PLAN                            
------------------------------------------------------------------
- Gather Motion 3:1  (slice1; segments: 3)
+                         QUERY PLAN                         
+------------------------------------------------------------
+ Sequence
+   ->  Shared Scan (share slice:id 0:0)
+         ->  Gather Motion 3:1  (slice1; segments: 3)
+               ->  Seq Scan on z1
+                     Filter: (((a % 2) = 0) AND f_leak(b))
    ->  Nested Loop
-         ->  Broadcast Motion 3:3  (slice2; segments: 3)
-               ->  Shared Scan (share slice:id 2:0)
-                     ->  Seq Scan on z1
-                           Filter: (((a % 2) = 0) AND f_leak(b))
+         Join Filter: true
+         ->  Shared Scan (share slice:id 0:0)
          ->  Materialize
-               ->  Seq Scan on z2
- Optimizer: Postgres query optimizer
-(9 rows)
+               ->  Gather Motion 3:1  (slice2; segments: 3)
+                     ->  Seq Scan on z2
+ Optimizer: GPORCA
+(12 rows)
 
 EXPLAIN (COSTS OFF) EXECUTE plancache_test3;
                         QUERY PLAN                         
 -----------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Nested Loop
+         Join Filter: true
          ->  Broadcast Motion 3:3  (slice2; segments: 3)
                ->  Seq Scan on z1
                      Filter: (((a % 2) = 0) AND f_leak(b))
-         ->  Materialize
-               ->  Shared Scan (share slice:id 1:0)
-                     ->  Seq Scan on z2
- Optimizer: Postgres query optimizer
-(9 rows)
+         ->  Seq Scan on z2
+ Optimizer: GPORCA
+(8 rows)
 
 SET SESSION AUTHORIZATION regress_rls_carol;
 SELECT * FROM z1 WHERE f_leak(b);
@@ -2399,7 +2742,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM z1 WHERE f_leak(b);
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on z1
          Filter: (((a % 2) = 1) AND f_leak(b))
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 EXPLAIN (COSTS OFF) EXECUTE plancache_test;
@@ -2408,36 +2751,38 @@ EXPLAIN (COSTS OFF) EXECUTE plancache_test;
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on z1
          Filter: (((a % 2) = 1) AND f_leak(b))
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 EXPLAIN (COSTS OFF) EXECUTE plancache_test2;
-                           QUERY PLAN                            
------------------------------------------------------------------
- Gather Motion 3:1  (slice1; segments: 3)
+                         QUERY PLAN                         
+------------------------------------------------------------
+ Sequence
+   ->  Shared Scan (share slice:id 0:0)
+         ->  Gather Motion 3:1  (slice1; segments: 3)
+               ->  Seq Scan on z1
+                     Filter: (((a % 2) = 1) AND f_leak(b))
    ->  Nested Loop
-         ->  Broadcast Motion 3:3  (slice2; segments: 3)
-               ->  Shared Scan (share slice:id 2:0)
-                     ->  Seq Scan on z1
-                           Filter: (((a % 2) = 1) AND f_leak(b))
+         Join Filter: true
+         ->  Shared Scan (share slice:id 0:0)
          ->  Materialize
-               ->  Seq Scan on z2
- Optimizer: Postgres query optimizer
-(9 rows)
+               ->  Gather Motion 3:1  (slice2; segments: 3)
+                     ->  Seq Scan on z2
+ Optimizer: GPORCA
+(12 rows)
 
 EXPLAIN (COSTS OFF) EXECUTE plancache_test3;
                         QUERY PLAN                         
 -----------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Nested Loop
+         Join Filter: true
          ->  Broadcast Motion 3:3  (slice2; segments: 3)
                ->  Seq Scan on z1
                      Filter: (((a % 2) = 1) AND f_leak(b))
-         ->  Materialize
-               ->  Shared Scan (share slice:id 1:0)
-                     ->  Seq Scan on z2
- Optimizer: Postgres query optimizer
-(9 rows)
+         ->  Seq Scan on z2
+ Optimizer: GPORCA
+(8 rows)
 
 SET ROLE regress_rls_group2;
 SELECT * FROM z1 WHERE f_leak(b);
@@ -2455,7 +2800,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM z1 WHERE f_leak(b);
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on z1
          Filter: (((a % 2) = 1) AND f_leak(b))
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 EXPLAIN (COSTS OFF) EXECUTE plancache_test;
@@ -2464,36 +2809,38 @@ EXPLAIN (COSTS OFF) EXECUTE plancache_test;
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on z1
          Filter: (((a % 2) = 1) AND f_leak(b))
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 EXPLAIN (COSTS OFF) EXECUTE plancache_test2;
-                           QUERY PLAN                            
------------------------------------------------------------------
- Gather Motion 3:1  (slice1; segments: 3)
+                         QUERY PLAN                         
+------------------------------------------------------------
+ Sequence
+   ->  Shared Scan (share slice:id 0:0)
+         ->  Gather Motion 3:1  (slice1; segments: 3)
+               ->  Seq Scan on z1
+                     Filter: (((a % 2) = 1) AND f_leak(b))
    ->  Nested Loop
-         ->  Broadcast Motion 3:3  (slice2; segments: 3)
-               ->  Shared Scan (share slice:id 2:0)
-                     ->  Seq Scan on z1
-                           Filter: (((a % 2) = 1) AND f_leak(b))
+         Join Filter: true
+         ->  Shared Scan (share slice:id 0:0)
          ->  Materialize
-               ->  Seq Scan on z2
- Optimizer: Postgres query optimizer
-(9 rows)
+               ->  Gather Motion 3:1  (slice2; segments: 3)
+                     ->  Seq Scan on z2
+ Optimizer: GPORCA
+(12 rows)
 
 EXPLAIN (COSTS OFF) EXECUTE plancache_test3;
                         QUERY PLAN                         
 -----------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Nested Loop
+         Join Filter: true
          ->  Broadcast Motion 3:3  (slice2; segments: 3)
                ->  Seq Scan on z1
                      Filter: (((a % 2) = 1) AND f_leak(b))
-         ->  Materialize
-               ->  Shared Scan (share slice:id 1:0)
-                     ->  Seq Scan on z2
- Optimizer: Postgres query optimizer
-(9 rows)
+         ->  Seq Scan on z2
+ Optimizer: GPORCA
+(8 rows)
 
 --
 -- Views should follow policy for view owner.
@@ -2523,7 +2870,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM rls_view;
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on z1
          Filter: f_leak(b)
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 -- Query as view/table owner.  Should return all records.
@@ -2547,7 +2894,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM rls_view;
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on z1
          Filter: f_leak(b)
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 DROP VIEW rls_view;
@@ -2573,7 +2920,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM rls_view;
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on z1
          Filter: (((a % 2) = 0) AND f_leak(b))
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 -- Query as role that is not owner of table but is owner of view.
@@ -2594,7 +2941,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM rls_view;
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on z1
          Filter: (((a % 2) = 0) AND f_leak(b))
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 -- Query as role that is not the owner of the table or view without permissions.
@@ -2621,7 +2968,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM rls_view;
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on z1
          Filter: (((a % 2) = 0) AND f_leak(b))
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 SET SESSION AUTHORIZATION regress_rls_bob;
@@ -2631,6 +2978,8 @@ DROP VIEW rls_view;
 --
 SET SESSION AUTHORIZATION regress_rls_alice;
 CREATE TABLE x1 (a int, b text, c text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 GRANT ALL ON x1 TO PUBLIC;
 INSERT INTO x1 VALUES
     (1, 'abc', 'regress_rls_bob'),
@@ -2649,9 +2998,11 @@ CREATE POLICY p4 ON x1 FOR DELETE USING (a < 8);
 ALTER TABLE x1 ENABLE ROW LEVEL SECURITY;
 SET SESSION AUTHORIZATION regress_rls_bob;
 SELECT * FROM x1 WHERE f_leak(b) ORDER BY a ASC;
-NOTICE:  f_leak => abc
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
 NOTICE:  f_leak => bcd
 NOTICE:  f_leak => def
+NOTICE:  f_leak => abc
 NOTICE:  f_leak => efg
 NOTICE:  f_leak => fgh
 NOTICE:  f_leak => fgh
@@ -2666,11 +3017,13 @@ NOTICE:  f_leak => fgh
 (6 rows)
 
 UPDATE x1 SET b = b || '_updt' WHERE f_leak(b) RETURNING *;
-NOTICE:  f_leak => abc
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 NOTICE:  f_leak => bcd
-NOTICE:  f_leak => def
+NOTICE:  f_leak => abc
 NOTICE:  f_leak => efg
 NOTICE:  f_leak => fgh
+NOTICE:  f_leak => def
 NOTICE:  f_leak => fgh
  a |    b     |         c         
 ---+----------+-------------------
@@ -2684,11 +3037,13 @@ NOTICE:  f_leak => fgh
 
 SET SESSION AUTHORIZATION regress_rls_carol;
 SELECT * FROM x1 WHERE f_leak(b) ORDER BY a ASC;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
+NOTICE:  f_leak => fgh_updt
 NOTICE:  f_leak => cde
 NOTICE:  f_leak => fgh
 NOTICE:  f_leak => bcd_updt
 NOTICE:  f_leak => def_updt
-NOTICE:  f_leak => fgh_updt
 NOTICE:  f_leak => fgh_updt
  a |    b     |         c         
 ---+----------+-------------------
@@ -2701,11 +3056,13 @@ NOTICE:  f_leak => fgh_updt
 (6 rows)
 
 UPDATE x1 SET b = b || '_updt' WHERE f_leak(b) RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 NOTICE:  f_leak => cde
+NOTICE:  f_leak => fgh_updt
 NOTICE:  f_leak => fgh
 NOTICE:  f_leak => bcd_updt
 NOTICE:  f_leak => def_updt
-NOTICE:  f_leak => fgh_updt
 NOTICE:  f_leak => fgh_updt
  a |       b       |         c         
 ---+---------------+-------------------
@@ -2718,11 +3075,13 @@ NOTICE:  f_leak => fgh_updt
 (6 rows)
 
 DELETE FROM x1 WHERE f_leak(b) RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
 NOTICE:  f_leak => cde_updt
+NOTICE:  f_leak => fgh_updt_updt
 NOTICE:  f_leak => fgh_updt
 NOTICE:  f_leak => bcd_updt_updt
 NOTICE:  f_leak => def_updt_updt
-NOTICE:  f_leak => fgh_updt_updt
 NOTICE:  f_leak => fgh_updt_updt
  a |       b       |         c         
 ---+---------------+-------------------
@@ -2739,7 +3098,11 @@ NOTICE:  f_leak => fgh_updt_updt
 --
 SET SESSION AUTHORIZATION regress_rls_alice;
 CREATE TABLE y1 (a int, b text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE TABLE y2 (a int, b text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 GRANT ALL ON y1, y2 TO regress_rls_bob;
 CREATE POLICY p1 ON y1 FOR ALL USING (a % 2 = 0);
 CREATE POLICY p2 ON y1 FOR SELECT USING (a > 2);
@@ -2756,6 +3119,8 @@ SET SESSION AUTHORIZATION regress_rls_alice;
 CREATE VIEW rls_sbv WITH (security_barrier) AS
     SELECT * FROM y1 WHERE f_leak(b);
 EXPLAIN (COSTS OFF) SELECT * FROM rls_sbv WHERE (a = 1);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: views with security_barrier ON
                 QUERY PLAN                
 ------------------------------------------
  Gather Motion 1:1  (slice1; segments: 1)
@@ -2770,6 +3135,8 @@ SET SESSION AUTHORIZATION regress_rls_bob;
 CREATE VIEW rls_sbv WITH (security_barrier) AS
     SELECT * FROM y1 WHERE f_leak(b);
 EXPLAIN (COSTS OFF) SELECT * FROM rls_sbv WHERE (a = 1);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: views with security_barrier ON
                                QUERY PLAN                               
 ------------------------------------------------------------------------
  Gather Motion 1:1  (slice1; segments: 1)
@@ -2827,7 +3194,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM y2 WHERE f_leak(b);
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on y2
          Filter: ((((a % 4) = 0) OR ((a % 3) = 0) OR ((a % 2) = 0)) AND f_leak(b))
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 --
@@ -2878,13 +3245,15 @@ EXPLAIN (COSTS OFF) SELECT * FROM y2 WHERE f_leak('abc');
 ---------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on y2
-         Filter: (f_leak('abc'::text) AND (((a % 4) = 0) OR ((a % 3) = 0) OR ((a % 2) = 0)))
- Optimizer: Postgres query optimizer
+         Filter: ((((a % 4) = 0) OR ((a % 3) = 0) OR ((a % 2) = 0)) AND f_leak('abc'::text))
+ Optimizer: GPORCA
 (4 rows)
 
 CREATE TABLE test_qual_pushdown (
     abc text
 );
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'abc' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 INSERT INTO test_qual_pushdown VALUES ('abc'),('def');
 ANALYZE test_qual_pushdown;
 SELECT * FROM y2 JOIN test_qual_pushdown ON (b = abc) WHERE f_leak(abc);
@@ -2906,7 +3275,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM y2 JOIN test_qual_pushdown ON (b = abc) WHERE 
                ->  Broadcast Motion 3:3  (slice2; segments: 3)
                      ->  Seq Scan on test_qual_pushdown
                            Filter: f_leak(abc)
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (10 rows)
 
 SELECT * FROM y2 JOIN test_qual_pushdown ON (b = abc) WHERE f_leak(b);
@@ -2929,18 +3298,19 @@ NOTICE:  f_leak => 98f13708210194c475687be6106a3b84
 (0 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM y2 JOIN test_qual_pushdown ON (b = abc) WHERE f_leak(b);
-                                       QUERY PLAN                                        
------------------------------------------------------------------------------------------
+                                          QUERY PLAN                                           
+-----------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
          Hash Cond: (y2.b = test_qual_pushdown.abc)
-         ->  Seq Scan on y2
-               Filter: ((((a % 4) = 0) OR ((a % 3) = 0) OR ((a % 2) = 0)) AND f_leak(b))
+         ->  Redistribute Motion 3:3  (slice2; segments: 3)
+               Hash Key: y2.b
+               ->  Seq Scan on y2
+                     Filter: ((((a % 4) = 0) OR ((a % 3) = 0) OR ((a % 2) = 0)) AND f_leak(b))
          ->  Hash
-               ->  Broadcast Motion 3:3  (slice2; segments: 3)
-                     ->  Seq Scan on test_qual_pushdown
- Optimizer: Postgres query optimizer
-(9 rows)
+               ->  Seq Scan on test_qual_pushdown
+ Optimizer: GPORCA
+(10 rows)
 
 DROP TABLE test_qual_pushdown;
 --
@@ -2952,6 +3322,8 @@ NOTICE:  drop cascades to 2 other objects
 DETAIL:  drop cascades to table t2
 drop cascades to table t3
 CREATE TABLE t1 (a integer);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 GRANT SELECT ON t1 TO regress_rls_bob, regress_rls_carol;
 CREATE POLICY p1 ON t1 TO regress_rls_bob USING ((a % 2) = 0);
 CREATE POLICY p2 ON t1 TO regress_rls_carol USING ((a % 4) = 0);
@@ -2966,7 +3338,7 @@ EXPLAIN (COSTS OFF) EXECUTE role_inval;
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on t1
          Filter: ((a % 2) = 0)
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 -- Change to regress_rls_carol
@@ -2978,7 +3350,7 @@ EXPLAIN (COSTS OFF) EXECUTE role_inval;
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on t1
          Filter: ((a % 4) = 0)
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 -- Change back to regress_rls_bob
@@ -2990,7 +3362,7 @@ EXPLAIN (COSTS OFF) EXECUTE role_inval;
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on t1
          Filter: ((a % 2) = 0)
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 --
@@ -2999,6 +3371,8 @@ EXPLAIN (COSTS OFF) EXECUTE role_inval;
 RESET SESSION AUTHORIZATION;
 DROP TABLE t1 CASCADE;
 CREATE TABLE t1 (a integer, b text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE POLICY p1 ON t1 USING (a % 2 = 0);
 ALTER TABLE t1 ENABLE ROW LEVEL SECURITY;
 GRANT ALL ON t1 TO regress_rls_bob;
@@ -3033,18 +3407,24 @@ NOTICE:  f_leak => 98f13708210194c475687be6106a3b84
 
 EXPLAIN (COSTS OFF)
 WITH cte1 AS MATERIALIZED (SELECT * FROM t1 WHERE f_leak(b)) SELECT * FROM cte1;
-                     QUERY PLAN                      
------------------------------------------------------
+                        QUERY PLAN                         
+-----------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
-   ->  Shared Scan (share slice:id 1:0)
-         ->  Seq Scan on t1
-               Filter: (((a % 2) = 0) AND f_leak(b))
- Optimizer: Postgres query optimizer
-(5 rows)
+   ->  Sequence
+         ->  Shared Scan (share slice:id 1:0)
+               ->  Seq Scan on t1
+                     Filter: (((a % 2) = 0) AND f_leak(b))
+         ->  Shared Scan (share slice:id 1:0)
+ Optimizer: GPORCA
+(7 rows)
 
 WITH cte1 AS (UPDATE t1 SET a = a + 1 RETURNING *) SELECT * FROM cte1; --fail
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "t1"
 WITH cte1 AS (UPDATE t1 SET a = a RETURNING *) SELECT * FROM cte1; --ok
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
  a  |                b                 
 ----+----------------------------------
   0 | cfcd208495d565ef66e7dff9f98764da
@@ -3061,8 +3441,12 @@ WITH cte1 AS (UPDATE t1 SET a = a RETURNING *) SELECT * FROM cte1; --ok
 (11 rows)
 
 WITH cte1 AS (INSERT INTO t1 VALUES (21, 'Fail') RETURNING *) SELECT * FROM cte1; --fail
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "t1"
 WITH cte1 AS (INSERT INTO t1 VALUES (20, 'Success') RETURNING *) SELECT * FROM cte1; --ok
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
  a  |    b    
 ----+---------
  20 | Success
@@ -3078,6 +3462,8 @@ SELECT polname, relname
     FROM pg_policy pol
     JOIN pg_class pc ON (pc.oid = pol.polrelid)
     WHERE relname = 't1';
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
  polname | relname 
 ---------+---------
  p1      | t1
@@ -3088,6 +3474,8 @@ SELECT polname, relname
     FROM pg_policy pol
     JOIN pg_class pc ON (pc.oid = pol.polrelid)
     WHERE relname = 't1';
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
  polname | relname 
 ---------+---------
  p2      | t1
@@ -3098,14 +3486,16 @@ SELECT polname, relname
 --
 SET SESSION AUTHORIZATION regress_rls_bob;
 CREATE TABLE t2 (a integer, b text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 INSERT INTO t2 (SELECT * FROM t1);
 EXPLAIN (COSTS OFF) INSERT INTO t2 (SELECT * FROM t1);
-             QUERY PLAN              
--------------------------------------
+          QUERY PLAN           
+-------------------------------
  Insert on t2
    ->  Seq Scan on t1
          Filter: ((a % 2) = 0)
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (4 rows)
 
 SELECT * FROM t2;
@@ -3130,10 +3520,11 @@ EXPLAIN (COSTS OFF) SELECT * FROM t2;
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on t2
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (3 rows)
 
 CREATE TABLE t3 AS SELECT * FROM t1;
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause. Creating a NULL policy entry.
 SELECT * FROM t3;
  a  |                b                 
 ----+----------------------------------
@@ -3152,6 +3543,7 @@ SELECT * FROM t3;
 (12 rows)
 
 SELECT * INTO t4 FROM t1;
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause. Creating a NULL policy entry.
 SELECT * FROM t4;
  a  |                b                 
 ----+----------------------------------
@@ -3174,7 +3566,11 @@ SELECT * FROM t4;
 --
 SET SESSION AUTHORIZATION regress_rls_alice;
 CREATE TABLE blog (id integer, author text, post text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'id' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE TABLE comment (blog_id integer, message text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'blog_id' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 GRANT ALL ON blog, comment TO regress_rls_bob;
 CREATE POLICY blog_1 ON blog USING (id % 2 = 0);
 ALTER TABLE blog ENABLE ROW LEVEL SECURITY;
@@ -3267,7 +3663,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM t1;
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on t1
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (3 rows)
 
 -- Check that default deny does not apply to table owner.
@@ -3304,7 +3700,7 @@ EXPLAIN (COSTS OFF) SELECT * FROM t1;
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on t1
- Optimizer: Postgres query optimizer
+ Optimizer: GPORCA
 (3 rows)
 
 -- Check that default deny applies to non-owner/non-superuser when RLS on.
@@ -3316,12 +3712,13 @@ SELECT * FROM t1;
 (0 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM t1;
-             QUERY PLAN              
--------------------------------------
- Result
-   One-Time Filter: false
- Optimizer: Postgres query optimizer
-(3 rows)
+                QUERY PLAN                
+------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Seq Scan on t1
+         Filter: false
+ Optimizer: GPORCA
+(4 rows)
 
 SET SESSION AUTHORIZATION regress_rls_bob;
 SELECT * FROM t1;
@@ -3330,12 +3727,13 @@ SELECT * FROM t1;
 (0 rows)
 
 EXPLAIN (COSTS OFF) SELECT * FROM t1;
-             QUERY PLAN              
--------------------------------------
- Result
-   One-Time Filter: false
- Optimizer: Postgres query optimizer
-(3 rows)
+                QUERY PLAN                
+------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Seq Scan on t1
+         Filter: false
+ Optimizer: GPORCA
+(4 rows)
 
 --
 -- COPY TO/FROM
@@ -3344,6 +3742,8 @@ RESET SESSION AUTHORIZATION;
 DROP TABLE copy_t CASCADE;
 ERROR:  table "copy_t" does not exist
 CREATE TABLE copy_t (a integer, b text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE POLICY p1 ON copy_t USING (a % 2 = 0);
 ALTER TABLE copy_t ENABLE ROW LEVEL SECURITY;
 GRANT ALL ON copy_t TO regress_rls_bob, regress_rls_exempt_user;
@@ -3429,6 +3829,8 @@ ERROR:  permission denied for table copy_t
 RESET SESSION AUTHORIZATION;
 SET row_security TO ON;
 CREATE TABLE copy_rel_to (a integer, b text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE POLICY p1 ON copy_rel_to USING (a % 2 = 0);
 ALTER TABLE copy_rel_to ENABLE ROW LEVEL SECURITY;
 GRANT ALL ON copy_rel_to TO regress_rls_bob, regress_rls_exempt_user;
@@ -3497,6 +3899,8 @@ DROP TABLE copy_rel_to CASCADE;
 -- Check WHERE CURRENT OF
 SET SESSION AUTHORIZATION regress_rls_alice;
 CREATE TABLE current_check (currentid int, payload text, rlsuser text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'currentid' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 GRANT ALL ON current_check TO PUBLIC;
 INSERT INTO current_check VALUES
     (1, 'abc', 'regress_rls_bob'),
@@ -3518,6 +3922,8 @@ SELECT * FROM current_check;
 
 -- Cannot UPDATE row 2
 UPDATE current_check SET payload = payload || '_new' WHERE currentid = 2 RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
  currentid | payload | rlsuser 
 -----------+---------+---------
 (0 rows)
@@ -3534,6 +3940,8 @@ FETCH ABSOLUTE 1 FROM current_check_cursor;
 
 -- Still cannot UPDATE row 2 through cursor
 UPDATE current_check SET payload = payload || '_new' WHERE CURRENT OF current_check_cursor RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
  currentid | payload | rlsuser 
 -----------+---------+---------
 (0 rows)
@@ -3546,6 +3954,8 @@ FETCH RELATIVE 1 FROM current_check_cursor;
 (1 row)
 
 UPDATE current_check SET payload = payload || '_new' WHERE CURRENT OF current_check_cursor RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
  currentid | payload |     rlsuser     
 -----------+---------+-----------------
          4 | def_new | regress_rls_bob
@@ -3560,14 +3970,23 @@ SELECT * FROM current_check;
 
 -- Plan should be a subquery TID scan
 EXPLAIN (COSTS OFF) UPDATE current_check SET payload = payload WHERE CURRENT OF current_check_cursor;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
                          QUERY PLAN                          
 -------------------------------------------------------------
  Update on current_check
    ->  Tid Scan on current_check
          TID Cond: CURRENT OF current_check_cursor
          Filter: ((currentid = 4) AND ((currentid % 2) = 0))
-(4 rows)
+ Optimizer: Postgres-based planner
+(5 rows)
 
+-- start_ignore
+-- GPDB: does not support backwards scans, commit and restart
+COMMIT;
+BEGIN;
+DECLARE current_check_cursor SCROLL CURSOR FOR SELECT * FROM current_check;
+-- end_ignore
 -- Similarly can only delete row 4
 FETCH ABSOLUTE 1 FROM current_check_cursor;
  currentid | payload |     rlsuser     
@@ -3576,6 +3995,8 @@ FETCH ABSOLUTE 1 FROM current_check_cursor;
 (1 row)
 
 DELETE FROM current_check WHERE CURRENT OF current_check_cursor RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: CURRENT OF
  currentid | payload | rlsuser 
 -----------+---------+---------
 (0 rows)
@@ -3587,6 +4008,8 @@ FETCH RELATIVE 1 FROM current_check_cursor;
 (1 row)
 
 DELETE FROM current_check WHERE CURRENT OF current_check_cursor RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: CURRENT OF
  currentid | payload |     rlsuser     
 -----------+---------+-----------------
          4 | def_new | regress_rls_bob
@@ -3615,6 +4038,8 @@ SELECT row_security_active('current_check');
 SELECT attname, most_common_vals FROM pg_stats
   WHERE tablename = 'current_check'
   ORDER BY 1;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: views with security_barrier ON
   attname  | most_common_vals  
 -----------+-------------------
  currentid | 
@@ -3633,6 +4058,8 @@ SELECT row_security_active('current_check');
 SELECT attname, most_common_vals FROM pg_stats
   WHERE tablename = 'current_check'
   ORDER BY 1;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: views with security_barrier ON
  attname | most_common_vals 
 ---------+------------------
 (0 rows)
@@ -3642,10 +4069,13 @@ SELECT attname, most_common_vals FROM pg_stats
 --
 BEGIN;
 CREATE TABLE coll_t (c) AS VALUES ('bar'::text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause. Creating a NULL policy entry.
 CREATE POLICY coll_p ON coll_t USING (c < ('foo'::text COLLATE "C"));
 ALTER TABLE coll_t ENABLE ROW LEVEL SECURITY;
 GRANT SELECT ON coll_t TO regress_rls_alice;
 SELECT (string_to_array(polqual, ':'))[7] AS inputcollid FROM pg_policy WHERE polrelid = 'coll_t'::regclass;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
    inputcollid    
 ------------------
  inputcollid 950 
@@ -3653,6 +4083,8 @@ SELECT (string_to_array(polqual, ':'))[7] AS inputcollid FROM pg_policy WHERE po
 
 SET SESSION AUTHORIZATION regress_rls_alice;
 SELECT * FROM coll_t;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
   c  
 -----
  bar
@@ -3667,12 +4099,15 @@ BEGIN;
 CREATE ROLE regress_rls_eve;
 CREATE ROLE regress_rls_frank;
 CREATE TABLE tbl1 (c) AS VALUES ('bar'::text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause. Creating a NULL policy entry.
 GRANT SELECT ON TABLE tbl1 TO regress_rls_eve;
 CREATE POLICY P ON tbl1 TO regress_rls_eve, regress_rls_frank USING (true);
 SELECT refclassid::regclass, deptype
   FROM pg_depend
   WHERE classid = 'pg_policy'::regclass
   AND refobjid = 'tbl1'::regclass;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Queries on coordinator-only tables
  refclassid | deptype 
 ------------+---------
  pg_class   | a
@@ -3682,6 +4117,8 @@ SELECT refclassid::regclass, deptype
   FROM pg_shdepend
   WHERE classid = 'pg_policy'::regclass
   AND refobjid IN ('regress_rls_eve'::regrole, 'regress_rls_frank'::regrole);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Queries on coordinator-only tables
  refclassid | deptype 
 ------------+---------
  pg_authid  | r
@@ -3719,6 +4156,8 @@ ROLLBACK; -- cleanup
 --
 BEGIN;
 CREATE TABLE t (c int);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'c' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE POLICY p ON t USING (c % 2 = 1);
 ALTER TABLE t ENABLE ROW LEVEL SECURITY;
 SAVEPOINT q;
@@ -3741,6 +4180,7 @@ ROLLBACK;
 --
 BEGIN;
 CREATE TABLE t (c) AS VALUES ('bar'::text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause. Creating a NULL policy entry.
 CREATE POLICY p ON t USING (max(c)); -- fails: aggregate functions are not allowed in policy expressions
 ERROR:  aggregate functions are not allowed in policy expressions
 ROLLBACK;
@@ -3749,7 +4189,11 @@ ROLLBACK;
 --
 SET SESSION AUTHORIZATION regress_rls_alice;
 CREATE TABLE r1 (a int);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE TABLE r2 (a int);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 INSERT INTO r1 VALUES (10), (20);
 INSERT INTO r2 VALUES (10), (20);
 GRANT ALL ON r1, r2 TO regress_rls_bob;
@@ -3777,19 +4221,27 @@ SELECT * FROM r2;
 
 -- r2 is read-only
 INSERT INTO r2 VALUES (2); -- Not allowed
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "r2"
 UPDATE r2 SET a = 2 RETURNING *; -- Updates nothing
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
  a 
 ---
 (0 rows)
 
 DELETE FROM r2 RETURNING *; -- Deletes nothing
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: RETURNING clause
  a 
 ---
 (0 rows)
 
 -- r2 can be used as a non-target relation in DML
 INSERT INTO r1 SELECT a + 1 FROM r2 RETURNING *; -- OK
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
  a  
 ----
  11
@@ -3797,6 +4249,8 @@ INSERT INTO r1 SELECT a + 1 FROM r2 RETURNING *; -- OK
 (2 rows)
 
 UPDATE r1 SET a = r2.a + 2 FROM r2 WHERE r1.a = r2.a RETURNING *; -- OK
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
  a  | a  
 ----+----
  12 | 10
@@ -3804,6 +4258,8 @@ UPDATE r1 SET a = r2.a + 2 FROM r2 WHERE r1.a = r2.a RETURNING *; -- OK
 (2 rows)
 
 DELETE FROM r1 USING r2 WHERE r1.a = r2.a + 2 RETURNING *; -- OK
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: RETURNING clause
  a  | a  
 ----+----
  12 | 10
@@ -3833,6 +4289,8 @@ DROP TABLE r2;
 SET SESSION AUTHORIZATION regress_rls_alice;
 SET row_security = on;
 CREATE TABLE r1 (a int);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 INSERT INTO r1 VALUES (10), (20);
 CREATE POLICY p1 ON r1 USING (false);
 ALTER TABLE r1 ENABLE ROW LEVEL SECURITY;
@@ -3845,9 +4303,13 @@ TABLE r1;
 
 -- RLS error
 INSERT INTO r1 VALUES (1);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "r1"
 -- No error (unable to see any rows to update)
 UPDATE r1 SET a = 1;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 TABLE r1;
  a 
 ---
@@ -3879,6 +4341,9 @@ SET SESSION AUTHORIZATION regress_rls_alice;
 SET row_security = on;
 CREATE TABLE r1 (a int PRIMARY KEY);
 CREATE TABLE r2 (a int REFERENCES r1);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
+WARNING:  referential integrity (FOREIGN KEY) constraints are not supported in Greenplum Database, will not be enforced
 INSERT INTO r1 VALUES (10), (20);
 INSERT INTO r2 VALUES (10), (20);
 -- Create policies on r2 which prevent the
@@ -3913,6 +4378,9 @@ DROP TABLE r1;
 -- Ensure cascaded DELETE works
 CREATE TABLE r1 (a int PRIMARY KEY);
 CREATE TABLE r2 (a int REFERENCES r1 ON DELETE CASCADE);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
+WARNING:  referential integrity (FOREIGN KEY) constraints are not supported in Greenplum Database, will not be enforced
 INSERT INTO r1 VALUES (10), (20);
 INSERT INTO r2 VALUES (10), (20);
 -- Create policies on r2 which prevent the
@@ -3940,6 +4408,9 @@ DROP TABLE r1;
 -- Ensure cascaded UPDATE works
 CREATE TABLE r1 (a int PRIMARY KEY);
 CREATE TABLE r2 (a int REFERENCES r1 ON UPDATE CASCADE);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
+WARNING:  referential integrity (FOREIGN KEY) constraints are not supported in Greenplum Database, will not be enforced
 INSERT INTO r1 VALUES (10), (20);
 INSERT INTO r2 VALUES (10), (20);
 -- Create policies on r2 which prevent the
@@ -3971,12 +4442,16 @@ DROP TABLE r1;
 SET SESSION AUTHORIZATION regress_rls_alice;
 SET row_security = on;
 CREATE TABLE r1 (a int);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE POLICY p1 ON r1 FOR SELECT USING (false);
 CREATE POLICY p2 ON r1 FOR INSERT WITH CHECK (true);
 ALTER TABLE r1 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE r1 FORCE ROW LEVEL SECURITY;
 -- Works fine
 INSERT INTO r1 VALUES (10), (20);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 -- No error, but no rows
 TABLE r1;
  a 
@@ -3991,6 +4466,8 @@ HINT:  To disable the policy for the table's owner, use ALTER TABLE NO FORCE ROW
 SET row_security = on;
 -- Error
 INSERT INTO r1 VALUES (10), (20) RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "r1"
 DROP TABLE r1;
 --
@@ -4008,6 +4485,8 @@ ALTER TABLE r1 ENABLE ROW LEVEL SECURITY;
 ALTER TABLE r1 FORCE ROW LEVEL SECURITY;
 -- Works fine
 UPDATE r1 SET a = 30;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 -- Show updated rows
 ALTER TABLE r1 NO FORCE ROW LEVEL SECURITY;
 TABLE r1;
@@ -4018,6 +4497,8 @@ TABLE r1;
 
 -- reset value in r1 for test with RETURNING
 UPDATE r1 SET a = 10;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Operator Update on replicated tables not supported
 -- Verify row reset
 TABLE r1;
  a  
@@ -4028,30 +4509,44 @@ TABLE r1;
 ALTER TABLE r1 FORCE ROW LEVEL SECURITY;
 -- Error
 UPDATE r1 SET a = 30 RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "r1"
 -- UPDATE path of INSERT ... ON CONFLICT DO UPDATE should also error out
 INSERT INTO r1 VALUES (10)
     ON CONFLICT (a) DO UPDATE SET a = 30 RETURNING *;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "r1"
 -- Should still error out without RETURNING (use of arbiter always requires
 -- SELECT permissions)
 INSERT INTO r1 VALUES (10)
     ON CONFLICT (a) DO UPDATE SET a = 30;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "r1"
 INSERT INTO r1 VALUES (10)
     ON CONFLICT ON CONSTRAINT r1_pkey DO UPDATE SET a = 30;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 ERROR:  new row violates row-level security policy for table "r1"
 DROP TABLE r1;
 -- Check dependency handling
 RESET SESSION AUTHORIZATION;
 CREATE TABLE dep1 (c1 int);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'c1' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE TABLE dep2 (c1 int);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'c1' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE POLICY dep_p1 ON dep1 TO regress_rls_bob USING (c1 > (select max(dep2.c1) from dep2));
 ALTER POLICY dep_p1 ON dep1 TO regress_rls_bob,regress_rls_carol;
 -- Should return one
 SELECT count(*) = 1 FROM pg_depend
 				   WHERE objid = (SELECT oid FROM pg_policy WHERE polname = 'dep_p1')
 					 AND refobjid = (SELECT oid FROM pg_class WHERE relname = 'dep2');
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Queries on coordinator-only tables
  ?column? 
 ----------
  t
@@ -4062,6 +4557,8 @@ ALTER POLICY dep_p1 ON dep1 USING (true);
 SELECT count(*) = 1 FROM pg_shdepend
 				   WHERE objid = (SELECT oid FROM pg_policy WHERE polname = 'dep_p1')
 					 AND refobjid = (SELECT oid FROM pg_authid WHERE rolname = 'regress_rls_bob');
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Queries on coordinator-only tables
  ?column? 
 ----------
  t
@@ -4071,6 +4568,8 @@ SELECT count(*) = 1 FROM pg_shdepend
 SELECT count(*) = 1 FROM pg_shdepend
 				   WHERE objid = (SELECT oid FROM pg_policy WHERE polname = 'dep_p1')
 					 AND refobjid = (SELECT oid FROM pg_authid WHERE rolname = 'regress_rls_carol');
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Queries on coordinator-only tables
  ?column? 
 ----------
  t
@@ -4080,6 +4579,8 @@ SELECT count(*) = 1 FROM pg_shdepend
 SELECT count(*) = 0 FROM pg_depend
 				   WHERE objid = (SELECT oid FROM pg_policy WHERE polname = 'dep_p1')
 					 AND refobjid = (SELECT oid FROM pg_class WHERE relname = 'dep2');
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Queries on coordinator-only tables
  ?column? 
 ----------
  t
@@ -4090,7 +4591,11 @@ RESET SESSION AUTHORIZATION;
 CREATE ROLE regress_rls_dob_role1;
 CREATE ROLE regress_rls_dob_role2;
 CREATE TABLE dob_t1 (c1 int);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'c1' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE TABLE dob_t2 (c1 int) PARTITION BY RANGE (c1);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'c1' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE POLICY p1 ON dob_t1 TO regress_rls_dob_role1 USING (true);
 DROP OWNED BY regress_rls_dob_role1;
 DROP POLICY p1 ON dob_t1; -- should fail, already gone
@@ -4114,8 +4619,12 @@ DROP USER regress_rls_dob_role1;
 DROP USER regress_rls_dob_role2;
 -- Bug #15708: view + table with RLS should check policies as view owner
 CREATE TABLE ref_tbl (a int);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 INSERT INTO ref_tbl VALUES (1);
 CREATE TABLE rls_tbl (a int);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 INSERT INTO rls_tbl VALUES (10);
 ALTER TABLE rls_tbl ENABLE ROW LEVEL SECURITY;
 CREATE POLICY p1 ON rls_tbl USING (EXISTS (SELECT 1 FROM ref_tbl));
@@ -4128,8 +4637,12 @@ SET SESSION AUTHORIZATION regress_rls_alice;
 SELECT * FROM ref_tbl; -- Permission denied
 ERROR:  permission denied for table ref_tbl
 SELECT * FROM rls_tbl; -- Permission denied
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
 ERROR:  permission denied for table rls_tbl
 SELECT * FROM rls_view; -- OK
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query has row level security enabled and security quals contain sublinks
  a  
 ----
  10
@@ -4141,6 +4654,8 @@ DROP TABLE rls_tbl;
 DROP TABLE ref_tbl;
 -- Leaky operator test
 CREATE TABLE rls_tbl (a int);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 INSERT INTO rls_tbl SELECT x/10 FROM generate_series(1, 100) x;
 ANALYZE rls_tbl;
 ALTER TABLE rls_tbl ENABLE ROW LEVEL SECURITY;
@@ -4163,13 +4678,19 @@ DROP TABLE rls_tbl;
 -- Bug #16006: whole-row Vars in a policy don't play nice with sub-selects
 SET SESSION AUTHORIZATION regress_rls_alice;
 CREATE TABLE rls_tbl (a int, b int, c int);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 CREATE POLICY p1 ON rls_tbl USING (rls_tbl >= ROW(1,1,1));
 ALTER TABLE rls_tbl ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rls_tbl FORCE ROW LEVEL SECURITY;
 INSERT INTO rls_tbl SELECT 10, 20, 30;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 EXPLAIN (VERBOSE, COSTS OFF)
 INSERT INTO rls_tbl
   SELECT * FROM (SELECT b, c FROM rls_tbl ORDER BY a) ss;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
                                 QUERY PLAN                                
 --------------------------------------------------------------------------
  Insert on regress_rls_schema.rls_tbl
@@ -4184,13 +4705,16 @@ INSERT INTO rls_tbl
                      ->  Seq Scan on regress_rls_schema.rls_tbl rls_tbl_1
                            Output: rls_tbl_1.b, rls_tbl_1.c, rls_tbl_1.a
                            Filter: (rls_tbl_1.* >= ROW(1, 1, 1))
- Optimizer: Postgres query optimizer
- Settings: optimizer = 'off'
-(14 rows)
+ Optimizer: Postgres-based planner
+(13 rows)
 
 INSERT INTO rls_tbl
   SELECT * FROM (SELECT b, c FROM rls_tbl ORDER BY a) ss;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: View with WITH CHECK OPTION
 SELECT * FROM rls_tbl;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: ROW EXPRESSION
  a  | b  | c  
 ----+----+----
  10 | 20 | 30
@@ -4201,6 +4725,8 @@ DROP TABLE rls_tbl;
 RESET SESSION AUTHORIZATION;
 -- CVE-2023-2455: inlining an SRF may introduce an RLS dependency
 create table rls_t (c text);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'c' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 insert into rls_t values ('invisible to bob');
 alter table rls_t enable row level security;
 grant select on rls_t to regress_rls_alice, regress_rls_bob;
@@ -4212,6 +4738,8 @@ create function rls_f () returns setof rls_t
 prepare q as select current_user, * from rls_f();
 set role regress_rls_alice;
 execute q;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
    current_user    |        c         
 -------------------+------------------
  regress_rls_alice | invisible to bob
@@ -4219,6 +4747,8 @@ execute q;
 
 set role regress_rls_bob;
 execute q;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-default collation
  current_user | c 
 --------------+---
 (0 rows)
@@ -4272,12 +4802,16 @@ DROP ROLE regress_rls_group2;
 -- pg_dump/pg_restore
 CREATE SCHEMA regress_rls_schema;
 CREATE TABLE rls_tbl (c1 int);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'c1' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 ALTER TABLE rls_tbl ENABLE ROW LEVEL SECURITY;
 CREATE POLICY p1 ON rls_tbl USING (c1 > 5);
 CREATE POLICY p2 ON rls_tbl FOR SELECT USING (c1 <= 3);
 CREATE POLICY p3 ON rls_tbl FOR UPDATE USING (c1 <= 3) WITH CHECK (c1 > 5);
 CREATE POLICY p4 ON rls_tbl FOR DELETE USING (c1 <= 3);
 CREATE TABLE rls_tbl_force (c1 int);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'c1' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 ALTER TABLE rls_tbl_force ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rls_tbl_force FORCE ROW LEVEL SECURITY;
 CREATE POLICY p1 ON rls_tbl_force USING (c1 = 5) WITH CHECK (c1 < 5);

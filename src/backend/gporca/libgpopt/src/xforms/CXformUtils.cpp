@@ -2507,7 +2507,7 @@ CXformUtils::PexprBuildBtreeIndexPlan(CMemoryPool *mp, CMDAccessor *md_accessor,
 	//
 	// (2) is valid only for Join2IndexApply xform wherein the index-get
 	// expression must include outer references for it to be an alternative
-	// worth considering. Otherwise it has the same effect as a regular NLJ
+	// worth considering. Otherwise, it has the same effect as a regular NLJ
 	// with an index lookup.
 	//
 	// Both (1) and (2) doesn't apply if index is used for ORDER BY. Because
