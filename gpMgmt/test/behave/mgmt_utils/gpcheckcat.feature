@@ -779,3 +779,97 @@ Feature: gpcheckcat tests
           And the user runs "gpstop -ma"
           And "gpstop -m" should return a return code of 0
           And the user runs "gpstart -a"
+
+    Scenario: Validate if gpecheckcat throws error when there are tables created using mix distribution policy
+        Given database "hashops_db" is dropped and recreated
+        And the user runs "psql hashops_db -f test/behave/mgmt_utils/steps/data/gpcheckcat/create_legacy_hash_ops_tables.sql"
+        Then psql should return a return code of 0
+        And the user runs "psql hashops_db -f test/behave/mgmt_utils/steps/data/gpcheckcat/create_non_legacy_hashops_tables.sql"
+        Then psql should return a return code of 0
+        When the user runs "gpcheckcat -R mix_distribution_policy hashops_db "
+        And gpcheckcat should print "Found tables created using both legacy and non legacy hashops in distribution policy." to stdout
+        And gpcheckcat should print "Please run the gpcheckcat.distpolicy.sql file to list the tables." to stdout
+        And the user runs "dropdb hashops_db"
+
+    Scenario: Validate if gpcheckcat succeeds and there are no tables
+        Given database "hashops_db" is dropped and recreated
+        When the user runs "gpcheckcat -R mix_distribution_policy hashops_db"
+        And gpcheckcat should print "PASSED" to stdout
+        And the user runs "dropdb hashops_db"
+
+    Scenario: Validate if gpcheckcat throws error when GUC gp_use_legacy_hashops is on and there are non legacy tables
+        Given database "hashops_db" is dropped and recreated
+        And the user runs "psql hashops_db -f test/behave/mgmt_utils/steps/data/gpcheckcat/create_non_legacy_hashops_tables.sql"
+        Then psql should return a return code of 0
+        And the user runs "gpconfig -c gp_use_legacy_hashops -v on --skipvalidation"
+        Then gpconfig should return a return code of 0
+        And the user runs "gpstop -a"
+        Then gpstop should return a return code of 0
+        And the user runs "gpstart -a"
+        When the user runs "gpcheckcat -R mix_distribution_policy hashops_db"
+        And gpcheckcat should print "GUC gp_use_legacy_hashops is on." to stdout
+        And gpcheckcat should print "all newly created tables will use legacy hash ops by default for hash distributed table," to stdout
+        And gpcheckcat should print "but there are tables using non-legacy hash ops in the cluster." to stdout
+        And gpcheckcat should print "Please run the gpcheckcat.distpolicy.sql file to list the tables." to stdout
+        And the user runs "dropdb hashops_db"
+
+      Scenario: Validate if gpcheckcat succeeds when GUC gp_use_legacy_hashops is on and there are legacy tables
+        Given database "hashops_db" is dropped and recreated
+        And the user runs "psql hashops_db -f test/behave/mgmt_utils/steps/data/gpcheckcat/create_legacy_hash_ops_tables.sql"
+        Then psql should return a return code of 0
+        And the user runs "gpconfig -c gp_use_legacy_hashops -v on --skipvalidation"
+        Then gpconfig should return a return code of 0
+        And the user runs "gpstop -a"
+        Then gpstop should return a return code of 0
+        And the user runs "gpstart -a"
+        When the user runs "gpcheckcat -R mix_distribution_policy hashops_db"
+         And gpcheckcat should print "PASSED" to stdout
+        And the user runs "dropdb hashops_db"
+
+    Scenario: Validate if gpcheckcat throws error when GUC gp_use_legacy_hashops is off and there are legacy tables
+        Given database "hashops_db" is dropped and recreated
+        And the user runs "psql hashops_db -f test/behave/mgmt_utils/steps/data/gpcheckcat/create_legacy_hash_ops_tables.sql"
+        And the user runs "gpconfig -c gp_use_legacy_hashops -v off --skipvalidation"
+        Then gpconfig should return a return code of 0
+        And the user runs "gpstop -a"
+        Then gpstop should return a return code of 0
+        And the user runs "gpstart -a"
+        When the user runs "gpcheckcat -R mix_distribution_policy hashops_db"
+        And gpcheckcat should print "GUC gp_use_legacy_hashops is off." to stdout
+        And gpcheckcat should print "all newly created tables will use non legacy hash ops by default for hash distributed table," to stdout
+        And gpcheckcat should print "but there are tables using legacy hash ops in the cluster." to stdout
+        And gpcheckcat should print "Please run the gpcheckcat.distpolicy.sql file to list the tables." to stdout
+        And the user runs "dropdb hashops_db"
+
+    Scenario: Validate if gpcheckcat succeeds when GUC gp_use_legacy_hashops is off and there are non legacy tables 
+        Given database "hashops_db" is dropped and recreated
+        And the user runs "psql hashops_db -f test/behave/mgmt_utils/steps/data/gpcheckcat/create_non_legacy_hashops_tables.sql"
+        And the user runs "gpconfig -c gp_use_legacy_hashops -v off --skipvalidation"
+        Then gpconfig should return a return code of 0
+        And the user runs "gpstop -a"
+        Then gpstop should return a return code of 0
+        And the user runs "gpstart -a"
+        When the user runs "gpcheckcat -R mix_distribution_policy hashops_db"
+        And gpcheckcat should print "PASSED" to stdout
+        And the user runs "dropdb hashops_db"
+
+    Scenario: gpcheckcat -l should report mix_distribution_policy to stdout
+        When the user runs "gpcheckcat -l "
+        And gpcheckcat should print "mix_distribution_policy" to stdout
+
+    Scenario: gpcheckcat report all tables created using legacy opclass on multiple database
+        Given database "hashops_db" is dropped and recreated
+        And the user runs "psql hashops_db -f test/behave/mgmt_utils/steps/data/gpcheckcat/create_legacy_hash_ops_tables.sql"
+        And the user runs "psql hashops_db -f test/behave/mgmt_utils/steps/data/gpcheckcat/create_non_legacy_hashops_tables.sql"
+        Then psql should return a return code of 0
+        Given database "hashops_db2" is dropped and recreated
+        And the user runs "psql hashops_db2 -f test/behave/mgmt_utils/steps/data/gpcheckcat/create_legacy_hash_ops_tables.sql"
+        And the user runs "psql hashops_db2 -f test/behave/mgmt_utils/steps/data/gpcheckcat/create_non_legacy_hashops_tables.sql"
+        Then psql should return a return code of 0
+        When the user runs "gpcheckcat -A -R mix_distribution_policy"
+        And gpcheckcat should print "Found tables created using both legacy and non legacy hashops in distribution policy." to stdout
+        And gpcheckcat should print "Please run the gpcheckcat.distpolicy.sql file to list the tables." to stdout
+        Then gpcheckcat should print "Completed 1 test(s) on database 'hashops_db'" to logfile with latest timestamp
+        Then gpcheckcat should print "Completed 1 test(s) on database 'hashops_db2'" to logfile with latest timestamp
+        And the user runs "dropdb hashops_db"
+        And the user runs "dropdb hashops_db2"
