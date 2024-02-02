@@ -9,6 +9,14 @@ DROP RESOURCE GROUP rg_memory_test;
 CREATE OR REPLACE FUNCTION func_memory_test (text) RETURNS text as /*in func*/ $$ /*in func*/ DECLARE /*in func*/ ln text; /*in func*/ tmp text[]; /*in func*/ match bool := false; /*in func*/ BEGIN /*in func*/ FOR ln IN execute format('explain analyze %s', $1) LOOP /*in func*/ IF NOT match THEN      /*in func*/ tmp := regexp_match(ln, 'Memory used:  (.*)'); /*in func*/ IF tmp IS NOT null THEN /*in func*/ match := true; /*in func*/ END IF; /*in func*/ END IF; /*in func*/ END LOOP; /*in func*/ RETURN tmp[1]; /*in func*/ END; /*in func*/ $$ /*in func*/ LANGUAGE plpgsql;
 CREATE FUNCTION
 
+-- memory_limit range is [0, INT_MAX] or equals to -1
+CREATE RESOURCE GROUP rg_memory_range WITH(memory_limit=-100, cpu_max_percent=20, concurrency=2);
+ERROR:  memory_limit range is [0, INT_MAX] or equals to -1
+CREATE RESOURCE GROUP rg_memory_range WITH(memory_limit=-1, cpu_max_percent=20, concurrency=2);
+CREATE RESOURCE GROUP
+DROP RESOURCE GROUP rg_memory_range;
+DROP RESOURCE GROUP
+
 -- create a resource group with memory limit 100 Mb
 CREATE RESOURCE GROUP rg_memory_test WITH(memory_limit=100, cpu_max_percent=20, concurrency=2);
 CREATE RESOURCE GROUP

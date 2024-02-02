@@ -57,6 +57,9 @@
 #define RESGROUP_MIN_CPU_WEIGHT	(1)
 #define RESGROUP_MAX_CPU_WEIGHT	(500)
 
+#define RESGROUP_MIN_MEMORY_LIMIT (0)
+#define RESGROUP_DEFAULT_MEMORY_LIMIT (-1)
+
 #define RESGROUP_MIN_MIN_COST		(0)
 static int str2Int(const char *str, const char *prop);
 static ResGroupLimitType getResgroupOptionType(const char* defname);
@@ -940,6 +943,11 @@ checkResgroupCapLimit(ResGroupLimitType type, int value)
 				break;
 
 			case RESGROUP_LIMIT_TYPE_MEMORY_LIMIT:
+				if (value < RESGROUP_MIN_MEMORY_LIMIT && value != RESGROUP_DEFAULT_MEMORY_LIMIT)
+					ereport(ERROR,
+							(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
+							 errmsg("memory_limit range is [%d, INT_MAX] or equals to %d",
+								    RESGROUP_MIN_MEMORY_LIMIT, RESGROUP_DEFAULT_MEMORY_LIMIT)));
 				break;
 
 			case RESGROUP_LIMIT_TYPE_MIN_COST:

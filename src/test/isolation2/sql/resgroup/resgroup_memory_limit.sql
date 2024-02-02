@@ -26,6 +26,11 @@ END; /*in func*/
 $$ /*in func*/
 LANGUAGE plpgsql;
 
+-- memory_limit range is [0, INT_MAX] or equals to -1
+CREATE RESOURCE GROUP rg_memory_range WITH(memory_limit=-100, cpu_max_percent=20, concurrency=2);
+CREATE RESOURCE GROUP rg_memory_range WITH(memory_limit=-1, cpu_max_percent=20, concurrency=2);
+DROP RESOURCE GROUP rg_memory_range;
+
 -- create a resource group with memory limit 100 Mb
 CREATE RESOURCE GROUP rg_memory_test WITH(memory_limit=100, cpu_max_percent=20, concurrency=2);
 CREATE ROLE role_memory_test RESOURCE GROUP rg_memory_test;
