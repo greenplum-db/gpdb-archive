@@ -836,11 +836,167 @@ drop table barJoinPruning;
 --
 -- Cases where join under union
 --
-create table foo(a int primary key, b int);
-create table bar(a int primary key, b int);
-explain  select foo.a, bar.b from foo left join bar on foo.a = bar.a
- union
-   select foo.a, bar.b from foo join bar on foo.a = bar.a;
+create table foo(a int primary key, b int,c int);
+create table bar(a int primary key, b int,c int);
+insert into foo values (1,1,10),(2,1,10),(3,2,20),(4,2,30),(5,2,30),(6,NULL,NULL),(7,NULL,3);
+insert into bar values (1,1,10),(2,2,20),(3,NULL,NULL),(4,3,NULL),(5,1,10);
+analyze foo,bar;
+
+explain (costs off) select foo.a, bar.b from foo left join bar on foo.a = bar.a
+union select foo.a, bar.b from foo join bar on foo.a = bar.a;
+
+-------------------------------------
+-- CASES WHERE JOIN WILL BE PRUNED --
+-------------------------------------
+
+--------------------------------------------------------------------------------
+-- join under UNION
+-- For the below query the output columns of both the CLogicalLeftOuterJoin
+-- are from the outer relation, so we can prune both the joins
+--------------------------------------------------------------------------------
+explain (costs off) select foo.b,foo.c from foo left join bar on foo.a=bar.a union
+select bar.b,bar.c from bar left join foo on foo.a=bar.a;
+
+select foo.b,foo.c from foo left join bar on foo.a=bar.a union
+select bar.b,bar.c from bar left join foo on foo.a=bar.a;
+
+--------------------------------------------------------------------------------
+-- join under UNION ALL
+-- For the below query the output columns of both the CLogicalLeftOuterJoin
+-- are from the outer relation, so we can prune both the joins
+--------------------------------------------------------------------------------
+explain (costs off) select foo.b,foo.c from foo left join bar on foo.a=bar.a union all
+select bar.b,bar.c from bar left join foo on foo.a=bar.a;
+
+select foo.b,foo.c from foo left join bar on foo.a=bar.a union all
+select bar.b,bar.c from bar left join foo on foo.a=bar.a;
+
+--------------------------------------------------------------------------------
+-- join under INTERSECT
+-- For the below query the output columns of both the CLogicalLeftOuterJoin
+-- are from the outer relation, so we can prune both the joins
+--------------------------------------------------------------------------------
+explain (costs off) select foo.b,foo.c from foo left join bar on foo.a=bar.a intersect
+select bar.b,bar.c from bar left join foo on foo.a=bar.a;
+
+select foo.b,foo.c from foo left join bar on foo.a=bar.a intersect
+select bar.b,bar.c from bar left join foo on foo.a=bar.a;
+
+--------------------------------------------------------------------------------
+-- join under INTERSECT ALL
+-- For the below query the output columns of both the CLogicalLeftOuterJoin
+-- are from the outer relation, so we can prune both the joins
+--------------------------------------------------------------------------------
+explain (costs off) select foo.b,foo.c from foo left join bar on foo.a=bar.a intersect all
+select bar.b,bar.c from bar left join foo on foo.a=bar.a;
+
+select foo.b,foo.c from foo left join bar on foo.a=bar.a intersect all
+select bar.b,bar.c from bar left join foo on foo.a=bar.a;
+
+--------------------------------------------------------------------------------
+-- join under EXCEPT
+-- For the below query the output columns of both the CLogicalLeftOuterJoin
+-- are from the outer relation, so we can prune both the joins
+--------------------------------------------------------------------------------
+explain (costs off) select foo.b,foo.c from foo left join bar on foo.a=bar.a except
+select bar.b,bar.c from bar left join foo on foo.a=bar.a;
+
+select foo.b,foo.c from foo left join bar on foo.a=bar.a except
+select bar.b,bar.c from bar left join foo on foo.a=bar.a;
+
+--------------------------------------------------------------------------------
+-- join under EXCEPT ALL
+-- For the below query the output columns of both the CLogicalLeftOuterJoin
+-- are from the outer relation, so we can prune both the joins
+--------------------------------------------------------------------------------
+explain (costs off) select foo.b,foo.c from foo left join bar on foo.a=bar.a except all
+select bar.b,bar.c from bar left join foo on foo.a=bar.a;
+
+select foo.b,foo.c from foo left join bar on foo.a=bar.a except all
+select bar.b,bar.c from bar left join foo on foo.a=bar.a;
+
+------------------------------------------
+-- CASES WHERE JOIN WILL NOT BE PRUNED --
+------------------------------------------
+
+--------------------------------------------------------------------------------
+-- join under UNION
+-- For the below query since for the outer CLogicalLeftOuterJoin, all the output
+-- columns are from the outer relation, the outer join can be pruned but for the
+-- inner CLogicalLeftOuterJoin the output column contains columns from
+-- inner relation.So the inner join can't be pruned.
+--------------------------------------------------------------------------------
+explain (costs off) select foo.b,foo.c from foo left join bar on foo.a=bar.a union
+select bar.b,foo.c from bar left join foo on foo.a=bar.a;
+
+select foo.b,foo.c from foo left join bar on foo.a=bar.a union
+select bar.b,foo.c from bar left join foo on foo.a=bar.a;
+
+--------------------------------------------------------------------------------
+-- join under UNION ALL
+-- For the below query since for the outer CLogicalLeftOuterJoin, all the output
+-- columns are from the outer relation, the outer join can be pruned but for the
+-- inner CLogicalLeftOuterJoin the output column contains columns from
+-- inner relation.So the inner join can't be pruned.
+--------------------------------------------------------------------------------
+explain (costs off) select foo.b,foo.c from foo left join bar on foo.a=bar.a union all
+select bar.b,foo.c from bar left join foo on foo.a=bar.a;
+
+select foo.b,foo.c from foo left join bar on foo.a=bar.a union all
+select bar.b,foo.c from bar left join foo on foo.a=bar.a;
+
+--------------------------------------------------------------------------------
+-- join under INTERSECT
+-- For the below query since for the outer CLogicalLeftOuterJoin, all the output
+-- columns are from the outer relation, the outer join can be pruned but for the
+-- inner CLogicalLeftOuterJoin the output column contains columns from
+-- inner relation.So the inner join can't be pruned.
+--------------------------------------------------------------------------------
+explain (costs off) select foo.b,foo.c from foo left join bar on foo.a=bar.a intersect
+select bar.b,foo.c from bar left join foo on foo.a=bar.a;
+
+select foo.b,foo.c from foo left join bar on foo.a=bar.a intersect
+select bar.b,foo.c from bar left join foo on foo.a=bar.a;
+
+--------------------------------------------------------------------------------
+-- join under INTERSECT ALL
+-- For the below query since for the outer CLogicalLeftOuterJoin, all the output
+-- columns are from the outer relation, the outer join can be pruned but for the
+-- inner CLogicalLeftOuterJoin the output column contains columns from
+-- inner relation.So the inner join can't be pruned.
+--------------------------------------------------------------------------------
+explain (costs off) select foo.b,foo.c from foo left join bar on foo.a=bar.a intersect all
+select bar.b,foo.c from bar left join foo on foo.a=bar.a;
+
+select foo.b,foo.c from foo left join bar on foo.a=bar.a intersect all
+select bar.b,foo.c from bar left join foo on foo.a=bar.a;
+
+--------------------------------------------------------------------------------
+-- join under EXCEPT
+-- For the below query since for the outer CLogicalLeftOuterJoin, all the output
+-- columns are from the outer relation, the outer join can be pruned but for the
+-- inner CLogicalLeftOuterJoin the output column contains columns from
+-- inner relation.So the inner join can't be pruned.
+--------------------------------------------------------------------------------
+explain (costs off) select foo.b,foo.c from foo left join bar on foo.a=bar.a except
+select bar.b,foo.c from bar left join foo on foo.a=bar.a;
+
+select foo.b,foo.c from foo left join bar on foo.a=bar.a except
+select bar.b,foo.c from bar left join foo on foo.a=bar.a;
+
+--------------------------------------------------------------------------------
+-- join under EXCEPT ALL
+-- For the below query since for the outer CLogicalLeftOuterJoin, all the output
+-- columns are from the outer relation, the outer join can be pruned but for the
+-- inner CLogicalLeftOuterJoin the output column contains columns from
+-- inner relation.So the inner join can't be pruned.
+--------------------------------------------------------------------------------
+explain (costs off) select foo.b,foo.c from foo left join bar on foo.a=bar.a except all
+select bar.b,foo.c from bar left join foo on foo.a=bar.a;
+
+select foo.b,foo.c from foo left join bar on foo.a=bar.a except all
+select bar.b,foo.c from bar left join foo on foo.a=bar.a;
+
 drop table foo;
 drop table bar;
 -----------------------------------------------------------------
