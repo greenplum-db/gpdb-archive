@@ -401,6 +401,7 @@ static void av_sighup_handler(SIGNAL_ARGS);
 static void avl_sigusr2_handler(SIGNAL_ARGS);
 static void avl_sigterm_handler(SIGNAL_ARGS);
 static void autovac_refresh_stats(void);
+static void add_tables_from_autovac_workers(HTAB *top_level_partition_roots);
 
 
 
@@ -2451,6 +2452,12 @@ do_autovacuum(void)
 										  ALLOCSET_DEFAULT_SIZES);
 
 	/*
+	 * Add tables received via auto vacuum workers to be considered
+	 * for vacuum/analyze.
+	 */
+	add_tables_from_autovac_workers(top_level_partition_roots);
+
+	/*
 	 * GPDB: Analyze (merge leaf stats) all top-level partition roots at the end. This
 	 * guarantees that leaf partitions are analyzed first before merging their stats
 	 * for their top-level roots.
@@ -3400,6 +3407,11 @@ autovac_report_workitem(AutoVacuumWorkItem *workitem,
 			snprintf(activity, MAX_AUTOVAC_ACTIV_LEN,
 					 "autovacuum: BRIN summarize");
 			break;
+
+		case AVW_UpdateRootPartitionStats:
+			snprintf(activity, MAX_AUTOVAC_ACTIV_LEN,
+					 "autovacuum: Update root partition stats");
+			break;
 	}
 
 	/*
@@ -3596,4 +3608,48 @@ autovac_refresh_stats(void)
 	}
 
 	pgstat_clear_snapshot();
+}
+
+/*
+ * 1. Add tables, received through auto vacuum workers to the hash table
+ * containing OIDs of root table for autovacuum/analyze.
+ *
+ * 2. Only AVW_UpdateRootPartitionStats (worker type) is processed in the
+ * function. This worker type brings the OID of the root table to which a
+ * partition is attached/detached.
+ */
+static void
+add_tables_from_autovac_workers(HTAB *top_level_partition_roots)
+{
+
+	LWLockAcquire(AutovacuumLock, LW_EXCLUSIVE);
+	for (int i = 0; i < NUM_WORKITEMS; i++)
+	{
+		AutoVacuumWorkItem *workitem = &AutoVacuumShmem->av_workItems[i];
+
+		/*
+		 * Only AVW_UpdateRootPartitionStats worker type is processed in this
+		 * function.
+		 */
+		if (workitem->avw_type != AVW_UpdateRootPartitionStats)
+			continue;
+		if (!workitem->avw_used)
+			continue;
+		if (workitem->avw_active)
+			continue;
+		if (workitem->avw_database != MyDatabaseId)
+			continue;
+
+		/*
+		 * Add received table oid to the hash table containing OIDs of root
+		 * table for autovacuum/analyze.
+		 */
+		Oid root_parent_relid = workitem->avw_relation;
+		(void) hash_search(top_level_partition_roots, (void *) &root_parent_relid, HASH_ENTER, NULL);
+
+		/* and mark it done */
+		workitem->avw_active = false;
+		workitem->avw_used = false;
+	}
+	LWLockRelease(AutovacuumLock);
 }
