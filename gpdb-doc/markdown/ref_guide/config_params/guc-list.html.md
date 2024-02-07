@@ -359,6 +359,14 @@ For each query run, prints the Greenplum query slice plan. *client\_min\_message
 |-----------|-------|-------------------|
 |Boolean|off|coordinator, session, reload|
 
+## <a id="debug_shareinput_xslice"></a>debug_shareinput_xslice
+
+Prints cross-slice share input scan information to the server log.
+
+|Value Range|Default|Set Classifications|
+|-----------|-------|-------------------|
+|Boolean|off|coordinator, session, reload, superuser|
+
 ## <a id="default_statistics_target"></a>default\_statistics\_target 
 
 Sets the default statistics sampling target \(the number of values that are stored in the list of common values\) for table columns that have not had a column-specific target set via `ALTER TABLE SET STATISTICS`. Larger values may improve the quality of the Postgres-based planner estimates, particularly for columns with irregular data distributions, at the expense of consuming more space in `pg_statistic` and slightly more time to compute the estimates. Conversely, a lower limit might be sufficient for columns with simple data distributions. The default is 100.

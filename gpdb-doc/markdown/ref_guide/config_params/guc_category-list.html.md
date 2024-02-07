@@ -280,6 +280,7 @@ These configuration parameters control Greenplum Database logging.
 - [debug_print_prelim_plan](guc-list.html#debug_print_prelim_plan)
 - [debug_print_rewritten](guc-list.html#debug_print_rewritten)
 - [debug_print_slice_table](guc-list.html#debug_print_slice_table)
+- [debug_shareinput_xslice](guc-list.html#debug_shareinput_xslice)
 - [log_autostats](guc-list.html#log_autostats)
 - [log_connections](guc-list.html#log_connections)
 - [log_directory](guc-list.html#log_directory)
