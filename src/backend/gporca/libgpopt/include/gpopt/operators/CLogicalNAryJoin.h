@@ -86,10 +86,6 @@ public:
 	CPropConstraint *DerivePropertyConstraint(
 		CMemoryPool *mp, CExpressionHandle &exprhdl) const override;
 
-	// derive table descriptor
-	CTableDescriptorHashSet *DeriveTableDescriptor(
-		CMemoryPool *mp, CExpressionHandle &exprhdl) const override;
-
 	//-------------------------------------------------------------------------------------
 	// Derived Stats
 	//-------------------------------------------------------------------------------------
