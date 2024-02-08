@@ -111,6 +111,9 @@ private:
 
 	CTableDescriptorHashSet *m_table_descriptor{nullptr};
 
+	// relation (or alias) names
+	StringPtrArray *m_table_aliases;
+
 	// helper for getting applicable FDs from child
 	static CFunctionalDependencyArray *DeriveChildFunctionalDependencies(
 		CMemoryPool *mp, ULONG child_index, CExpressionHandle &exprhdl);

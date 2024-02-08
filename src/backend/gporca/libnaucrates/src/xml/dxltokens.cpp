@@ -76,6 +76,7 @@ CDXLTokens::Init(CMemoryPool *mp)
 		{EdxltokenHint, GPOS_WSZ_LIT("Hint")},
 		{EdxltokenPlanHint, GPOS_WSZ_LIT("PlanHint")},
 		{EdxltokenScanHint, GPOS_WSZ_LIT("ScanHint")},
+		{EdxltokenRowHint, GPOS_WSZ_LIT("RowHint")},
 		{EdxltokenJoinArityForAssociativityCommutativity,
 		 GPOS_WSZ_LIT("JoinArityForAssociativityCommutativity")},
 		{EdxltokenArrayExpansionThreshold,
@@ -788,6 +789,11 @@ CDXLTokens::Init(CMemoryPool *mp)
 		{EdxltokenNLJIndexParamList, GPOS_WSZ_LIT("NLJIndexParamList")},
 		{EdxltokenNLJIndexParam, GPOS_WSZ_LIT("NLJIndexParam")},
 		{EdxltokenNLJIndexOuterRefAsParam, GPOS_WSZ_LIT("OuterRefAsParam")},
+
+		{EdxltokenAbsolute, GPOS_WSZ_LIT("Absolute")},
+		{EdxltokenAdd, GPOS_WSZ_LIT("Add")},
+		{EdxltokenSubtract, GPOS_WSZ_LIT("Sub")},
+		{EdxltokenMultiply, GPOS_WSZ_LIT("Multi")},
 	};
 
 	m_pstrmap = GPOS_NEW_ARRAY(m_mp, SStrMapElem, EdxltokenSentinel);

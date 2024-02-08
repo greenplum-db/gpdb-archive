@@ -91,7 +91,24 @@ IStatistics *
 CLogicalJoin::PstatsDerive(CMemoryPool *mp, CExpressionHandle &exprhdl,
 						   IStatisticsArray *stats_ctxt) const
 {
-	return CJoinStatsProcessor::DeriveJoinStats(mp, exprhdl, stats_ctxt);
+	IStatistics *pstats =
+		CJoinStatsProcessor::DeriveJoinStats(mp, exprhdl, stats_ctxt);
+
+	// Check whether a row plan hint exists for this join operators relations.
+	// And if one does exist, then evaluate the hint to overwrite the estimated
+	// rows.
+	CPlanHint *planhint =
+		COptCtxt::PoctxtFromTLS()->GetOptimizerConfig()->GetPlanHint();
+	if (nullptr != planhint)
+	{
+		CRowHint *rowhint =
+			planhint->GetRowHint(exprhdl.DeriveTableDescriptor());
+		if (nullptr != rowhint)
+		{
+			pstats->SetRows(rowhint->ComputeRows(pstats->Rows()));
+		}
+	}
+	return pstats;
 }
 
 // EOF

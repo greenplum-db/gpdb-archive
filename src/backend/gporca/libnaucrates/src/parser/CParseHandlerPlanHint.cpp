@@ -112,6 +112,52 @@ CParseHandlerPlanHint::StartElement(
 
 		m_hint->AddHint(hint);
 	}
+	else if (0 ==
+			 XMLString::compareString(CDXLTokens::XmlstrToken(EdxltokenRowHint),
+									  element_local_name))
+	{
+		const XMLCh *attr_val_xml_hints = CDXLOperatorFactory::ExtractAttrValue(
+			attrs, EdxltokenAlias, EdxltokenPlanHint);
+		StringPtrArray *aliases = nullptr;
+		if (nullptr != attr_val_xml_hints)
+		{
+			aliases = CDXLOperatorFactory::ExtractConvertStrsToArray(
+				m_parse_handler_mgr->GetDXLMemoryManager(), attr_val_xml_hints);
+		}
+
+		CDouble rows = CDXLOperatorFactory::ExtractConvertAttrValueToDouble(
+			m_parse_handler_mgr->GetDXLMemoryManager(), attrs, EdxltokenRows,
+			EdxltokenPlanHint);
+
+		CWStringBase *typestr =
+			CDXLOperatorFactory::ExtractConvertAttrValueToStr(
+				m_parse_handler_mgr->GetDXLMemoryManager(), attrs,
+				EdxltokenKind, EdxltokenPlanHint);
+
+		CRowHint::RowsValueType hint_type = CRowHint::SENTINEL;
+		if (typestr->Equals(CDXLTokens::GetDXLTokenStr(EdxltokenAbsolute)))
+		{
+			hint_type = CRowHint::RVT_ABSOLUTE;
+		}
+		else if (typestr->Equals(CDXLTokens::GetDXLTokenStr(EdxltokenAdd)))
+		{
+			hint_type = CRowHint::RVT_ADD;
+		}
+		else if (typestr->Equals(CDXLTokens::GetDXLTokenStr(EdxltokenSubtract)))
+		{
+			hint_type = CRowHint::RVT_SUB;
+		}
+		else if (typestr->Equals(CDXLTokens::GetDXLTokenStr(EdxltokenMultiply)))
+		{
+			hint_type = CRowHint::RVT_MULTI;
+		}
+		GPOS_DELETE(typestr);
+
+		CRowHint *hint =
+			GPOS_NEW(m_mp) CRowHint(m_mp, aliases, rows, hint_type);
+
+		m_hint->AddHint(hint);
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -136,6 +182,9 @@ CParseHandlerPlanHint::EndElement(const XMLCh *const,  // element_uri,
 		m_parse_handler_mgr->DeactivateHandler();
 	}
 	else if (0 != XMLString::compareString(
+					  CDXLTokens::XmlstrToken(EdxltokenRowHint),
+					  element_local_name) &&
+			 0 != XMLString::compareString(
 					  CDXLTokens::XmlstrToken(EdxltokenScanHint),
 					  element_local_name))
 	{

@@ -1,0 +1,1 @@
+../../../../gpcontrib/pg_hint_plan/sql/maskout.sh

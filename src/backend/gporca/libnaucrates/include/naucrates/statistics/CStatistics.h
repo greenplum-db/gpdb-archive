@@ -184,6 +184,12 @@ public:
 	// actual number of rows
 	CDouble Rows() const override;
 
+	void
+	SetRows(CDouble rows) override
+	{
+		m_rows = rows;
+	}
+
 	ULONG
 	RelPages() const override
 	{

@@ -60,6 +60,7 @@ enum Edxltoken
 	EdxltokenHint,
 	EdxltokenPlanHint,
 	EdxltokenScanHint,
+	EdxltokenRowHint,
 	EdxltokenJoinArityForAssociativityCommutativity,
 	EdxltokenArrayExpansionThreshold,
 	EdxltokenJoinOrderDPThreshold,
@@ -754,6 +755,11 @@ enum Edxltoken
 	EdxltokenForeignServerOid,
 	EdxltokenPhysicalDynamicIndexOnlyScan,
 	EdxltokenRelAppendOnlyVersion,
+
+	EdxltokenAbsolute,
+	EdxltokenAdd,
+	EdxltokenSubtract,
+	EdxltokenMultiply,
 
 	EdxltokenSentinel
 };

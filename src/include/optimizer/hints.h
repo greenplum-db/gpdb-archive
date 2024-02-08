@@ -1,6 +1,17 @@
-/*
- * Copied from pg_hint_plan.c
+/*-------------------------------------------------------------------------
+ *
+ * hints.h
+ *
+ *  This file duplicates some internal structures from pg_hint_plan.c so
+ *  that the parser can be leveraged by callers outside the pg_hint_plan
+ *  extension.
+ *
+ * Copyright (c) 2012-2020, NIPPON TELEGRAPH AND TELEPHONE CORPORATION
+ *
+ *-------------------------------------------------------------------------
  */
+#ifndef OPTIMIZER_HINTS_H
+#define OPTIMIZER_HINTS_H
 
 extern "C" {
 #include "postgres.h"
@@ -233,3 +244,5 @@ struct HintState
 	RowsHint	  **rows_hints;			/* parsed Rows hints */
 	ParallelHint  **parallel_hints;		/* parsed Parallel hints */
 };
+
+#endif	// !OPTIMIZER_HINTS_H

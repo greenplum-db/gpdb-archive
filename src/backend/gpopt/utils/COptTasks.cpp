@@ -89,6 +89,17 @@ const CSystemId default_sysid(IMDId::EmdidGeneral, GPOS_WSZ_STR_LENGTH("GPDB"));
 
 plan_hint_hook_type plan_hint_hook = nullptr;
 
+// Check one-to-one mapping of row hint types
+GPOS_CPL_ASSERT(CRowHint::RVT_ABSOLUTE ==
+					(CRowHint::RowsValueType) RVT_ABSOLUTE,
+				"CRowHint::RVT_ABSOLUTE must equal RVT_ABSOLUTE");
+GPOS_CPL_ASSERT(CRowHint::RVT_ADD == (CRowHint::RowsValueType) RVT_ADD,
+				"CRowHint::RVT_ADD must equal RVT_ADD");
+GPOS_CPL_ASSERT(CRowHint::RVT_SUB == (CRowHint::RowsValueType) RVT_SUB,
+				"CRowHint::RVT_SUB must equal RVT_SUB");
+GPOS_CPL_ASSERT(CRowHint::RVT_MULTI == (CRowHint::RowsValueType) RVT_MULTI,
+				"CRowHint::RVT_MULTI must equal RVT_MULTI");
+
 
 //---------------------------------------------------------------------------
 //	@function:
@@ -467,6 +478,8 @@ COptTasks::GetPlanHints(CMemoryPool *mp, Query *query)
 	HintState *hintstate = nullptr;
 	if (plan_hint_hook != nullptr)
 	{
+		// Calling plan_hint_hook creates pg_hint_plan hint structures
+		// (see optimizer/hints.h).
 		hintstate = (HintState *) plan_hint_hook(query);
 	}
 
@@ -475,8 +488,12 @@ COptTasks::GetPlanHints(CMemoryPool *mp, Query *query)
 		return nullptr;
 	}
 
+	// Following code translates pg_hint_plan hint structures into ORCA hint
+	// structures (see gpopt/hints/CPlanHint.h).
+
 	CPlanHint *plan_hints = GPOS_NEW(mp) CPlanHint(mp);
 
+	// Translate ScanMethodHint => CScanHint
 	for (int ul = 0; ul < hintstate->num_hints[HINT_TYPE_SCAN_METHOD]; ul++)
 	{
 		ScanMethodHint *scan_hint =
@@ -560,6 +577,26 @@ COptTasks::GetPlanHints(CMemoryPool *mp, Query *query)
 			plan_hints->AddHint(hint);
 		}
 		hint->AddType(type);
+	}
+
+	// Translate RowsHint => CRowHint
+
+	for (int hint_index = 0; hint_index < hintstate->num_hints[HINT_TYPE_ROWS];
+		 hint_index++)
+	{
+		RowsHint *row_hint = (RowsHint *) hintstate->rows_hints[hint_index];
+
+		StringPtrArray *aliases = GPOS_NEW(mp) StringPtrArray(mp);
+
+		for (int rel_index = 0; rel_index < row_hint->nrels; rel_index++)
+		{
+			aliases->Append(
+				GPOS_NEW(mp) CWStringConst(mp, row_hint->relnames[rel_index]));
+		}
+
+		plan_hints->AddHint(GPOS_NEW(mp) CRowHint(
+			mp, aliases, CDouble(row_hint->rows),
+			(CRowHint::RowsValueType) row_hint->value_type));
 	}
 
 	return plan_hints;
