@@ -4,6 +4,7 @@
 -- end_matchsubs
 create schema qp_subquery;
 set search_path to qp_subquery;
+set optimizer_trace_fallback to on;
 begin;
 CREATE TABLE SUBSELECT_TBL1 (f1 integer, f2 integer, f3 float);
 NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'f1' as the Greenplum Database data distribution key for this table.
@@ -74,6 +75,8 @@ SELECT '' AS three, f1, f2
   				FROM SUBSELECT_TBL1
   				WHERE (f1, f2) NOT IN (SELECT f2, CAST(f3 AS int4) FROM SUBSELECT_TBL1
                          	WHERE f3 IS NOT NULL) ORDER BY 2,3;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  three | f1 | f2 
 -------+----+----
        |  1 |  2
@@ -143,6 +146,8 @@ SELECT '' AS five, f1 AS "Correlated Field"
                                 FROM SUBSELECT_TBL1
                                 WHERE (f1, f2) IN (SELECT f2, CAST(f3 AS int4) FROM SUBSELECT_TBL1
                                 WHERE f3 IS NOT NULL);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  five | Correlated Field 
 ------+------------------
       |                3
@@ -868,6 +873,8 @@ create table Tbl8352_t2(a int, b int) distributed by (a);
 insert into Tbl8352_t1 values(1,null),(null,1),(1,1),(null,null);
 insert into Tbl8352_t2 values(1,1);
 select * from Tbl8352_t1 where (Tbl8352_t1.a,Tbl8352_t1.b) not in (select Tbl8352_t2.a,Tbl8352_t2.b from Tbl8352_t2);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
 (0 rows)
@@ -877,6 +884,8 @@ create table Tbl8352_t2a(a int, b int) distributed by (a);
 insert into Tbl8352_t1a values(1,2),(3,null),(null,4),(null,null);
 insert into Tbl8352_t2a values(1,2);
 select * from Tbl8352_t1a where (Tbl8352_t1a.a,Tbl8352_t1a.b) not in (select Tbl8352_t2a.a,Tbl8352_t2a.b from Tbl8352_t2a) order by 1,2;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 |  
@@ -884,12 +893,16 @@ select * from Tbl8352_t1a where (Tbl8352_t1a.a,Tbl8352_t1a.b) not in (select Tbl
 (2 rows)
 
 select (1,null::int) not in (select 1,1);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  ?column? 
 ----------
  
 (1 row)
 
 select (3,null::int) not in (select 1,1);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  ?column? 
 ----------
  t
@@ -932,18 +945,24 @@ commit;
 -- not in subquery involving vars from different rels with inner join
 --
 select t1.a, t2.b from t1, t2 where t1.a=t2.a and ((t1.a,t2.b) not in (select i1.a,i1.b from i1));
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
 (1 row)
 
 select t1.a, t2.b from t1 inner join t2 on  (t1.a=t2.a and ((t1.a,t2.b) not in (select i1.a,i1.b from i1)));
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
 (1 row)
 
 select t1.a, t2.b from t1 inner join t2 on  (t1.a=t2.a) where ((t1.a,t2.b) not in (select i1.a,i1.b from i1));
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -951,6 +970,8 @@ select t1.a, t2.b from t1 inner join t2 on  (t1.a=t2.a) where ((t1.a,t2.b) not i
 
 -- unsupported case
 explain select t1.a, t2.b from t1, t2 where t1.a=t2.a or ((t1.a,t2.b) not in (select i1.a,i1.b from i1));
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
                                            QUERY PLAN                                           
 ------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)  (cost=10000000000.00..10000000002.10 rows=3 width=8)
@@ -969,6 +990,8 @@ explain select t1.a, t2.b from t1, t2 where t1.a=t2.a or ((t1.a,t2.b) not in (se
 -- not in subquery involving vars from different rels with left join. 
 --
 select t1.a, t2.b from t1 left join t2 on  (t1.a=t2.a) where ((t1.a,t2.b) not in (select i1.a,i1.b from i1));
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -976,6 +999,8 @@ select t1.a, t2.b from t1 left join t2 on  (t1.a=t2.a) where ((t1.a,t2.b) not in
 (2 rows)
 
 select t1.a, t2.b from t1 left join t2 on  (t1.a=t2.a and ((t1.a,t2.b) not in (select i1.a,i1.b from i1)));
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  1 |  
@@ -987,6 +1012,8 @@ select t1.a, t2.b from t1 left join t2 on  (t1.a=t2.a and ((t1.a,t2.b) not in (s
 -- not in subquery involving vars from different rels with outer join
 --
 select t1.a, t2.b from t1 full outer join t2 on  (t1.a=t2.a) where ((t1.a,t2.b) not in (select i1.a,i1.b from i1));
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -996,6 +1023,8 @@ select t1.a, t2.b from t1 full outer join t2 on  (t1.a=t2.a) where ((t1.a,t2.b) 
 
 -- not in subquery with a row var in FULL JOIN condition
 select t1.a, t2.b from t1 full outer join t2 on  (t1.a=t2.a and ((t1.a,t2.b) not in (select i1.a,i1.b from i1))); 
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1044,6 +1073,8 @@ select Tbl01.*,foo(Tbl01.a) as foo from Tbl01; -- showing foo values
 (4 rows)
 
 select Tbl01.* from Tbl01 where foo(Tbl01.a) not in (select a from Tbl03);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Query Parameter
  a | b  | c  
 ---+----+----
    | 11 | 12
@@ -1086,6 +1117,8 @@ commit;
 --
 -- non-nullability due to inner join
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl05.a,Tbl05.b from Tbl05,Tbl06 where Tbl05.a=Tbl06.a and Tbl05.b < 10); -- expected: (3,4),(5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1093,6 +1126,8 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl05.a,Tbl05.b
 (2 rows)
 
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl07.a,Tbl07.b from Tbl07 inner join Tbl08 on (Tbl07.a=Tbl08.a and Tbl07.b=Tbl08.b) inner join i3 on (i3.a=Tbl08.a and i3.b=Tbl08.b)); -- expected:(3,4), (5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1101,6 +1136,8 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl07.a,Tbl07.b
 
 -- non-nullability due to where clause condition
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl05.a,Tbl05.b from Tbl05 where Tbl05.a < 2 and Tbl05.b < 10); -- expected: (3,4), (5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1108,6 +1145,8 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl05.a,Tbl05.b
 (2 rows)
 
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl07.a,Tbl07.b from Tbl07 left join Tbl08 on (Tbl07.a=Tbl08.a) where Tbl07.a = 1 and Tbl07.b = 2); -- expected: (3,4),(5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1116,12 +1155,16 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl07.a,Tbl07.b
 
 -- not null condition in the where clause
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl07.a,Tbl07.b from Tbl07 full outer join Tbl08 on (Tbl07.a=Tbl08.a) where Tbl07.a is not null and Tbl07.b is not null); -- (5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  5 | 6
 (1 row)
 
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl07.a,Tbl07.b from Tbl07 left join Tbl08 on (Tbl07.a=Tbl08.a) where Tbl07.a is not null and Tbl07.b is not null); -- (5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  5 | 6
@@ -1129,6 +1172,8 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl07.a,Tbl07.b
 
 -- or clauses that should lead to non-nullability
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl05.a,Tbl05.b from Tbl05 where (Tbl05.a < 2 or Tbl05.a > 100) AND (Tbl05.b < 4 or Tbl05.b > 100)); -- expected: (3,4), (5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1137,6 +1182,8 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl05.a,Tbl05.b
 
 -- base-table constraints
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select i3.a,i3.b from i3); -- expected: (3,4),(5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1144,6 +1191,8 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select i3.a,i3.b from 
 (2 rows)
 
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl05.a,Tbl05.b from Tbl05,i3 where	Tbl05.a = i3.a and	Tbl05.b = i3.b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1151,6 +1200,8 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl05.a,Tbl05.b
 (2 rows)
 
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl05.a,Tbl05.b from Tbl05,i3 where Tbl05.a < i3.a and Tbl05.b > i3.b);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1160,6 +1211,8 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl05.a,Tbl05.b
 
 -- non-null constant values
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select 1,2); -- (3,4),(5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1175,6 +1228,8 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in ((1,2));
 
 -- multiple NOT-IN expressions
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl06.a,Tbl06.b from Tbl06) and (Tbl04.a,Tbl04.b) not in (select i3.a, i3.b from i3); -- expected: (5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  5 | 6
@@ -1182,6 +1237,8 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl06.a,Tbl06.b
 
 explain (costs off)
 select Tbl04.* from Tbl04 where not ((Tbl04.a,Tbl04.b) in (select Tbl06.a,Tbl06.b from Tbl06) or (Tbl04.a,Tbl04.b) in (select i3.a, i3.b from i3));
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
                                 QUERY PLAN                                
 --------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -1200,6 +1257,8 @@ select Tbl04.* from Tbl04 where not ((Tbl04.a,Tbl04.b) in (select Tbl06.a,Tbl06.
 (13 rows)
 
 select Tbl04.* from Tbl04 where not ((Tbl04.a,Tbl04.b) in (select Tbl06.a,Tbl06.b from Tbl06) or (Tbl04.a,Tbl04.b) in (select i3.a, i3.b from i3)); -- expected: (5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  5 | 6
@@ -1232,6 +1291,8 @@ select Tbl04.* from Tbl04 where Tbl04.a NOT IN (select Tbl05.a from	Tbl05 left	j
 --
 -- No where clause
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl05.a,Tbl05.b from Tbl05); -- expected: (3,4), (5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1240,29 +1301,39 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl05.a,Tbl05.b
 
 -- INDF in the where clause
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl07.a,Tbl07.b from Tbl07,Tbl08 where Tbl07.a is not distinct from Tbl08.a and Tbl07.b is not distinct from Tbl08.b); -- no rows
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
 (0 rows)
 
 -- null conditions in the where clause
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl07.a,Tbl07.b from Tbl07 left join Tbl08 on (Tbl07.a=Tbl08.a and Tbl07.b=Tbl08.b) where Tbl07.a is null and Tbl07.b is null); -- no rows
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
 (0 rows)
 
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl07.a,Tbl07.b from Tbl07 full outer join Tbl08 on (Tbl07.a=Tbl08.a and Tbl07.b=Tbl08.b) where Tbl07.a is null and Tbl07.b is null); -- no rows
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
 (0 rows)
 
 -- OR clauses that should not lead to non-nullability
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl07.a,Tbl07.b from Tbl07,Tbl08 where Tbl07.a is not distinct from Tbl08.a or Tbl07.a=1); -- no rows
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
 (0 rows)
 
 -- values list: we don't support it yet. not worth the effort.
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (values(1,2),(3,4)); -- (3,4),(5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  5 | 6
@@ -1270,6 +1341,8 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (values(1,2),(3,4)); --
 
 -- functions/ops in the target list of the subquery
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select i3.a+2,i3.b+2 from i3); -- expected: (5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  1 | 2
@@ -1286,6 +1359,8 @@ select Tbl09.a, Tbl09.b from Tbl09;
 (3 rows)
 
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl09.a,Tbl09.b from Tbl09); -- expected: (3,4)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1300,12 +1375,16 @@ select Tbl09.a, Tbl09.b from Tbl09 group by Tbl09.a, Tbl09.b;
 (3 rows)
 
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl09.a, Tbl09.b from Tbl09 group by Tbl09.a, Tbl09.b); -- expected: (3,4)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
 (1 row)
 
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select sum(i3.b),i3.a from i3 group by i3.a); -- (1,2),(3,4),(5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  1 | 2
@@ -1315,6 +1394,8 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select sum(i3.b),i3.a 
 
 -- infering not-nullability for only one of the columns
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select i3.a,Tbl05.b from i3,Tbl05 where	i3.a=Tbl05.a); -- (3,4),(5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1322,6 +1403,8 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select i3.a,Tbl05.b fr
 (2 rows)
 
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) NOT IN (select i3.a,i3.b from Tbl07 left join i3 on (i3.a=Tbl07.a and i3.b=Tbl07.b) where i3.a > 2);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1334,22 +1417,30 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) NOT IN (select i3.a,i3.b from 
 -- Started supporting since RIO
 --
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select i3.a,i3.b from i3 union select Tbl07.a, Tbl07.b from Tbl07); -- nulls in the inner side, should not return any rows
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
 (0 rows)
 
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select i3.a,i3.b from i3 union all select Tbl07.a, Tbl07.b from Tbl07); -- nulls in the innder side, should not return any rows
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
 (0 rows)
 
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select 1,2 union select 3,4); --(5,6)
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  5 | 6
 (1 row)
 
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select i3.a,i3.b from i3) or (Tbl04.a,Tbl04.b) not in (select Tbl07.a, Tbl07.b from Tbl07);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1358,6 +1449,8 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select i3.a,i3.b from 
 
 -- Cases where the planner "should have" determined not-nullabitlity
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select i3.a,i3.b from i3 left join Tbl07 on (i3.a=Tbl07.a and i3.b=Tbl07.b));
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1365,6 +1458,8 @@ select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select i3.a,i3.b from 
 (2 rows)
 
 select Tbl04.* from Tbl04 where (Tbl04.a,Tbl04.b) not in (select Tbl05.a,Tbl05.b from Tbl05 where (Tbl05.a IN (select i3.a from i3)) AND (Tbl05.b IN (select i3.b from i3)));
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  a | b 
 ---+---
  3 | 4
@@ -1379,12 +1474,16 @@ insert into Tbl04 values(3,4);
 create table Tbl10(x int, y int);
 insert into Tbl10 values(1,null);
 select * from Tbl04 where (x,y) not in (select x,y from Tbl10);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  x | y 
 ---+---
  3 | 4
 (1 row)
 
 select * from Tbl04 where (x,y) not in (select 1,y from Tbl10);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  x | y 
 ---+---
  3 | 4
@@ -1398,6 +1497,8 @@ select * from tbl10 where y not in (select 1 where false);
 
 alter table Tbl10 alter column x set not null;
 select * from Tbl04 where (x,y) not in (select x,y from Tbl10);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
  x | y 
 ---+---
  3 | 4
@@ -1422,6 +1523,8 @@ insert into TblText3 values('florian','waas');
 insert into TblText3 values('oak','barrett');
 commit;
 SELECT TblText1.a, TblText2.b FROM TblText1 JOIN TblText2 ON TblText1.a = TblText2.a WHERE ((NOT (TblText1.a, TblText2.b) IN (SELECT TblText3.a, TblText3.b FROM TblText3)));
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
    a    |    b     
 --------+----------
  tushar | pednekar
@@ -1429,6 +1532,8 @@ SELECT TblText1.a, TblText2.b FROM TblText1 JOIN TblText2 ON TblText1.a = TblTex
 (2 rows)
 
 SELECT TblText1.a, TblText2.b FROM TblText1 JOIN TblText2 ON TblText1.a = TblText2.a WHERE (( (TblText1.a, TblText2.b) IN (SELECT TblText3.a, TblText3.b FROM TblText3)));
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Non-Scalar Subquery
     a    |    b    
 ---------+---------
  florian | waas
@@ -1601,8 +1706,12 @@ NOTICE:  table has parent, setting distribution columns to match parent table
 create table append_rel2(att4 int) INHERITS(append_rel);
 NOTICE:  table has parent, setting distribution columns to match parent table
 insert into append_rel values(1,10),(2,20),(3,30);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
 analyze append_rel;
 explain with test as (select * from (select * from append_rel) p where att1 in (select att1 from append_rel where att2 >= 19) ) select att2 from append_rel where att1 in (select att1 from test where att2 <= 21);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
                                                           QUERY PLAN                                                          
 ------------------------------------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)  (cost=2296.15..4165.55 rows=51935 width=4)
@@ -1637,6 +1746,8 @@ explain with test as (select * from (select * from append_rel) p where att1 in (
 (69 rows)
 
 with test as (select * from (select * from append_rel) p where att1 in (select att1 from append_rel where att2 >= 19) ) select att2 from append_rel where att1 in (select att1 from test where att2 <= 21);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Inherited tables
  att2 
 ------
    20
@@ -1769,6 +1880,8 @@ CREATE TABLE a2 AS (
 CREATE TABLE a3 AS (
 	SELECT a1, row_to_json(a2) AS rj FROM a2)
 	WITH data distributed BY (a1);
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: Whole-row variable
 -- explain "verbose" is needed to show that the subplan is hashed
 explain (verbose, costs off) select a1,case when a2 in (select a1::text from a1 where a1 is not null) then 'true' else 'false' end as checkcol
 from (
@@ -1811,5 +1924,114 @@ from (
  10 | false
 (10 rows)
 
+-- check various [NOT] EXISTS subqueries on materialized views
+create table t (a int, b int) distributed by (a);
+insert into t values (1, 1), (2, NULL), (NULL, 3);
+create materialized view v as select a, b from t distributed randomly;
+select * from v where exists (select a from v);
+ a | b 
+---+---
+ 2 |  
+   | 3
+ 1 | 1
+(3 rows)
+
+select * from v where exists (select a from v limit 0);
+ a | b 
+---+---
+(0 rows)
+
+select * from v where exists (select a from v where a=2);
+ a | b 
+---+---
+ 2 |  
+   | 3
+ 1 | 1
+(3 rows)
+
+select * from v where exists (select a from v where a<>2);
+ a | b 
+---+---
+ 2 |  
+   | 3
+ 1 | 1
+(3 rows)
+
+select * from v where not exists (select a from v);
+ a | b 
+---+---
+(0 rows)
+
+select * from v where not exists (select a from v limit 0);
+ a | b 
+---+---
+ 2 |  
+   | 3
+ 1 | 1
+(3 rows)
+
+select * from v where not exists (select a from v where a=2);
+ a | b 
+---+---
+(0 rows)
+
+select * from v where not exists (select a from v where a<>2);
+ a | b 
+---+---
+(0 rows)
+
+select * from v where exists (select b from v);
+ a | b 
+---+---
+ 2 |  
+   | 3
+ 1 | 1
+(3 rows)
+
+select * from v where exists (select b from v limit 0);
+ a | b 
+---+---
+(0 rows)
+
+select * from v where exists (select b from v where b=2);
+ a | b 
+---+---
+(0 rows)
+
+select * from v where exists (select b from v where b<>2);
+ a | b 
+---+---
+ 2 |  
+   | 3
+ 1 | 1
+(3 rows)
+
+select * from v where not exists (select b from v);
+ a | b 
+---+---
+(0 rows)
+
+select * from v where not exists (select b from v limit 0);
+ a | b 
+---+---
+ 2 |  
+   | 3
+ 1 | 1
+(3 rows)
+
+select * from v where not exists (select b from v where b=2);
+ a | b 
+---+---
+ 2 |  
+   | 3
+ 1 | 1
+(3 rows)
+
+select * from v where not exists (select b from v where b<>2);
+ a | b 
+---+---
+(0 rows)
+
 set client_min_messages='warning';
 drop schema qp_subquery cascade;
+reset optimizer_trace_fallback;
