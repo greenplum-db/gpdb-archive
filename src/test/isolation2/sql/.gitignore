@@ -6,6 +6,7 @@
 /pg_basebackup_with_tablespaces.sql
 /pt_io_in_progress_deadlock.sql
 /distributed_snapshot.sql
+/hot_standby/query_conflict.sql
 
 # ignores including sub-directories
 autovacuum-analyze.sql

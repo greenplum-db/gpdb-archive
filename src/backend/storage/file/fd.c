@@ -1562,6 +1562,7 @@ OpenTemporaryFile(bool interXact, const char *filePrefix)
 	if (!interXact)
 		RegisterTemporaryFile(file);
 
+	SIMPLE_FAULT_INJECTOR("after_open_temp_file");
 	return file;
 }
 
