@@ -34,7 +34,7 @@ func (s *Server) MakeSegment(ctx context.Context, request *idl.MakeSegmentReques
 		LcTime:        locale.LcTime,
 		DataChecksums: request.DataChecksums,
 	}
-	out, err := utils.RunExecCommand(&initdbOptions, s.GpHome)
+	out, err := utils.RunGpCommand(&initdbOptions, s.GpHome)
 	if err != nil {
 		return &idl.MakeSegmentReply{}, utils.LogAndReturnError(fmt.Errorf("executing initdb: %s, %w", out, err))
 	}
@@ -53,7 +53,7 @@ func (s *Server) MakeSegment(ctx context.Context, request *idl.MakeSegmentReques
 		return &idl.MakeSegmentReply{}, utils.LogAndReturnError(fmt.Errorf("updating postgresql.conf: %w", err))
 	}
 
-	err = postgres.CreatePostgresInternalConf(dataDirectory, int(request.Segment.Dbid))
+	err = postgres.UpdatePostgresInternalConf(dataDirectory, int(request.Segment.Dbid))
 	if err != nil {
 		return &idl.MakeSegmentReply{}, utils.LogAndReturnError(fmt.Errorf("creating internal.auto.conf: %w", err))
 	}
@@ -73,7 +73,7 @@ func (s *Server) MakeSegment(ctx context.Context, request *idl.MakeSegmentReques
 	if request.Segment.Contentid == -1 {
 		err = postgres.BuildCoordinatorPgHbaConf(dataDirectory, addrs)
 	} else {
-		err = postgres.UpdateSegmentPgHbaConf(dataDirectory, request.CoordinatorAddrs, addrs)
+		err = postgres.UpdateSegmentPgHbaConf(dataDirectory, addrs, false, request.CoordinatorAddrs...)
 	}
 	if err != nil {
 		return &idl.MakeSegmentReply{}, utils.LogAndReturnError(fmt.Errorf("updating pg_hba.conf: %w", err))

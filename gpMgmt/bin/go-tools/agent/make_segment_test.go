@@ -70,10 +70,11 @@ key2 = 'value2'
 port = %d
 `, request.Segment.Port),
 			expectedPgHbaConf: fmt.Sprintf(`local	all	gpadmin	ident
+local	replication	gpadmin	ident
 host	all	gpadmin	localhost	trust
 host	all	gpadmin	%[1]s	trust
-local	replication	gpadmin	ident
 host	replication	gpadmin	samehost	trust
+host	replication	gpadmin	localhost	trust
 host	replication	gpadmin	%[1]s	trust
 `, request.Segment.HostName),
 		},
@@ -143,8 +144,8 @@ host	all	gpadmin	2001:db8::/32	trust
 			}
 			defer os.RemoveAll(dname)
 
-			postgresqlConf := creatTempConfFile(t, dname, "postgresql.conf", 0644)
-			pgHbaConf := creatTempConfFile(t, dname, "pg_hba.conf", 0644)
+			postgresqlConf := createTempConfFile(t, dname, "postgresql.conf", 0644)
+			pgHbaConf := createTempConfFile(t, dname, "pg_hba.conf", 0644)
 			pgInternalConf := filepath.Join(dname, "internal.auto.conf")
 
 			request.Segment.DataDirectory = dname
@@ -198,7 +199,7 @@ host	all	gpadmin	2001:db8::/32	trust
 		}
 		defer os.RemoveAll(dname)
 
-		creatTempConfFile(t, dname, "postgresql.conf", 0000)
+		createTempConfFile(t, dname, "postgresql.conf", 0000)
 
 		request.Segment.DataDirectory = dname
 		_, err = agentServer.MakeSegment(context.Background(), request)
@@ -224,8 +225,8 @@ host	all	gpadmin	2001:db8::/32	trust
 		}
 		defer os.RemoveAll(dname)
 
-		creatTempConfFile(t, dname, "postgresql.conf", 0644)
-		creatTempConfFile(t, dname, "internal.auto.conf", 0000)
+		createTempConfFile(t, dname, "postgresql.conf", 0644)
+		createTempConfFile(t, dname, "internal.auto.conf", 0000)
 
 		request.Segment.DataDirectory = dname
 		_, err = agentServer.MakeSegment(context.Background(), request)
@@ -255,8 +256,8 @@ host	all	gpadmin	2001:db8::/32	trust
 		}
 		defer os.RemoveAll(dname)
 
-		creatTempConfFile(t, dname, "postgresql.conf", 0644)
-		creatTempConfFile(t, dname, "internal.auto.conf", 0644)
+		createTempConfFile(t, dname, "postgresql.conf", 0644)
+		createTempConfFile(t, dname, "internal.auto.conf", 0644)
 
 		request.Segment.DataDirectory = dname
 		_, err = agentServer.MakeSegment(context.Background(), request)
@@ -276,8 +277,8 @@ host	all	gpadmin	2001:db8::/32	trust
 		}
 		defer os.RemoveAll(dname)
 
-		creatTempConfFile(t, dname, "postgresql.conf", 0644)
-		creatTempConfFile(t, dname, "pg_hba.conf", 0000)
+		createTempConfFile(t, dname, "postgresql.conf", 0644)
+		createTempConfFile(t, dname, "pg_hba.conf", 0000)
 
 		request.Segment.DataDirectory = dname
 		_, err = agentServer.MakeSegment(context.Background(), request)
@@ -294,7 +295,7 @@ host	all	gpadmin	2001:db8::/32	trust
 	})
 }
 
-func creatTempConfFile(t *testing.T, dname string, filename string, perm os.FileMode) string {
+func createTempConfFile(t *testing.T, dname string, filename string, perm os.FileMode) string {
 	t.Helper()
 
 	confPath := filepath.Join(dname, filename)

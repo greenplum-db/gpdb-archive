@@ -11,6 +11,10 @@ service Agent {
     rpc MakeSegment(MakeSegmentRequest) returns(MakeSegmentReply) {}
     rpc StartSegment(StartSegmentRequest) returns (StartSegmentReply){}
     rpc ValidateHostEnv(ValidateHostEnvRequest) returns(ValidateHostEnvReply) {}
+    rpc GetInterfaceAddrs(GetInterfaceAddrsRequest) returns(GetInterfaceAddrsResponse) {}
+    rpc UpdatePgHbaConfAndReload(UpdatePgHbaConfRequest) returns (UpdatePgHbaConfResponse) {}
+    rpc UpdatePgConf(UpdatePgConfRequest) returns (UpdatePgConfRespoonse) {}
+    rpc PgBasebackup(PgBasebackupRequest) returns (PgBasebackupResponse) {}
 }
 
 message StartSegmentRequest{
@@ -57,6 +61,40 @@ message MakeSegmentRequest {
     bool dataChecksums = 7;
 }
 
-message MakeSegmentReply {
+message MakeSegmentReply {}
+
+message GetInterfaceAddrsRequest{}
+
+message GetInterfaceAddrsResponse{
+    repeated string addrs = 1;
 }
 
+message UpdatePgHbaConfRequest{
+    string pgdata = 1;
+    repeated string addrs = 2;
+    bool replication = 3;
+}
+
+message UpdatePgHbaConfResponse {}
+
+message UpdatePgConfRequest {
+    string pgdata = 1;
+    map<string, string> params = 2;
+    bool overwrite = 3;
+}
+
+message UpdatePgConfRespoonse {}
+
+message PgBasebackupRequest {
+    string targetDir = 1;
+    string sourceHost = 2;
+    int32 sourcePort = 3;
+    bool createSlot = 4;
+    bool forceOverwrite = 5;
+    int32 targetDbid = 6;
+    bool writeRecoveryConf = 7;
+    string replicationSlotName = 8;
+    repeated string excludePaths = 9;
+}
+
+message PgBasebackupResponse {}

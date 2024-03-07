@@ -3,6 +3,8 @@ package utils
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"os"
 	"os/exec"
 	"path"
 	"path/filepath"
@@ -15,7 +17,7 @@ type CommandBuilder interface {
 	BuildExecCommand(gpHome string) *exec.Cmd
 }
 
-func NewExecCommand(cmdBuilder CommandBuilder, gpHome string) *exec.Cmd {
+func NewGpCommand(cmdBuilder CommandBuilder, gpHome string) *exec.Cmd {
 	return cmdBuilder.BuildExecCommand(gpHome)
 }
 
@@ -26,15 +28,35 @@ func NewGpSourcedCommand(cmdBuilder CommandBuilder, gpHome string) *exec.Cmd {
 	return System.ExecCommand("bash", "-c", fmt.Sprintf("source %s && %s", gpSourceFilePath, cmd.String()))
 }
 
-func runCommand(cmd *exec.Cmd) (*bytes.Buffer, error) {
+func runCommand(cmd *exec.Cmd, filename ...string) (*bytes.Buffer, error) {
+	var outfile *os.File
+	var err error
+
+	if len(filename) > 0 {
+		if len(filename) != 1 {
+			return nil, fmt.Errorf("expected only a single filename, got %d", len(filename))
+		}
+
+		outfile, err = System.Create(filename[0])
+		if err != nil {
+			return nil, fmt.Errorf("creating file %q: %w", filename[0], err)
+		}
+		defer outfile.Close()
+	}
+
 	stdout := new(bytes.Buffer)
 	stderr := new(bytes.Buffer)
 
-	cmd.Stdout = stdout
-	cmd.Stderr = stderr
+	if outfile != nil {
+		cmd.Stdout = io.MultiWriter(stdout, outfile)
+		cmd.Stderr = io.MultiWriter(stderr, outfile)
+	} else {
+		cmd.Stdout = stdout
+		cmd.Stderr = stderr
+	}
 
 	gplog.Verbose("Executing command: %s", cmd.String())
-	err := cmd.Run()
+	err = cmd.Run()
 
 	if err != nil {
 		return stderr, err
@@ -43,12 +65,21 @@ func runCommand(cmd *exec.Cmd) (*bytes.Buffer, error) {
 	return stdout, err
 }
 
-func RunExecCommand(cmdBuilder CommandBuilder, gpHome string) (*bytes.Buffer, error) {
-	return runCommand(NewExecCommand(cmdBuilder, gpHome))
+// RunGpCommandAndRedirectOutput executes the command and redirects the stdout and stderr to the given filename
+func RunGpCommandAndRedirectOutput(cmdBuilder CommandBuilder, gpHome string, filename string) (*bytes.Buffer, error) {
+	return runCommand(NewGpCommand(cmdBuilder, gpHome), filename)
 }
 
+// RunGpCommand executes the given command
+func RunGpCommand(cmdBuilder CommandBuilder, gpHome string) (*bytes.Buffer, error) {
+	out, err := runCommand(NewGpCommand(cmdBuilder, gpHome))
+	return out, err
+}
+
+// RunGpSourcedCommand sources the greenplum_path.sh before executing the given command
 func RunGpSourcedCommand(cmdBuilder CommandBuilder, gpHome string) (*bytes.Buffer, error) {
-	return runCommand(NewGpSourcedCommand(cmdBuilder, gpHome))
+	out, err := runCommand(NewGpSourcedCommand(cmdBuilder, gpHome))
+	return out, err
 }
 
 func GetGpUtilityPath(gpHome, utility string) string {

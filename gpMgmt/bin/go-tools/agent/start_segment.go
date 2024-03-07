@@ -3,7 +3,6 @@ package agent
 import (
 	"context"
 	"fmt"
-	"path/filepath"
 
 	"github.com/greenplum-db/gpdb/gp/idl"
 	"github.com/greenplum-db/gpdb/gp/utils"
@@ -21,9 +20,8 @@ func (s *Server) StartSegment(ctx context.Context, in *idl.StartSegmentRequest) 
 		Wait:    in.Wait,
 		Timeout: int(in.Timeout),
 		Options: in.Options,
-		Logfile: filepath.Join(in.DataDir, "log", "startup.log"), // TODO: Consider changing this to the log_directory GUC or gpAdminLogs
 	}
-	out, err := utils.RunExecCommand(&pgCtlStartOptions, s.GpHome)
+	out, err := utils.RunGpCommand(&pgCtlStartOptions, s.GpHome)
 	if err != nil {
 		return &idl.StartSegmentReply{}, utils.LogAndReturnError(fmt.Errorf("executing pg_ctl start: %s, logfile: %s, %w", out, pgCtlStartOptions.Logfile, err))
 	}

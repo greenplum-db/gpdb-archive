@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package idl;
 
-option go_package= "../idl";
+option go_package = "../idl";
 
 service Hub {
     rpc Stop(StopHubRequest) returns (StopHubReply) {}
@@ -10,6 +10,13 @@ service Hub {
     rpc StatusAgents(StatusAgentsRequest) returns (StatusAgentsReply) {}
     rpc StopAgents(StopAgentsRequest) returns (StopAgentsReply) {}
     rpc MakeCluster(MakeClusterRequest) returns (stream HubReply) {}
+    rpc AddMirrors(AddMirrorsRequest) returns (stream HubReply) {}
+}
+
+message AddMirrorsRequest {
+    string CoordinatorDataDir = 1;
+    bool HbaHostnames = 2;
+    repeated Segment mirrors = 3;
 }
 
 message StopHubRequest {}
@@ -86,7 +93,7 @@ message SegmentPair {
     Segment mirror = 2;
 }
 
-message ClusterParams{
+message ClusterParams {
     map<string, string> CoordinatorConfig = 1;
     map<string, string> SegmentConfig = 2;
     map<string, string> CommonConfig = 3;
@@ -99,11 +106,11 @@ message ClusterParams{
 }
 
 message Locale {
-    string lc_all=1;
-    string lc_collate=2;
+    string lc_all = 1;
+    string lc_collate = 2;
     string lc_ctype = 3;
-    string lc_messages=4;
-    string lc_monetory=5;
-    string lc_numeric=6;
-    string lc_time=7;
+    string lc_messages = 4;
+    string lc_monetory = 5;
+    string lc_numeric = 6;
+    string lc_time = 7;
 }

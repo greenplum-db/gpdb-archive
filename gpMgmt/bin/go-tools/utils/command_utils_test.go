@@ -4,9 +4,11 @@ import (
 	"errors"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
 	"github.com/greenplum-db/gpdb/gp/testutils"
@@ -19,6 +21,7 @@ func init() {
 	exectest.RegisterMains(
 		CommandSuccess,
 		CommandFailure,
+		DummyCommand,
 	)
 }
 
@@ -35,7 +38,7 @@ func TestRunExecCommand(t *testing.T) {
 		utils.System.ExecCommand = exectest.NewCommand(CommandSuccess)
 		defer utils.ResetSystemFunctions()
 
-		out, err := utils.RunExecCommand(cmd, "gpHome")
+		out, err := utils.RunGpCommand(cmd, "gpHome")
 		if err != nil {
 			t.Fatalf("unexpected error: %#v", err)
 		}
@@ -75,11 +78,49 @@ func TestRunExecCommand(t *testing.T) {
 		}
 	})
 
+	t.Run("succesfully runs and redirects output of a command to a given file", func(t *testing.T) {
+		utils.System.ExecCommand = exectest.NewCommand(DummyCommand)
+		defer utils.ResetSystemFunctions()
+
+		filename := filepath.Join(os.TempDir(), "testfile")
+		defer os.Remove(filename)
+
+		out, err := utils.RunGpCommandAndRedirectOutput(cmd, "gpHome", filename)
+		var expectedErr *exec.ExitError
+		if !errors.As(err, &expectedErr) {
+			t.Errorf("got %T, want %T", err, expectedErr)
+		}
+
+		expectedOut := "error"
+		if out.String() != expectedOut {
+			t.Fatalf("got %v, want %v", out, expectedOut)
+		}
+
+		expectedFileContent := "line 1\nline 2\nerror"
+		testutils.AssertFileContents(t, filename, expectedFileContent)
+	})
+
+	t.Run("errors out when not able to create the file", func(t *testing.T) {
+		expectedErr := errors.New("error")
+		utils.System.Create = func(name string) (*os.File, error) {
+			return nil, expectedErr
+		}
+		defer utils.ResetSystemFunctions()
+
+		filename := filepath.Join(os.TempDir(), "testfile")
+		defer os.Remove(filename)
+
+		_, err := utils.RunGpCommandAndRedirectOutput(cmd, "gpHome", filename)
+		if !errors.Is(err, expectedErr) {
+			t.Errorf("got %#v, want %#v", err, expectedErr)
+		}
+	})
+
 	t.Run("when command fails to execute", func(t *testing.T) {
 		utils.System.ExecCommand = exectest.NewCommand(CommandFailure)
 		defer utils.ResetSystemFunctions()
 
-		out, err := utils.RunExecCommand(cmd, "gpHome")
+		out, err := utils.RunGpCommand(cmd, "gpHome")
 		if err == nil {
 			t.Fatalf("expected error")
 		}
@@ -182,5 +223,13 @@ func CommandSuccess() {
 
 func CommandFailure() {
 	os.Stderr.WriteString("failure")
+	os.Exit(1)
+}
+
+func DummyCommand() {
+	os.Stdout.WriteString("line 1\n")
+	os.Stdout.WriteString("line 2\n")
+	time.Sleep(1 * time.Millisecond) // add a delay so that stderr is written after stdout and we can make a reliable assertion
+	os.Stderr.WriteString("error")
 	os.Exit(1)
 }

@@ -19,11 +19,19 @@ func agentCmd() *cobra.Command {
 }
 
 func RunAgent(cmd *cobra.Command, args []string) (err error) {
-	agentConf := agent.Config{Port: Conf.AgentPort, ServiceName: Conf.ServiceName, GpHome: Conf.GpHome, Credentials: Conf.Credentials}
+	agentConf := agent.Config{
+		Port:        Conf.AgentPort,
+		ServiceName: Conf.ServiceName,
+		GpHome:      Conf.GpHome,
+		Credentials: Conf.Credentials,
+		LogDir:      Conf.LogDir,
+	}
 	a := agent.New(agentConf)
+
 	err = a.Start()
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

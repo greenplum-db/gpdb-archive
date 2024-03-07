@@ -502,6 +502,382 @@ func (m *MakeSegmentReply) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MakeSegmentReply proto.InternalMessageInfo
 
+type GetInterfaceAddrsRequest struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetInterfaceAddrsRequest) Reset()         { *m = GetInterfaceAddrsRequest{} }
+func (m *GetInterfaceAddrsRequest) String() string { return proto.CompactTextString(m) }
+func (*GetInterfaceAddrsRequest) ProtoMessage()    {}
+func (*GetInterfaceAddrsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{10}
+}
+
+func (m *GetInterfaceAddrsRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetInterfaceAddrsRequest.Unmarshal(m, b)
+}
+func (m *GetInterfaceAddrsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetInterfaceAddrsRequest.Marshal(b, m, deterministic)
+}
+func (m *GetInterfaceAddrsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetInterfaceAddrsRequest.Merge(m, src)
+}
+func (m *GetInterfaceAddrsRequest) XXX_Size() int {
+	return xxx_messageInfo_GetInterfaceAddrsRequest.Size(m)
+}
+func (m *GetInterfaceAddrsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetInterfaceAddrsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetInterfaceAddrsRequest proto.InternalMessageInfo
+
+type GetInterfaceAddrsResponse struct {
+	Addrs                []string `protobuf:"bytes,1,rep,name=addrs,proto3" json:"addrs,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetInterfaceAddrsResponse) Reset()         { *m = GetInterfaceAddrsResponse{} }
+func (m *GetInterfaceAddrsResponse) String() string { return proto.CompactTextString(m) }
+func (*GetInterfaceAddrsResponse) ProtoMessage()    {}
+func (*GetInterfaceAddrsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{11}
+}
+
+func (m *GetInterfaceAddrsResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetInterfaceAddrsResponse.Unmarshal(m, b)
+}
+func (m *GetInterfaceAddrsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetInterfaceAddrsResponse.Marshal(b, m, deterministic)
+}
+func (m *GetInterfaceAddrsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetInterfaceAddrsResponse.Merge(m, src)
+}
+func (m *GetInterfaceAddrsResponse) XXX_Size() int {
+	return xxx_messageInfo_GetInterfaceAddrsResponse.Size(m)
+}
+func (m *GetInterfaceAddrsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetInterfaceAddrsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetInterfaceAddrsResponse proto.InternalMessageInfo
+
+func (m *GetInterfaceAddrsResponse) GetAddrs() []string {
+	if m != nil {
+		return m.Addrs
+	}
+	return nil
+}
+
+type UpdatePgHbaConfRequest struct {
+	Pgdata               string   `protobuf:"bytes,1,opt,name=pgdata,proto3" json:"pgdata,omitempty"`
+	Addrs                []string `protobuf:"bytes,2,rep,name=addrs,proto3" json:"addrs,omitempty"`
+	Replication          bool     `protobuf:"varint,3,opt,name=replication,proto3" json:"replication,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdatePgHbaConfRequest) Reset()         { *m = UpdatePgHbaConfRequest{} }
+func (m *UpdatePgHbaConfRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdatePgHbaConfRequest) ProtoMessage()    {}
+func (*UpdatePgHbaConfRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{12}
+}
+
+func (m *UpdatePgHbaConfRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdatePgHbaConfRequest.Unmarshal(m, b)
+}
+func (m *UpdatePgHbaConfRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdatePgHbaConfRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdatePgHbaConfRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdatePgHbaConfRequest.Merge(m, src)
+}
+func (m *UpdatePgHbaConfRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdatePgHbaConfRequest.Size(m)
+}
+func (m *UpdatePgHbaConfRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdatePgHbaConfRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdatePgHbaConfRequest proto.InternalMessageInfo
+
+func (m *UpdatePgHbaConfRequest) GetPgdata() string {
+	if m != nil {
+		return m.Pgdata
+	}
+	return ""
+}
+
+func (m *UpdatePgHbaConfRequest) GetAddrs() []string {
+	if m != nil {
+		return m.Addrs
+	}
+	return nil
+}
+
+func (m *UpdatePgHbaConfRequest) GetReplication() bool {
+	if m != nil {
+		return m.Replication
+	}
+	return false
+}
+
+type UpdatePgHbaConfResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdatePgHbaConfResponse) Reset()         { *m = UpdatePgHbaConfResponse{} }
+func (m *UpdatePgHbaConfResponse) String() string { return proto.CompactTextString(m) }
+func (*UpdatePgHbaConfResponse) ProtoMessage()    {}
+func (*UpdatePgHbaConfResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{13}
+}
+
+func (m *UpdatePgHbaConfResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdatePgHbaConfResponse.Unmarshal(m, b)
+}
+func (m *UpdatePgHbaConfResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdatePgHbaConfResponse.Marshal(b, m, deterministic)
+}
+func (m *UpdatePgHbaConfResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdatePgHbaConfResponse.Merge(m, src)
+}
+func (m *UpdatePgHbaConfResponse) XXX_Size() int {
+	return xxx_messageInfo_UpdatePgHbaConfResponse.Size(m)
+}
+func (m *UpdatePgHbaConfResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdatePgHbaConfResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdatePgHbaConfResponse proto.InternalMessageInfo
+
+type UpdatePgConfRequest struct {
+	Pgdata               string            `protobuf:"bytes,1,opt,name=pgdata,proto3" json:"pgdata,omitempty"`
+	Params               map[string]string `protobuf:"bytes,2,rep,name=params,proto3" json:"params,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	Overwrite            bool              `protobuf:"varint,3,opt,name=overwrite,proto3" json:"overwrite,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
+	XXX_unrecognized     []byte            `json:"-"`
+	XXX_sizecache        int32             `json:"-"`
+}
+
+func (m *UpdatePgConfRequest) Reset()         { *m = UpdatePgConfRequest{} }
+func (m *UpdatePgConfRequest) String() string { return proto.CompactTextString(m) }
+func (*UpdatePgConfRequest) ProtoMessage()    {}
+func (*UpdatePgConfRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{14}
+}
+
+func (m *UpdatePgConfRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdatePgConfRequest.Unmarshal(m, b)
+}
+func (m *UpdatePgConfRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdatePgConfRequest.Marshal(b, m, deterministic)
+}
+func (m *UpdatePgConfRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdatePgConfRequest.Merge(m, src)
+}
+func (m *UpdatePgConfRequest) XXX_Size() int {
+	return xxx_messageInfo_UpdatePgConfRequest.Size(m)
+}
+func (m *UpdatePgConfRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdatePgConfRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdatePgConfRequest proto.InternalMessageInfo
+
+func (m *UpdatePgConfRequest) GetPgdata() string {
+	if m != nil {
+		return m.Pgdata
+	}
+	return ""
+}
+
+func (m *UpdatePgConfRequest) GetParams() map[string]string {
+	if m != nil {
+		return m.Params
+	}
+	return nil
+}
+
+func (m *UpdatePgConfRequest) GetOverwrite() bool {
+	if m != nil {
+		return m.Overwrite
+	}
+	return false
+}
+
+type UpdatePgConfRespoonse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UpdatePgConfRespoonse) Reset()         { *m = UpdatePgConfRespoonse{} }
+func (m *UpdatePgConfRespoonse) String() string { return proto.CompactTextString(m) }
+func (*UpdatePgConfRespoonse) ProtoMessage()    {}
+func (*UpdatePgConfRespoonse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{15}
+}
+
+func (m *UpdatePgConfRespoonse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UpdatePgConfRespoonse.Unmarshal(m, b)
+}
+func (m *UpdatePgConfRespoonse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UpdatePgConfRespoonse.Marshal(b, m, deterministic)
+}
+func (m *UpdatePgConfRespoonse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UpdatePgConfRespoonse.Merge(m, src)
+}
+func (m *UpdatePgConfRespoonse) XXX_Size() int {
+	return xxx_messageInfo_UpdatePgConfRespoonse.Size(m)
+}
+func (m *UpdatePgConfRespoonse) XXX_DiscardUnknown() {
+	xxx_messageInfo_UpdatePgConfRespoonse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UpdatePgConfRespoonse proto.InternalMessageInfo
+
+type PgBasebackupRequest struct {
+	TargetDir            string   `protobuf:"bytes,1,opt,name=targetDir,proto3" json:"targetDir,omitempty"`
+	SourceHost           string   `protobuf:"bytes,2,opt,name=sourceHost,proto3" json:"sourceHost,omitempty"`
+	SourcePort           int32    `protobuf:"varint,3,opt,name=sourcePort,proto3" json:"sourcePort,omitempty"`
+	CreateSlot           bool     `protobuf:"varint,4,opt,name=createSlot,proto3" json:"createSlot,omitempty"`
+	ForceOverwrite       bool     `protobuf:"varint,5,opt,name=forceOverwrite,proto3" json:"forceOverwrite,omitempty"`
+	TargetDbid           int32    `protobuf:"varint,6,opt,name=targetDbid,proto3" json:"targetDbid,omitempty"`
+	WriteRecoveryConf    bool     `protobuf:"varint,7,opt,name=writeRecoveryConf,proto3" json:"writeRecoveryConf,omitempty"`
+	ReplicationSlotName  string   `protobuf:"bytes,8,opt,name=replicationSlotName,proto3" json:"replicationSlotName,omitempty"`
+	ExcludePaths         []string `protobuf:"bytes,9,rep,name=excludePaths,proto3" json:"excludePaths,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *PgBasebackupRequest) Reset()         { *m = PgBasebackupRequest{} }
+func (m *PgBasebackupRequest) String() string { return proto.CompactTextString(m) }
+func (*PgBasebackupRequest) ProtoMessage()    {}
+func (*PgBasebackupRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{16}
+}
+
+func (m *PgBasebackupRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PgBasebackupRequest.Unmarshal(m, b)
+}
+func (m *PgBasebackupRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PgBasebackupRequest.Marshal(b, m, deterministic)
+}
+func (m *PgBasebackupRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PgBasebackupRequest.Merge(m, src)
+}
+func (m *PgBasebackupRequest) XXX_Size() int {
+	return xxx_messageInfo_PgBasebackupRequest.Size(m)
+}
+func (m *PgBasebackupRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PgBasebackupRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PgBasebackupRequest proto.InternalMessageInfo
+
+func (m *PgBasebackupRequest) GetTargetDir() string {
+	if m != nil {
+		return m.TargetDir
+	}
+	return ""
+}
+
+func (m *PgBasebackupRequest) GetSourceHost() string {
+	if m != nil {
+		return m.SourceHost
+	}
+	return ""
+}
+
+func (m *PgBasebackupRequest) GetSourcePort() int32 {
+	if m != nil {
+		return m.SourcePort
+	}
+	return 0
+}
+
+func (m *PgBasebackupRequest) GetCreateSlot() bool {
+	if m != nil {
+		return m.CreateSlot
+	}
+	return false
+}
+
+func (m *PgBasebackupRequest) GetForceOverwrite() bool {
+	if m != nil {
+		return m.ForceOverwrite
+	}
+	return false
+}
+
+func (m *PgBasebackupRequest) GetTargetDbid() int32 {
+	if m != nil {
+		return m.TargetDbid
+	}
+	return 0
+}
+
+func (m *PgBasebackupRequest) GetWriteRecoveryConf() bool {
+	if m != nil {
+		return m.WriteRecoveryConf
+	}
+	return false
+}
+
+func (m *PgBasebackupRequest) GetReplicationSlotName() string {
+	if m != nil {
+		return m.ReplicationSlotName
+	}
+	return ""
+}
+
+func (m *PgBasebackupRequest) GetExcludePaths() []string {
+	if m != nil {
+		return m.ExcludePaths
+	}
+	return nil
+}
+
+type PgBasebackupResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *PgBasebackupResponse) Reset()         { *m = PgBasebackupResponse{} }
+func (m *PgBasebackupResponse) String() string { return proto.CompactTextString(m) }
+func (*PgBasebackupResponse) ProtoMessage()    {}
+func (*PgBasebackupResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_56ede974c0020f77, []int{17}
+}
+
+func (m *PgBasebackupResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PgBasebackupResponse.Unmarshal(m, b)
+}
+func (m *PgBasebackupResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PgBasebackupResponse.Marshal(b, m, deterministic)
+}
+func (m *PgBasebackupResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PgBasebackupResponse.Merge(m, src)
+}
+func (m *PgBasebackupResponse) XXX_Size() int {
+	return xxx_messageInfo_PgBasebackupResponse.Size(m)
+}
+func (m *PgBasebackupResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_PgBasebackupResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PgBasebackupResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*StartSegmentRequest)(nil), "idl.StartSegmentRequest")
 	proto.RegisterType((*StartSegmentReply)(nil), "idl.StartSegmentReply")
@@ -514,52 +890,85 @@ func init() {
 	proto.RegisterType((*MakeSegmentRequest)(nil), "idl.MakeSegmentRequest")
 	proto.RegisterMapType((map[string]string)(nil), "idl.MakeSegmentRequest.SegConfigEntry")
 	proto.RegisterType((*MakeSegmentReply)(nil), "idl.MakeSegmentReply")
+	proto.RegisterType((*GetInterfaceAddrsRequest)(nil), "idl.GetInterfaceAddrsRequest")
+	proto.RegisterType((*GetInterfaceAddrsResponse)(nil), "idl.GetInterfaceAddrsResponse")
+	proto.RegisterType((*UpdatePgHbaConfRequest)(nil), "idl.UpdatePgHbaConfRequest")
+	proto.RegisterType((*UpdatePgHbaConfResponse)(nil), "idl.UpdatePgHbaConfResponse")
+	proto.RegisterType((*UpdatePgConfRequest)(nil), "idl.UpdatePgConfRequest")
+	proto.RegisterMapType((map[string]string)(nil), "idl.UpdatePgConfRequest.ParamsEntry")
+	proto.RegisterType((*UpdatePgConfRespoonse)(nil), "idl.UpdatePgConfRespoonse")
+	proto.RegisterType((*PgBasebackupRequest)(nil), "idl.PgBasebackupRequest")
+	proto.RegisterType((*PgBasebackupResponse)(nil), "idl.PgBasebackupResponse")
 }
 
 func init() { proto.RegisterFile("agent.proto", fileDescriptor_56ede974c0020f77) }
 
 var fileDescriptor_56ede974c0020f77 = []byte{
-	// 637 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x54, 0x5b, 0x6f, 0xd3, 0x30,
-	0x14, 0x5e, 0x7a, 0x5b, 0x73, 0xba, 0x4b, 0x39, 0xbb, 0x10, 0x02, 0x0f, 0x55, 0x40, 0x53, 0x05,
-	0x52, 0x91, 0x0a, 0x0f, 0x68, 0x42, 0x42, 0xbb, 0x49, 0x48, 0x6c, 0x3c, 0xa4, 0x68, 0x0f, 0xbc,
-	0x79, 0x8d, 0x97, 0x5a, 0x4b, 0xe3, 0x60, 0x3b, 0x9b, 0xfa, 0x1b, 0xf9, 0x11, 0xfc, 0x0c, 0x5e,
-	0x91, 0x1d, 0xa7, 0x6b, 0xd2, 0xf1, 0xe6, 0xef, 0x3b, 0x9f, 0x8f, 0xcf, 0xd5, 0xd0, 0x23, 0x31,
-	0x4d, 0xd5, 0x28, 0x13, 0x5c, 0x71, 0x6c, 0xb2, 0x28, 0xf1, 0xdd, 0x59, 0x7e, 0x53, 0xe0, 0xe0,
-	0x01, 0xf6, 0x26, 0x8a, 0x08, 0x35, 0xa1, 0xf1, 0x9c, 0xa6, 0x2a, 0xa4, 0xbf, 0x72, 0x2a, 0x15,
-	0x7a, 0xb0, 0x19, 0x11, 0x45, 0xce, 0x99, 0xf0, 0x9c, 0x81, 0x33, 0x74, 0xc3, 0x12, 0x22, 0x42,
-	0xeb, 0x81, 0x30, 0xe5, 0x35, 0x06, 0xce, 0xb0, 0x1b, 0x9a, 0xb3, 0x56, 0x2b, 0x36, 0xa7, 0x3c,
-	0x57, 0x5e, 0x6b, 0xe0, 0x0c, 0xdb, 0x61, 0x09, 0xb5, 0x85, 0x67, 0x8a, 0xf1, 0x54, 0x7a, 0xed,
-	0xc2, 0x8f, 0x85, 0xc1, 0x1e, 0x3c, 0xab, 0x3e, 0x9c, 0x25, 0x8b, 0x00, 0xa1, 0x3f, 0x51, 0x3c,
-	0x3b, 0x89, 0x1f, 0x43, 0x09, 0xfa, 0xb0, 0xb3, 0xc2, 0x69, 0xd5, 0x3e, 0xe0, 0x44, 0x11, 0x95,
-	0xcb, 0x8a, 0xee, 0x87, 0xbe, 0xbb, 0xc2, 0x66, 0xc9, 0x02, 0x0f, 0xa1, 0x23, 0x0d, 0x67, 0xb3,
-	0xb0, 0x48, 0xf3, 0x79, 0xa6, 0x63, 0x34, 0x69, 0xb8, 0xa1, 0x45, 0xd8, 0x87, 0x66, 0xc6, 0x22,
-	0xaf, 0x39, 0x70, 0x86, 0xdb, 0xa1, 0x3e, 0x06, 0x7f, 0x1c, 0x38, 0xbc, 0x26, 0x09, 0x8b, 0x88,
-	0xa2, 0x5f, 0xb9, 0x54, 0x17, 0xe9, 0x7d, 0x59, 0xa3, 0x21, 0xec, 0xce, 0xb8, 0x54, 0x27, 0x51,
-	0x24, 0xa8, 0x94, 0x97, 0x4c, 0x2a, 0xcf, 0x19, 0x34, 0x87, 0x6e, 0x58, 0xa7, 0xf1, 0x0d, 0x6c,
-	0x9f, 0x33, 0x41, 0xa7, 0x8a, 0x8b, 0x85, 0xd1, 0x35, 0x8c, 0xae, 0x4a, 0xa2, 0x0f, 0xdd, 0x8c,
-	0x0b, 0x65, 0x04, 0x4d, 0x23, 0x58, 0x62, 0x7c, 0x0d, 0x9d, 0x84, 0x4f, 0x49, 0x42, 0x4d, 0x81,
-	0x7b, 0xe3, 0xde, 0x88, 0x45, 0xc9, 0xe8, 0xd2, 0x50, 0xa1, 0x35, 0xe1, 0x2b, 0x70, 0xe3, 0xec,
-	0x9a, 0x0a, 0xc9, 0x78, 0x6a, 0xcb, 0xfd, 0x48, 0xe8, 0x9c, 0x6f, 0xb9, 0x98, 0xd2, 0xc8, 0xeb,
-	0x98, 0xd6, 0x59, 0x14, 0x9c, 0xc1, 0xfe, 0x5a, 0x82, 0xba, 0x76, 0xef, 0xa0, 0x3b, 0xa7, 0x52,
-	0x92, 0x98, 0x4a, 0x93, 0x57, 0x6f, 0xbc, 0x6b, 0x1f, 0x8d, 0xaf, 0x0a, 0x3e, 0x5c, 0x0a, 0x82,
-	0xbf, 0x0d, 0xc0, 0x2b, 0x72, 0x47, 0x6b, 0x63, 0x74, 0x04, 0x9b, 0xb2, 0x60, 0x4c, 0x03, 0x7a,
-	0xe3, 0x2d, 0xe3, 0xa2, 0x54, 0x95, 0xc6, 0x95, 0xf4, 0x1a, 0xff, 0x4f, 0xcf, 0x87, 0xee, 0x45,
-	0x3a, 0xe5, 0x11, 0x4b, 0x63, 0xd3, 0x21, 0x37, 0x5c, 0x62, 0x3c, 0x07, 0x77, 0x42, 0xe3, 0x33,
-	0x9e, 0xde, 0xb2, 0xd8, 0x6b, 0x99, 0x68, 0x8f, 0x8c, 0x8f, 0xf5, 0xa0, 0x46, 0x4b, 0xe1, 0x45,
-	0xaa, 0xc4, 0x22, 0x7c, 0xbc, 0x88, 0x6f, 0xa1, 0x3f, 0xe5, 0x5c, 0x44, 0x2c, 0x25, 0x8a, 0x0b,
-	0xdd, 0x41, 0x3d, 0xb6, 0xba, 0x13, 0x6b, 0x3c, 0x06, 0xb0, 0x35, 0xbb, 0x21, 0xba, 0x62, 0xdf,
-	0xc9, 0x9c, 0x4a, 0x5b, 0xd4, 0x0a, 0xa7, 0xfb, 0xae, 0xd7, 0xe6, 0x6c, 0x46, 0xa7, 0x77, 0x32,
-	0x9f, 0x4b, 0x6f, 0xd3, 0x88, 0xaa, 0xa4, 0xff, 0x19, 0x76, 0xaa, 0x21, 0xe9, 0x31, 0xbc, 0xa3,
-	0x0b, 0x3b, 0xb3, 0xfa, 0x88, 0xfb, 0xd0, 0xbe, 0x27, 0x49, 0x5e, 0xce, 0x6b, 0x01, 0x8e, 0x1b,
-	0x9f, 0x1c, 0xbd, 0x32, 0x95, 0x1c, 0xb3, 0x64, 0x31, 0xfe, 0xdd, 0x80, 0xb6, 0xd9, 0x02, 0xfc,
-	0x08, 0x2d, 0xbd, 0x3c, 0x78, 0x50, 0xd4, 0xbd, 0xb6, 0x5b, 0xfe, 0x5e, 0x9d, 0xd6, 0xeb, 0xb5,
-	0x81, 0xc7, 0xd0, 0x29, 0x56, 0x09, 0x9f, 0x5b, 0x41, 0x7d, 0xdb, 0xfc, 0x83, 0x75, 0x43, 0x71,
-	0xf7, 0x0b, 0xf4, 0x56, 0xe2, 0xb1, 0x0e, 0xd6, 0xbb, 0x60, 0x1d, 0xd4, 0x43, 0x0f, 0x36, 0xf0,
-	0x14, 0xb6, 0x56, 0x3f, 0x06, 0xf4, 0xca, 0x97, 0xea, 0x9f, 0x94, 0x7f, 0xf8, 0x84, 0xa5, 0xf0,
-	0xf1, 0x0d, 0x76, 0x6b, 0x33, 0x8d, 0x2f, 0x8d, 0xf8, 0xe9, 0x55, 0xf6, 0x5f, 0x3c, 0x6d, 0x34,
-	0xce, 0x4e, 0xbb, 0x3f, 0x3b, 0xa3, 0xd1, 0x7b, 0x16, 0x25, 0x37, 0x1d, 0xf3, 0x67, 0x7e, 0xf8,
-	0x17, 0x00, 0x00, 0xff, 0xff, 0x72, 0xd2, 0xf0, 0x06, 0x52, 0x05, 0x00, 0x00,
+	// 1011 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x56, 0x6d, 0x6f, 0xe3, 0x44,
+	0x10, 0xce, 0x4b, 0x93, 0x26, 0x93, 0x5c, 0x5f, 0x36, 0x6d, 0xea, 0x9a, 0x72, 0x8a, 0xcc, 0xa9,
+	0x8a, 0x00, 0x05, 0x08, 0x7c, 0x80, 0xd3, 0x49, 0xa8, 0x6f, 0x70, 0x88, 0x3b, 0x88, 0x9c, 0xe3,
+	0x90, 0xf8, 0xb6, 0xb1, 0xb7, 0x8e, 0x55, 0xc7, 0x6b, 0x76, 0xd7, 0x2d, 0xf9, 0x09, 0xfc, 0x2f,
+	0xfe, 0x47, 0x7f, 0x06, 0x5f, 0xd1, 0xbe, 0x38, 0xb1, 0x13, 0x57, 0xe2, 0xbe, 0x79, 0x9e, 0x99,
+	0x9d, 0x9d, 0x99, 0x9d, 0x67, 0xc6, 0xd0, 0xc1, 0x01, 0x89, 0xc5, 0x28, 0x61, 0x54, 0x50, 0x54,
+	0x0f, 0xfd, 0xc8, 0x6e, 0xcf, 0xd3, 0x99, 0x96, 0x9d, 0x07, 0xe8, 0x4d, 0x05, 0x66, 0x62, 0x4a,
+	0x82, 0x05, 0x89, 0x85, 0x4b, 0xfe, 0x4c, 0x09, 0x17, 0xc8, 0x82, 0x5d, 0x1f, 0x0b, 0x7c, 0x1d,
+	0x32, 0xab, 0x3a, 0xa8, 0x0e, 0xdb, 0x6e, 0x26, 0x22, 0x04, 0x3b, 0x0f, 0x38, 0x14, 0x56, 0x6d,
+	0x50, 0x1d, 0xb6, 0x5c, 0xf5, 0x2d, 0xad, 0x45, 0xb8, 0x20, 0x34, 0x15, 0xd6, 0xce, 0xa0, 0x3a,
+	0x6c, 0xb8, 0x99, 0x28, 0x35, 0x34, 0x11, 0x21, 0x8d, 0xb9, 0xd5, 0xd0, 0x7e, 0x8c, 0xe8, 0xf4,
+	0xe0, 0xb0, 0x78, 0x71, 0x12, 0x2d, 0x1d, 0x04, 0x07, 0x53, 0x41, 0x93, 0x8b, 0x60, 0x1d, 0x8a,
+	0x73, 0x00, 0x7b, 0x39, 0x4c, 0x5a, 0x1d, 0x01, 0x9a, 0x0a, 0x2c, 0x52, 0x5e, 0xb0, 0x7b, 0x27,
+	0xcf, 0xe6, 0xd0, 0x24, 0x5a, 0xa2, 0x3e, 0x34, 0xb9, 0xc2, 0x4c, 0x16, 0x46, 0x92, 0x78, 0x9a,
+	0xc8, 0x18, 0x55, 0x1a, 0x6d, 0xd7, 0x48, 0xe8, 0x00, 0xea, 0x49, 0xe8, 0x5b, 0xf5, 0x41, 0x75,
+	0xf8, 0xcc, 0x95, 0x9f, 0xce, 0x63, 0x15, 0xfa, 0xef, 0x71, 0x14, 0xfa, 0x58, 0x90, 0xd7, 0x94,
+	0x8b, 0x9b, 0xf8, 0x3e, 0xab, 0xd1, 0x10, 0xf6, 0xe7, 0x94, 0x8b, 0x0b, 0xdf, 0x67, 0x84, 0xf3,
+	0x37, 0x21, 0x17, 0x56, 0x75, 0x50, 0x1f, 0xb6, 0xdd, 0x4d, 0x18, 0xbd, 0x80, 0x67, 0xd7, 0x21,
+	0x23, 0x9e, 0xa0, 0x6c, 0xa9, 0xec, 0x6a, 0xca, 0xae, 0x08, 0x22, 0x1b, 0x5a, 0x09, 0x65, 0x42,
+	0x19, 0xd4, 0x95, 0xc1, 0x4a, 0x46, 0x9f, 0x40, 0x33, 0xa2, 0x1e, 0x8e, 0x88, 0x2a, 0x70, 0x67,
+	0xdc, 0x19, 0x85, 0x7e, 0x34, 0x7a, 0xa3, 0x20, 0xd7, 0xa8, 0xd0, 0x19, 0xb4, 0x83, 0xe4, 0x3d,
+	0x61, 0x3c, 0xa4, 0xb1, 0x29, 0xf7, 0x1a, 0x90, 0x39, 0xdf, 0x52, 0xe6, 0x11, 0xdf, 0x6a, 0xaa,
+	0xa7, 0x33, 0x92, 0x73, 0x05, 0x47, 0x5b, 0x09, 0xca, 0xda, 0x7d, 0x06, 0xad, 0x05, 0xe1, 0x1c,
+	0x07, 0x84, 0xab, 0xbc, 0x3a, 0xe3, 0x7d, 0x73, 0x69, 0xf0, 0x56, 0xe3, 0xee, 0xca, 0xc0, 0xf9,
+	0xb7, 0x06, 0xe8, 0x2d, 0xbe, 0x23, 0x1b, 0x6d, 0x74, 0x0e, 0xbb, 0x5c, 0x23, 0xea, 0x01, 0x3a,
+	0xe3, 0xae, 0x72, 0x91, 0x59, 0x65, 0xca, 0x5c, 0x7a, 0xb5, 0xa7, 0xd3, 0xb3, 0xa1, 0x75, 0x13,
+	0x7b, 0xd4, 0x0f, 0xe3, 0x40, 0xbd, 0x50, 0xdb, 0x5d, 0xc9, 0xe8, 0x1a, 0xda, 0x53, 0x12, 0x5c,
+	0xd1, 0xf8, 0x36, 0x0c, 0xac, 0x1d, 0x15, 0xed, 0xb9, 0xf2, 0xb1, 0x1d, 0xd4, 0x68, 0x65, 0x78,
+	0x13, 0x0b, 0xb6, 0x74, 0xd7, 0x07, 0xd1, 0xa7, 0x70, 0xe0, 0x51, 0xca, 0xfc, 0x30, 0xc6, 0x82,
+	0x32, 0xf9, 0x82, 0xb2, 0x6d, 0xe5, 0x4b, 0x6c, 0xe1, 0xc8, 0x81, 0xee, 0x7c, 0x86, 0x65, 0xc5,
+	0x7e, 0xc1, 0x0b, 0xc2, 0x4d, 0x51, 0x0b, 0x98, 0x7c, 0x77, 0x49, 0x9b, 0xab, 0x39, 0xf1, 0xee,
+	0x78, 0xba, 0xe0, 0xd6, 0xae, 0x32, 0x2a, 0x82, 0xf6, 0x2b, 0xd8, 0x2b, 0x86, 0x24, 0xdb, 0xf0,
+	0x8e, 0x2c, 0x4d, 0xcf, 0xca, 0x4f, 0x74, 0x04, 0x8d, 0x7b, 0x1c, 0xa5, 0x59, 0xbf, 0x6a, 0xe1,
+	0x65, 0xed, 0xdb, 0xaa, 0xa4, 0x4c, 0x21, 0x47, 0x49, 0x10, 0x1b, 0xac, 0x1f, 0x89, 0xf8, 0x29,
+	0x16, 0x84, 0xdd, 0x62, 0x8f, 0xa8, 0x80, 0x33, 0x9a, 0x7c, 0x05, 0xa7, 0x25, 0x3a, 0x9e, 0xd0,
+	0x98, 0x13, 0x79, 0x0d, 0x56, 0x59, 0xeb, 0x46, 0xd6, 0x82, 0x33, 0x87, 0xfe, 0x6f, 0x89, 0xec,
+	0x8f, 0x49, 0xf0, 0x7a, 0x86, 0x65, 0xa0, 0xd9, 0xfb, 0xf6, 0xa1, 0x99, 0x04, 0x32, 0x9b, 0x8c,
+	0x5f, 0x5a, 0x5a, 0xfb, 0xa9, 0xe5, 0xfc, 0xa0, 0x01, 0x74, 0x18, 0x49, 0xa2, 0xd0, 0xc3, 0x72,
+	0x04, 0xa8, 0x37, 0x6c, 0xb9, 0x79, 0xc8, 0x39, 0x85, 0x93, 0xad, 0x9b, 0x74, 0x68, 0xce, 0x3f,
+	0x55, 0xe8, 0x65, 0xba, 0xff, 0x13, 0xc2, 0x2b, 0x68, 0x26, 0x98, 0xe1, 0x85, 0x8e, 0xa1, 0x33,
+	0x7e, 0xa1, 0xda, 0xa1, 0xc4, 0xc3, 0x68, 0xa2, 0xcc, 0x74, 0x33, 0x98, 0x33, 0x92, 0x4a, 0xf4,
+	0x9e, 0xb0, 0x07, 0x16, 0x0a, 0x62, 0x02, 0x5d, 0x03, 0xf6, 0x77, 0xd0, 0xc9, 0x1d, 0xfa, 0xa0,
+	0xe7, 0x3a, 0x81, 0xe3, 0x62, 0x0c, 0x3c, 0xa1, 0x2a, 0xbf, 0xc7, 0x1a, 0xf4, 0x26, 0xc1, 0x25,
+	0xe6, 0x64, 0x86, 0xbd, 0xbb, 0x34, 0xc9, 0xf2, 0x3b, 0x83, 0xb6, 0xc0, 0x2c, 0x20, 0x62, 0x3d,
+	0x8b, 0xd7, 0x00, 0x7a, 0x0e, 0xc0, 0x69, 0xca, 0x3c, 0x45, 0x5d, 0x73, 0x5b, 0x0e, 0x59, 0xeb,
+	0x27, 0x94, 0x09, 0x95, 0x48, 0xc3, 0xcd, 0x21, 0x52, 0xef, 0x31, 0x82, 0x05, 0x99, 0x46, 0x54,
+	0x0f, 0xef, 0x96, 0x9b, 0x43, 0xd0, 0x39, 0xec, 0xa9, 0x31, 0xf1, 0xeb, 0xaa, 0x18, 0x0d, 0x65,
+	0xb3, 0x81, 0x4a, 0x3f, 0x26, 0xa8, 0x59, 0xa8, 0x07, 0x4c, 0xc3, 0xcd, 0x21, 0xe8, 0x73, 0x38,
+	0x54, 0x86, 0x2e, 0xf1, 0x64, 0x19, 0x97, 0x32, 0x77, 0xc3, 0x86, 0x6d, 0x05, 0xfa, 0x12, 0x7a,
+	0xb9, 0xae, 0x90, 0x81, 0x48, 0x3e, 0x59, 0x2d, 0x95, 0x5e, 0x99, 0x4a, 0xb2, 0x91, 0xfc, 0xe5,
+	0x45, 0xa9, 0x4f, 0x26, 0x58, 0xcc, 0xb9, 0xd5, 0x56, 0x7d, 0x57, 0xc0, 0x9c, 0x3e, 0x1c, 0x15,
+	0x0b, 0xac, 0x3b, 0x6b, 0xfc, 0x77, 0x03, 0x1a, 0x6a, 0x67, 0xa0, 0x6f, 0x60, 0x47, 0xae, 0x1a,
+	0x74, 0xac, 0xa7, 0xd4, 0xc6, 0x26, 0xb2, 0x7b, 0x9b, 0xb0, 0xe4, 0x5a, 0x05, 0xbd, 0x84, 0xa6,
+	0x5e, 0x3c, 0xe8, 0xc4, 0x18, 0x6c, 0xee, 0x26, 0xfb, 0x78, 0x5b, 0xa1, 0xcf, 0x7e, 0x0f, 0x9d,
+	0x1c, 0x7b, 0x8d, 0x83, 0xed, 0x99, 0x65, 0x1c, 0x6c, 0x11, 0xbd, 0x82, 0x2e, 0xa1, 0x9b, 0x5f,
+	0xa3, 0xc8, 0xca, 0x6e, 0xda, 0x5c, 0xe9, 0x76, 0xbf, 0x44, 0xa3, 0x7d, 0xfc, 0x0c, 0xfb, 0x1b,
+	0x1b, 0x00, 0x7d, 0xa4, 0x8c, 0xcb, 0x17, 0x9f, 0x7d, 0x5a, 0xae, 0xd4, 0xce, 0xde, 0xc1, 0xe1,
+	0xd6, 0x7c, 0x41, 0x1f, 0xab, 0x13, 0x4f, 0xcd, 0x24, 0xfb, 0xf9, 0x53, 0x6a, 0xc3, 0xfd, 0x0a,
+	0xfa, 0x1d, 0xac, 0x8d, 0xc1, 0x70, 0x11, 0xfb, 0x2e, 0x89, 0x28, 0xf6, 0x4d, 0xac, 0xe5, 0x13,
+	0xca, 0x3e, 0x2b, 0x57, 0xae, 0x1c, 0xff, 0x00, 0xdd, 0x3c, 0x1f, 0x4d, 0xfd, 0x4a, 0xc6, 0x84,
+	0x6d, 0x97, 0x68, 0x32, 0xf2, 0x56, 0xd0, 0x0d, 0x74, 0xf3, 0xcd, 0x65, 0xfc, 0x94, 0x10, 0xda,
+	0x54, 0xaf, 0xac, 0x13, 0x9d, 0xca, 0x65, 0xeb, 0x8f, 0xe6, 0x68, 0xf4, 0x45, 0xe8, 0x47, 0xb3,
+	0xa6, 0xfa, 0x3f, 0xfb, 0xfa, 0xbf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x62, 0x59, 0x4f, 0xa7, 0xbe,
+	0x09, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -579,6 +988,10 @@ type AgentClient interface {
 	MakeSegment(ctx context.Context, in *MakeSegmentRequest, opts ...grpc.CallOption) (*MakeSegmentReply, error)
 	StartSegment(ctx context.Context, in *StartSegmentRequest, opts ...grpc.CallOption) (*StartSegmentReply, error)
 	ValidateHostEnv(ctx context.Context, in *ValidateHostEnvRequest, opts ...grpc.CallOption) (*ValidateHostEnvReply, error)
+	GetInterfaceAddrs(ctx context.Context, in *GetInterfaceAddrsRequest, opts ...grpc.CallOption) (*GetInterfaceAddrsResponse, error)
+	UpdatePgHbaConfAndReload(ctx context.Context, in *UpdatePgHbaConfRequest, opts ...grpc.CallOption) (*UpdatePgHbaConfResponse, error)
+	UpdatePgConf(ctx context.Context, in *UpdatePgConfRequest, opts ...grpc.CallOption) (*UpdatePgConfRespoonse, error)
+	PgBasebackup(ctx context.Context, in *PgBasebackupRequest, opts ...grpc.CallOption) (*PgBasebackupResponse, error)
 }
 
 type agentClient struct {
@@ -634,6 +1047,42 @@ func (c *agentClient) ValidateHostEnv(ctx context.Context, in *ValidateHostEnvRe
 	return out, nil
 }
 
+func (c *agentClient) GetInterfaceAddrs(ctx context.Context, in *GetInterfaceAddrsRequest, opts ...grpc.CallOption) (*GetInterfaceAddrsResponse, error) {
+	out := new(GetInterfaceAddrsResponse)
+	err := c.cc.Invoke(ctx, "/idl.Agent/GetInterfaceAddrs", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentClient) UpdatePgHbaConfAndReload(ctx context.Context, in *UpdatePgHbaConfRequest, opts ...grpc.CallOption) (*UpdatePgHbaConfResponse, error) {
+	out := new(UpdatePgHbaConfResponse)
+	err := c.cc.Invoke(ctx, "/idl.Agent/UpdatePgHbaConfAndReload", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentClient) UpdatePgConf(ctx context.Context, in *UpdatePgConfRequest, opts ...grpc.CallOption) (*UpdatePgConfRespoonse, error) {
+	out := new(UpdatePgConfRespoonse)
+	err := c.cc.Invoke(ctx, "/idl.Agent/UpdatePgConf", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *agentClient) PgBasebackup(ctx context.Context, in *PgBasebackupRequest, opts ...grpc.CallOption) (*PgBasebackupResponse, error) {
+	out := new(PgBasebackupResponse)
+	err := c.cc.Invoke(ctx, "/idl.Agent/PgBasebackup", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AgentServer is the server API for Agent service.
 type AgentServer interface {
 	Stop(context.Context, *StopAgentRequest) (*StopAgentReply, error)
@@ -641,6 +1090,10 @@ type AgentServer interface {
 	MakeSegment(context.Context, *MakeSegmentRequest) (*MakeSegmentReply, error)
 	StartSegment(context.Context, *StartSegmentRequest) (*StartSegmentReply, error)
 	ValidateHostEnv(context.Context, *ValidateHostEnvRequest) (*ValidateHostEnvReply, error)
+	GetInterfaceAddrs(context.Context, *GetInterfaceAddrsRequest) (*GetInterfaceAddrsResponse, error)
+	UpdatePgHbaConfAndReload(context.Context, *UpdatePgHbaConfRequest) (*UpdatePgHbaConfResponse, error)
+	UpdatePgConf(context.Context, *UpdatePgConfRequest) (*UpdatePgConfRespoonse, error)
+	PgBasebackup(context.Context, *PgBasebackupRequest) (*PgBasebackupResponse, error)
 }
 
 // UnimplementedAgentServer can be embedded to have forward compatible implementations.
@@ -661,6 +1114,18 @@ func (*UnimplementedAgentServer) StartSegment(ctx context.Context, req *StartSeg
 }
 func (*UnimplementedAgentServer) ValidateHostEnv(ctx context.Context, req *ValidateHostEnvRequest) (*ValidateHostEnvReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ValidateHostEnv not implemented")
+}
+func (*UnimplementedAgentServer) GetInterfaceAddrs(ctx context.Context, req *GetInterfaceAddrsRequest) (*GetInterfaceAddrsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetInterfaceAddrs not implemented")
+}
+func (*UnimplementedAgentServer) UpdatePgHbaConfAndReload(ctx context.Context, req *UpdatePgHbaConfRequest) (*UpdatePgHbaConfResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePgHbaConfAndReload not implemented")
+}
+func (*UnimplementedAgentServer) UpdatePgConf(ctx context.Context, req *UpdatePgConfRequest) (*UpdatePgConfRespoonse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdatePgConf not implemented")
+}
+func (*UnimplementedAgentServer) PgBasebackup(ctx context.Context, req *PgBasebackupRequest) (*PgBasebackupResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PgBasebackup not implemented")
 }
 
 func RegisterAgentServer(s *grpc.Server, srv AgentServer) {
@@ -757,6 +1222,78 @@ func _Agent_ValidateHostEnv_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Agent_GetInterfaceAddrs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInterfaceAddrsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServer).GetInterfaceAddrs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/idl.Agent/GetInterfaceAddrs",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServer).GetInterfaceAddrs(ctx, req.(*GetInterfaceAddrsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agent_UpdatePgHbaConfAndReload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePgHbaConfRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServer).UpdatePgHbaConfAndReload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/idl.Agent/UpdatePgHbaConfAndReload",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServer).UpdatePgHbaConfAndReload(ctx, req.(*UpdatePgHbaConfRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agent_UpdatePgConf_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdatePgConfRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServer).UpdatePgConf(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/idl.Agent/UpdatePgConf",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServer).UpdatePgConf(ctx, req.(*UpdatePgConfRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Agent_PgBasebackup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PgBasebackupRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AgentServer).PgBasebackup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/idl.Agent/PgBasebackup",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AgentServer).PgBasebackup(ctx, req.(*PgBasebackupRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Agent_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "idl.Agent",
 	HandlerType: (*AgentServer)(nil),
@@ -780,6 +1317,22 @@ var _Agent_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ValidateHostEnv",
 			Handler:    _Agent_ValidateHostEnv_Handler,
+		},
+		{
+			MethodName: "GetInterfaceAddrs",
+			Handler:    _Agent_GetInterfaceAddrs_Handler,
+		},
+		{
+			MethodName: "UpdatePgHbaConfAndReload",
+			Handler:    _Agent_UpdatePgHbaConfAndReload_Handler,
+		},
+		{
+			MethodName: "UpdatePgConf",
+			Handler:    _Agent_UpdatePgConf_Handler,
+		},
+		{
+			MethodName: "PgBasebackup",
+			Handler:    _Agent_PgBasebackup_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

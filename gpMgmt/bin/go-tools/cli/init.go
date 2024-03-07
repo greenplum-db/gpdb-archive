@@ -258,17 +258,29 @@ func ValidateInputConfigAndSetDefaultsFn(request *idl.MakeClusterRequest, cliHan
 		}
 	}
 
-	if len(request.GetPrimarySegments()) == 0 {
+	numPrimary := len(request.GetPrimarySegments())
+	numMirror := len(request.GetMirrorSegments())
+
+	if numPrimary == 0 {
 		return fmt.Errorf("no primary segments are provided in input config file")
 	}
+
+	if numPrimary != len(request.GpArray.SegmentArray) {
+		return fmt.Errorf("invalid segment array, primary segments are missing in some segment objects")
+	}
+
+	if numMirror != 0 && numPrimary != numMirror {
+		return fmt.Errorf("number of primary segments %d and number of mirror segments %d must be equal", numPrimary, numMirror)
+	}
+
 	// validate details of coordinator
 	err := ValidateSegment(request.GpArray.Coordinator)
 	if err != nil {
 		return err
 	}
 
-	// validate the details of primary segments
-	for _, seg := range request.GetPrimarySegments() {
+	// validate the details of segments
+	for _, seg := range append(request.GetPrimarySegments(), request.GetMirrorSegments()...) {
 		err = ValidateSegment(seg)
 		if err != nil {
 			return err
@@ -276,7 +288,7 @@ func ValidateInputConfigAndSetDefaultsFn(request *idl.MakeClusterRequest, cliHan
 	}
 
 	// check for conflicting port and data-dir on a host
-	err = CheckForDuplicatPortAndDataDirectory(request.GetPrimarySegments())
+	err = CheckForDuplicatPortAndDataDirectory(append(request.GetPrimarySegments(), request.GetMirrorSegments()...))
 	if err != nil {
 		return err
 	}
@@ -339,27 +351,27 @@ CheckForDuplicatePortAndDataDirectoryFn checks for duplicate data-directories an
 In case of data-directories, look for unique host-names.
 For checking duplicate port, checking if address is unique. A host can use same the port for a different address.
 */
-func CheckForDuplicatePortAndDataDirectoryFn(primaries []*idl.Segment) error {
+func CheckForDuplicatePortAndDataDirectoryFn(segs []*idl.Segment) error {
 	hostToDataDirectory := make(map[string]map[string]bool)
 	hostToPort := make(map[string]map[int32]bool)
-	for _, primary := range primaries {
+	for _, seg := range segs {
 		//Check for data-directory
-		if _, ok := hostToDataDirectory[primary.HostName]; !ok {
-			hostToDataDirectory[primary.HostName] = make(map[string]bool)
+		if _, ok := hostToDataDirectory[seg.HostName]; !ok {
+			hostToDataDirectory[seg.HostName] = make(map[string]bool)
 		}
-		if _, ok := hostToDataDirectory[primary.HostName][primary.DataDirectory]; ok {
-			return fmt.Errorf("duplicate data directory entry %v found for host %v", primary.DataDirectory, primary.HostAddress)
+		if _, ok := hostToDataDirectory[seg.HostName][seg.DataDirectory]; ok {
+			return fmt.Errorf("duplicate data directory entry %v found for host %v", seg.DataDirectory, seg.HostAddress)
 		}
-		hostToDataDirectory[primary.HostName][primary.DataDirectory] = true
+		hostToDataDirectory[seg.HostName][seg.DataDirectory] = true
 
 		// Check for port
-		if _, ok := hostToPort[primary.HostAddress]; !ok {
-			hostToPort[primary.HostAddress] = make(map[int32]bool)
+		if _, ok := hostToPort[seg.HostAddress]; !ok {
+			hostToPort[seg.HostAddress] = make(map[int32]bool)
 		}
-		if _, ok := hostToPort[primary.HostName][primary.Port]; ok {
-			return fmt.Errorf("duplicate port entry %v found for host %v", primary.Port, primary.HostName)
+		if _, ok := hostToPort[seg.HostName][seg.Port]; ok {
+			return fmt.Errorf("duplicate port entry %v found for host %v", seg.Port, seg.HostName)
 		}
-		hostToPort[primary.HostAddress][primary.Port] = true
+		hostToPort[seg.HostAddress][seg.Port] = true
 	}
 	return nil
 }

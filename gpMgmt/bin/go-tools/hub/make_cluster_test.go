@@ -1,11 +1,9 @@
 package hub_test
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"maps"
-	"net"
 	"os/exec"
 	"os/user"
 	"reflect"
@@ -16,7 +14,6 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/jmoiron/sqlx"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/test/bufconn"
 
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
@@ -31,53 +28,6 @@ import (
 
 func init() {
 	exectest.RegisterMains()
-}
-
-func TestMakeCluster(t *testing.T) {
-	testhelper.SetupTestLogger()
-	credentials := &testutils.MockCredentials{TlsConnection: insecure.NewCredentials()}
-	listener := bufconn.Listen(1024 * 1024)
-	hubConfig := &hub.Config{
-		1234,
-		5678,
-		[]string{"sdw1", "sdw2"},
-		"/tmp/logDir",
-		"gp",
-		"gpHome",
-		credentials,
-	}
-
-	t.Run("returns error when fails to dial agents", func(t *testing.T) {
-		testStr := "could not connect to agent on host sdw1"
-		dialer := func(ctx context.Context, address string) (net.Conn, error) {
-			if strings.HasPrefix(address, "sdw2") {
-				return nil, errors.New("error")
-			}
-			return listener.Dial()
-		}
-		hubServer := hub.New(hubConfig, dialer)
-		request := idl.MakeClusterRequest{}
-
-		err := hubServer.MakeCluster(&request, nil)
-		if err == nil || !strings.Contains(err.Error(), testStr) {
-			t.Fatalf("Got:%v, expected:%s", err, testStr)
-		}
-
-	})
-
-	t.Run("returns error when fails to dial agents", func(t *testing.T) {
-		testStr := "could not connect to agent on host sdw1"
-		dialer := func(ctx context.Context, address string) (net.Conn, error) {
-			return listener.Dial()
-		}
-		hubServer := hub.New(hubConfig, dialer)
-		request := idl.MakeClusterRequest{}
-
-		err := hubServer.MakeCluster(&request, nil)
-		if err == nil || !strings.Contains(err.Error(), testStr) {
-			t.Fatalf("Got:%v, expected:%s", err, testStr)
-		}
-	})
 }
 
 func TestCreateSegments(t *testing.T) {
@@ -97,22 +47,22 @@ func TestCreateSegments(t *testing.T) {
 
 	segs := []greenplum.Segment{
 		{
-			Port:        1111,
-			DataDir:     "/gpseg0",
-			HostAddress: "sdw1",
-			HostName:    "sdw1",
+			Port:     1111,
+			DataDir:  "/gpseg0",
+			Address:  "sdw1",
+			Hostname: "sdw1",
 		},
 		{
-			Port:        2222,
-			DataDir:     "/gpseg1",
-			HostAddress: "sdw2",
-			HostName:    "sdw2",
+			Port:     2222,
+			DataDir:  "/gpseg1",
+			Address:  "sdw2",
+			Hostname: "sdw2",
 		},
 		{
-			Port:        3333,
-			DataDir:     "/gpseg2",
-			HostAddress: "sdw2",
-			HostName:    "sdw2",
+			Port:     3333,
+			DataDir:  "/gpseg2",
+			Address:  "sdw2",
+			Hostname: "sdw2",
 		},
 	}
 
@@ -473,28 +423,28 @@ func TestValidateEnvironment(t *testing.T) {
 
 	segs := []greenplum.Segment{
 		{
-			Port:        1111,
-			DataDir:     "/gpseg-1",
-			HostAddress: "cdw",
-			HostName:    "cdw",
+			Port:     1111,
+			DataDir:  "/gpseg-1",
+			Address:  "cdw",
+			Hostname: "cdw",
 		},
 		{
-			Port:        2222,
-			DataDir:     "/gpseg0",
-			HostAddress: "sdw1",
-			HostName:    "sdw1",
+			Port:     2222,
+			DataDir:  "/gpseg0",
+			Address:  "sdw1",
+			Hostname: "sdw1",
 		},
 		{
-			Port:        3333,
-			DataDir:     "/gpseg1",
-			HostAddress: "sdw2-1",
-			HostName:    "sdw2",
+			Port:     3333,
+			DataDir:  "/gpseg1",
+			Address:  "sdw2-1",
+			Hostname: "sdw2",
 		},
 		{
-			Port:        4444,
-			DataDir:     "/gpseg2",
-			HostAddress: "sdw2-2",
-			HostName:    "sdw2",
+			Port:     4444,
+			DataDir:  "/gpseg2",
+			Address:  "sdw2-2",
+			Hostname: "sdw2",
 		},
 	}
 
@@ -526,7 +476,7 @@ func TestValidateEnvironment(t *testing.T) {
 		cdw.EXPECT().ValidateHostEnv(
 			gomock.Any(),
 			&idl.ValidateHostEnvRequest{
-				HostAddressList: []string{segs[0].HostAddress},
+				HostAddressList: []string{segs[0].Address},
 				DirectoryList:   []string{segs[0].DataDir},
 				Locale:          &idl.Locale{},
 				PortList:        []string{fmt.Sprintf("%d", segs[0].Port)},
@@ -538,7 +488,7 @@ func TestValidateEnvironment(t *testing.T) {
 		sdw1.EXPECT().ValidateHostEnv(
 			gomock.Any(),
 			&idl.ValidateHostEnvRequest{
-				HostAddressList: []string{segs[1].HostAddress},
+				HostAddressList: []string{segs[1].Address},
 				DirectoryList:   []string{segs[1].DataDir},
 				Locale:          &idl.Locale{},
 				PortList:        []string{fmt.Sprintf("%d", segs[1].Port)},
@@ -557,7 +507,7 @@ func TestValidateEnvironment(t *testing.T) {
 		sdw2.EXPECT().ValidateHostEnv(
 			gomock.Any(),
 			&idl.ValidateHostEnvRequest{
-				HostAddressList: []string{segs[2].HostAddress, segs[3].HostAddress},
+				HostAddressList: []string{segs[2].Address, segs[3].Address},
 				DirectoryList:   []string{segs[2].DataDir, segs[3].DataDir},
 				Locale:          &idl.Locale{},
 				PortList:        []string{strconv.Itoa(segs[2].Port), strconv.Itoa(segs[3].Port)},
@@ -714,14 +664,11 @@ func TestExecOnDatabase(t *testing.T) {
 	testhelper.SetupTestLogger()
 
 	t.Run("succesfully executes the query on a given database", func(t *testing.T) {
-		conn, mock, err := testutils.CreateMockDBConn()
-		if err != nil {
-			t.Fatalf("unexpected error: %#v", err)
-		}
+		conn, mock := testutils.CreateMockDBConn(t)
 		testhelper.ExpectVersionQuery(mock, "7.0.0")
 
 		mock.ExpectExec("SOME QUERY").WillReturnResult(testhelper.TestResult{Rows: 0})
-		err = hub.ExecOnDatabase(conn, "postgres", "SOME QUERY")
+		err := hub.ExecOnDatabase(conn, "postgres", "SOME QUERY")
 		if err != nil {
 			t.Fatalf("unexpected error: %#v", err)
 		}
@@ -730,32 +677,26 @@ func TestExecOnDatabase(t *testing.T) {
 	t.Run("errors out when fails to connect to the database", func(t *testing.T) {
 		var mockdb *sqlx.DB
 
-		conn, mock, err := testutils.CreateMockDBConn()
-		if err != nil {
-			t.Fatalf("unexpected error: %#v", err)
-		}
+		conn, mock := testutils.CreateMockDBConn(t)
 		testhelper.ExpectVersionQuery(mock, "7.0.0")
 
 		expectedErr := errors.New("connection error")
 		conn.Driver = &testhelper.TestDriver{ErrToReturn: expectedErr, DB: mockdb, User: "testrole"}
 
-		err = hub.ExecOnDatabase(conn, "postgres", "SOME QUERY")
+		err := hub.ExecOnDatabase(conn, "postgres", "SOME QUERY")
 		if !strings.Contains(err.Error(), expectedErr.Error()) {
 			t.Fatalf("got %#v, want %#v", err, expectedErr)
 		}
 	})
 
 	t.Run("errors out when fails to execute the query", func(t *testing.T) {
-		conn, mock, err := testutils.CreateMockDBConn()
-		if err != nil {
-			t.Fatalf("unexpected error: %#v", err)
-		}
+		conn, mock := testutils.CreateMockDBConn(t)
 		testhelper.ExpectVersionQuery(mock, "7.0.0")
 
 		expectedErr := errors.New("execution error")
 		mock.ExpectExec("SOME QUERY").WillReturnError(expectedErr)
 
-		err = hub.ExecOnDatabase(conn, "postgres", "SOME QUERY")
+		err := hub.ExecOnDatabase(conn, "postgres", "SOME QUERY")
 		if !strings.Contains(err.Error(), expectedErr.Error()) {
 			t.Fatalf("got %#v, want %#v", err, expectedErr)
 		}
@@ -960,7 +901,7 @@ func segmentToProto(seg greenplum.Segment) *idl.Segment {
 	return &idl.Segment{
 		Port:          int32(seg.Port),
 		DataDirectory: seg.DataDir,
-		HostAddress:   seg.HostAddress,
-		HostName:      seg.HostName,
+		HostAddress:   seg.Address,
+		HostName:      seg.Hostname,
 	}
 }

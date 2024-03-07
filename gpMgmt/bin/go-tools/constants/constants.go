@@ -16,6 +16,19 @@ const (
 	OsOpenFiles         = 65535
 	DefaultDatabase     = "template1"
 	DefaultEncoding     = "UTF-8"
-	RolePrimary         = "p"
 	EtcHostsFilepath    = "/etc/hosts"
+	ReplicationSlotName = "internal_wal_replication_slot"
+	DefaultStartTimeout = 600
+	DefaultPostgresLogDir = "log"
+)
+
+// gp_segment_configuration specific constants
+const (
+	RolePrimary = "p"
+	RoleMirror   = "m"
+)
+
+// Catalog tables
+const (
+	GpSegmentConfiguration = "gp_segment_configuration"
 )

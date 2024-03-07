@@ -394,7 +394,7 @@ func copyConfigFileToAgents(conf *Config, ConfigFilePath string) error {
 	return nil
 }
 
-func getConnByHost(conns []*Connection, hostnames []string) []*Connection {
+func getConnForHosts(conns []*Connection, hostnames []string) []*Connection {
 	result := []*Connection{}
 	for _, conn := range conns {
 		if slices.Contains(hostnames, conn.Hostname) {

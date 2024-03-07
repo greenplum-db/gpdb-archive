@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -162,39 +163,59 @@ func AssertFileContentsUnordered(t *testing.T, filepath string, expected string)
 	}
 }
 
-func CreateMockDB() (*sqlx.DB, sqlmock.Sqlmock, error) {
+func CreateMockDB(t *testing.T) (*sqlx.DB, sqlmock.Sqlmock) {
+	t.Helper()
+
 	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
 	mockdb := sqlx.NewDb(db, "sqlmock")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return mockdb, mock, nil
+	return mockdb, mock
 }
 
-func CreateMockDBConn() (*dbconn.DBConn, sqlmock.Sqlmock, error) {
-	mockdb, mock, err := CreateMockDB()
-	if err != nil {
-		return nil, nil, err
-	}
+func CreateMockDBConn(t *testing.T, errs ...error) (*dbconn.DBConn, sqlmock.Sqlmock) {
+	t.Helper()
 
-	driver := &testhelper.TestDriver{DB: mockdb, DBName: "template1", User: "testrole"}
-	connection := dbconn.NewDBConnFromEnvironment("template1")
-	connection.Driver = driver
-	connection.Host = "testhost"
-	connection.Port = 5432
-
-	return connection, mock, nil
+	return getMockDBConn(t, false, errs...)
 }
 
-func CreateAndConnectMockDB(numConns int) (*dbconn.DBConn, sqlmock.Sqlmock, error) {
-	connection, mock, err := CreateMockDBConn()
-	if err != nil {
-		return nil, nil, err
-	}
+func CreateMockDBConnForUtilityMode(t *testing.T, errs ...error) (*dbconn.DBConn, sqlmock.Sqlmock) {
+	t.Helper()
+
+	return getMockDBConn(t, true, errs...)
+}
+
+func CreateAndConnectMockDB(t *testing.T, numConns int) (*dbconn.DBConn, sqlmock.Sqlmock) {
+	t.Helper()
+
+	connection, mock := CreateMockDBConn(t)
 
 	testhelper.ExpectVersionQuery(mock, "7.0.0")
 	connection.MustConnect(numConns)
 
-	return connection, mock, nil
+	return connection, mock
+}
+
+func getMockDBConn(t *testing.T, utility bool, errs ...error) (*dbconn.DBConn, sqlmock.Sqlmock) {
+	t.Helper()
+
+	mockdb, mock := CreateMockDB(t)
+
+	driver := &testhelper.TestDriver{DB: mockdb, DBName: "testdb", User: "testrole"}
+	if len(errs) > 0 {
+		driver.ErrsToReturn = errs
+	} else {
+		if utility {
+			driver.ErrsToReturn = []error{fmt.Errorf(`pq: unrecognized configuration parameter "gp_session_role"`)}
+		}
+	}
+
+	connection := dbconn.NewDBConnFromEnvironment("testdb")
+	connection.Driver = driver
+	connection.Host = "testhost"
+	connection.Port = 5432
+
+	return connection, mock
 }

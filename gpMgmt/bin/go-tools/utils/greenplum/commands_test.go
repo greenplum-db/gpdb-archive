@@ -41,7 +41,7 @@ func TestGpCommand(t *testing.T) {
 
 	for _, tc := range cases {
 		t.Run("builds the correct command", func(t *testing.T) {
-			gpCmd := utils.NewExecCommand(tc.gpCmdOptions, "gpHome")
+			gpCmd := utils.NewGpCommand(tc.gpCmdOptions, "gpHome")
 			if gpCmd.String() != tc.expected {
 				t.Fatalf("got %s, want %s", gpCmd.String(), tc.expected)
 			}
@@ -55,7 +55,7 @@ func TestGpCommand(t *testing.T) {
 		gpCmdOptions := &greenplum.GpStart{
 			DataDirectory: "gpseg",
 		}
-		out, err := utils.RunExecCommand(gpCmdOptions, "gpHome")
+		out, err := utils.RunGpCommand(gpCmdOptions, "gpHome")
 		if err != nil {
 			t.Fatalf("unexpected error: %#v", err)
 		}
@@ -75,7 +75,7 @@ func TestGpCommand(t *testing.T) {
 		gpCmdOptions := &greenplum.GpStart{
 			DataDirectory: "gpseg",
 		}
-		out, err := utils.RunExecCommand(gpCmdOptions, "gpHome")
+		out, err := utils.RunGpCommand(gpCmdOptions, "gpHome")
 		if status, ok := err.(*exec.ExitError); !ok || status.ExitCode() != 1 {
 			t.Fatalf("unexpected error: %+v", err)
 		}

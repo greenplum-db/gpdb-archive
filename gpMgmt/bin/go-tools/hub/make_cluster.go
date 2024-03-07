@@ -21,8 +21,9 @@ var execOnDatabaseFunc = ExecOnDatabase
 
 func (s *Server) MakeCluster(request *idl.MakeClusterRequest, stream idl.Hub_MakeClusterServer) error {
 	var err error
-	var shutdownCoordinator bool
+	var shutdownCoordinator, mirrorless bool
 
+	mirrorless = len(request.GetMirrorSegments()) == 0
 	hubStream := NewHubStream(stream)
 
 	// shutdown the coordinator segment if any error occurs
@@ -58,12 +59,7 @@ func (s *Server) MakeCluster(request *idl.MakeClusterRequest, stream idl.Hub_Mak
 
 	hubStream.StreamLogMsg("Starting to register primary segments with the coordinator")
 
-	conn, err := greenplum.ConnectDatabase(request.GpArray.Coordinator.HostName, int(request.GpArray.Coordinator.Port))
-	if err != nil {
-		return utils.LogAndReturnError(fmt.Errorf("connecting to database: %w", err))
-	}
-
-	err = conn.Connect(1, true)
+	conn, err := greenplum.GetCoordinatorConn(request.GpArray.Coordinator.DataDirectory, "template1", true)
 	if err != nil {
 		return utils.LogAndReturnError(err)
 	}
@@ -73,23 +69,19 @@ func (s *Server) MakeCluster(request *idl.MakeClusterRequest, stream idl.Hub_Mak
 		return utils.LogAndReturnError(err)
 	}
 
-	err = greenplum.RegisterPrimaries(request.GetPrimarySegments(), conn)
+	err = greenplum.RegisterPrimarySegments(request.GetPrimarySegments(), conn)
 	if err != nil {
 		return utils.LogAndReturnError(err)
 	}
 	hubStream.StreamLogMsg("Successfully registered primary segments with the coordinator")
 
-	gpArray := greenplum.NewGpArray()
-	err = gpArray.ReadGpSegmentConfig(conn)
+	gparray, err := greenplum.NewGpArrayFromCatalog(conn)
 	if err != nil {
 		return utils.LogAndReturnError(err)
 	}
 	conn.Close()
 
-	primarySegs, err := gpArray.GetPrimarySegments()
-	if err != nil {
-		return utils.LogAndReturnError(err)
-	}
+	primarySegs := gparray.GetPrimarySegments()
 
 	var coordinatorAddrs []string
 	if request.ClusterParams.HbaHostnames {
@@ -155,6 +147,22 @@ func (s *Server) MakeCluster(request *idl.MakeClusterRequest, stream idl.Hub_Mak
 	err = SetGpUserPasswd(conn, request.ClusterParams.SuPassword)
 	if err != nil {
 		return utils.LogAndReturnError(err)
+	}
+
+	if !mirrorless {
+		mirrorSegs, err := populateMirrorWithContentId(gparray, request.GpArray.SegmentArray)
+		if err != nil {
+			return err
+		}
+
+		addMirrosReq := &idl.AddMirrorsRequest{
+			CoordinatorDataDir: request.GpArray.Coordinator.DataDirectory,
+			Mirrors:            mirrorSegs,
+		}
+		err = s.AddMirrors(addMirrosReq, stream)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -273,7 +281,7 @@ func CreateSingleSegment(conn *Connection, seg *idl.Segment, clusterParams *idl.
 }
 
 func (s *Server) CreateAndStartCoordinator(seg *idl.Segment, clusterParams *idl.ClusterParams) error {
-	coordinatorConn := getConnByHost(s.Conns, []string{seg.HostName})
+	coordinatorConn := getConnForHosts(s.Conns, []string{seg.HostName})
 
 	seg.Contentid = -1
 	seg.Dbid = 1
@@ -302,7 +310,7 @@ func (s *Server) StopCoordinator(stream hubStreamer, pgdata string) error {
 		PgData: pgdata,
 	}
 
-	out, err := utils.RunExecCommand(pgCtlStopCmd, s.GpHome)
+	out, err := utils.RunGpCommand(pgCtlStopCmd, s.GpHome)
 	if err != nil {
 		return fmt.Errorf("executing pg_ctl stop: %s, %w", out, err)
 	}
@@ -317,16 +325,16 @@ func (s *Server) CreateSegments(stream hubStreamer, segs []greenplum.Segment, cl
 		segReq := &idl.Segment{
 			Port:          int32(seg.Port),
 			DataDirectory: seg.DataDir,
-			HostName:      seg.HostName,
-			HostAddress:   seg.HostAddress,
-			Contentid:     int32(seg.ContentId),
+			HostName:      seg.Hostname,
+			HostAddress:   seg.Address,
+			Contentid:     int32(seg.Content),
 			Dbid:          int32(seg.Dbid),
 		}
 
-		if _, ok := hostSegmentMap[seg.HostName]; !ok {
-			hostSegmentMap[seg.HostName] = []*idl.Segment{segReq}
+		if _, ok := hostSegmentMap[seg.Hostname]; !ok {
+			hostSegmentMap[seg.Hostname] = []*idl.Segment{segReq}
 		} else {
-			hostSegmentMap[seg.HostName] = append(hostSegmentMap[seg.HostName], segReq)
+			hostSegmentMap[seg.Hostname] = append(hostSegmentMap[seg.Hostname], segReq)
 		}
 	}
 
@@ -455,4 +463,32 @@ func SetExecOnDatabase(customFunc func(*dbconn.DBConn, string, string) error) {
 
 func ResetExecOnDatabase() {
 	execOnDatabaseFunc = ExecOnDatabase
+}
+
+// Content ID is generated only when the primaries are
+// registered in gp_segment_configuration. Use the info
+// from the table to populate the mirror content IDs correctly
+func populateMirrorWithContentId(gparray *greenplum.GpArray, segPairs []*idl.SegmentPair) ([]*idl.Segment, error) {
+	var mirrorSegs []*idl.Segment
+	for _, pair := range segPairs {
+		content, err := getSegmentContentId(gparray, pair.Primary)
+		if err != nil {
+			return nil, err
+		}
+
+		pair.Mirror.Contentid = content
+		mirrorSegs = append(mirrorSegs, pair.Mirror)
+	}
+
+	return mirrorSegs, nil
+}
+
+func getSegmentContentId(gparray *greenplum.GpArray, seg *idl.Segment) (int32, error) {
+	for _, primary := range gparray.GetPrimarySegments() {
+		if primary.Hostname == seg.HostName && primary.Address == seg.HostAddress && primary.DataDir == seg.DataDirectory && primary.Port == int(seg.Port) {
+			return int32(primary.Content), nil
+		}
+	}
+
+	return 0, fmt.Errorf("did not find any primary segment with configuration %+v", *seg)
 }

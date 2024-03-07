@@ -1,11 +1,13 @@
 package postgres_test
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"testing"
 
 	"github.com/greenplum-db/gp-common-go-libs/testhelper"
+	"github.com/greenplum-db/gpdb/gp/constants"
 	"github.com/greenplum-db/gpdb/gp/testutils"
 	"github.com/greenplum-db/gpdb/gp/testutils/exectest"
 	"github.com/greenplum-db/gpdb/gp/utils"
@@ -50,6 +52,15 @@ func TestPgCommand(t *testing.T) {
 			expected: `gpHome/bin/pg_ctl start --pgdata pgdata --timeout 10 --wait --log logfile`,
 		},
 		{
+			// uses the default value for timeout and logfile if not provided
+			pgCmdOptions: &postgres.PgCtlStart{
+				PgData: "pgdata",
+				Wait:   true,
+				NoWait: false,
+			},
+			expected: fmt.Sprintf(`gpHome/bin/pg_ctl start --pgdata pgdata --timeout %d --wait --log pgdata/log/startup.log`, constants.DefaultStartTimeout),
+		},
+		{
 			pgCmdOptions: &postgres.PgCtlStop{
 				PgData:  "pgdata",
 				Timeout: 10,
@@ -60,16 +71,53 @@ func TestPgCommand(t *testing.T) {
 			expected: `gpHome/bin/pg_ctl stop --pgdata pgdata --timeout 10 --wait --mode smart`,
 		},
 		{
+			pgCmdOptions: &postgres.PgCtlReload{
+				PgData: "pgdata",
+			},
+			expected: `gpHome/bin/pg_ctl reload --pgdata pgdata`,
+		},
+		{
 			pgCmdOptions: &postgres.Postgres{
 				GpVersion: true,
 			},
 			expected: `gpHome/bin/postgres --gp-version`,
 		},
+		{
+			pgCmdOptions: &postgres.PgBasebackup{
+				TargetDir:         "pgdata",
+				SourceHost:        "sdw1",
+				SourcePort:        1234,
+				WriteRecoveryConf: true,
+				TargetDbid:        1,
+			},
+			expected: `gpHome/bin/pg_basebackup --checkpoint fast --no-verify-checksums --progress --verbose --pgdata pgdata ` +
+				`--host sdw1 --port 1234 --target-gp-dbid 1 --write-recovery-conf --wal-method fetch --exclude ./db_dumps --exclude ./promote --exclude ./db_analyze`,
+		},
+		{
+			// if replication slot name and exclude paths are specified
+			pgCmdOptions: &postgres.PgBasebackup{
+				TargetDir:           "pgdata",
+				SourceHost:          "sdw1",
+				SourcePort:          1234,
+				WriteRecoveryConf:   true,
+				TargetDbid:          1,
+				ReplicationSlotName: "test_slot",
+				ExcludePaths:        []string{"dir1", "dir2"},
+			},
+			expected: `gpHome/bin/pg_basebackup --checkpoint fast --no-verify-checksums --progress --verbose --pgdata pgdata ` +
+				`--host sdw1 --port 1234 --target-gp-dbid 1 --write-recovery-conf --slot test_slot --wal-method stream --exclude dir1 --exclude dir2`,
+		},
+		{
+			pgCmdOptions: &postgres.PgControlData{
+				PgData: "pgdata",
+			},
+			expected: `gpHome/bin/pg_controldata --pgdata pgdata`,
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run("builds the correct command", func(t *testing.T) {
-			pgCmd := utils.NewExecCommand(tc.pgCmdOptions, "gpHome")
+			pgCmd := utils.NewGpCommand(tc.pgCmdOptions, "gpHome")
 			if pgCmd.String() != tc.expected {
 				t.Fatalf("got %s, want %s", pgCmd.String(), tc.expected)
 			}
@@ -84,7 +132,7 @@ func TestPgCommand(t *testing.T) {
 			PgData:   "pgdata",
 			Encoding: "encoding",
 		}
-		out, err := utils.RunExecCommand(pgCmdOptions, "gpHome")
+		out, err := utils.RunGpCommand(pgCmdOptions, "gpHome")
 		if err != nil {
 			t.Fatalf("unexpected error: %#v", err)
 		}
@@ -105,7 +153,7 @@ func TestPgCommand(t *testing.T) {
 			PgData:   "pgdata",
 			Encoding: "encoding",
 		}
-		out, err := utils.RunExecCommand(pgCmdOptions, "gpHome")
+		out, err := utils.RunGpCommand(pgCmdOptions, "gpHome")
 		if status, ok := err.(*exec.ExitError); !ok || status.ExitCode() != 1 {
 			t.Fatalf("unexpected error: %+v", err)
 		}

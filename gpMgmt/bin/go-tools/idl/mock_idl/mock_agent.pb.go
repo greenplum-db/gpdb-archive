@@ -36,6 +36,26 @@ func (m *MockAgentClient) EXPECT() *MockAgentClientMockRecorder {
 	return m.recorder
 }
 
+// GetInterfaceAddrs mocks base method.
+func (m *MockAgentClient) GetInterfaceAddrs(ctx context.Context, in *idl.GetInterfaceAddrsRequest, opts ...grpc.CallOption) (*idl.GetInterfaceAddrsResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetInterfaceAddrs", varargs...)
+	ret0, _ := ret[0].(*idl.GetInterfaceAddrsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetInterfaceAddrs indicates an expected call of GetInterfaceAddrs.
+func (mr *MockAgentClientMockRecorder) GetInterfaceAddrs(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInterfaceAddrs", reflect.TypeOf((*MockAgentClient)(nil).GetInterfaceAddrs), varargs...)
+}
+
 // MakeSegment mocks base method.
 func (m *MockAgentClient) MakeSegment(ctx context.Context, in *idl.MakeSegmentRequest, opts ...grpc.CallOption) (*idl.MakeSegmentReply, error) {
 	m.ctrl.T.Helper()
@@ -54,6 +74,26 @@ func (mr *MockAgentClientMockRecorder) MakeSegment(ctx, in interface{}, opts ...
 	mr.mock.ctrl.T.Helper()
 	varargs := append([]interface{}{ctx, in}, opts...)
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeSegment", reflect.TypeOf((*MockAgentClient)(nil).MakeSegment), varargs...)
+}
+
+// PgBasebackup mocks base method.
+func (m *MockAgentClient) PgBasebackup(ctx context.Context, in *idl.PgBasebackupRequest, opts ...grpc.CallOption) (*idl.PgBasebackupResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "PgBasebackup", varargs...)
+	ret0, _ := ret[0].(*idl.PgBasebackupResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PgBasebackup indicates an expected call of PgBasebackup.
+func (mr *MockAgentClientMockRecorder) PgBasebackup(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PgBasebackup", reflect.TypeOf((*MockAgentClient)(nil).PgBasebackup), varargs...)
 }
 
 // StartSegment mocks base method.
@@ -116,6 +156,46 @@ func (mr *MockAgentClientMockRecorder) Stop(ctx, in interface{}, opts ...interfa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stop", reflect.TypeOf((*MockAgentClient)(nil).Stop), varargs...)
 }
 
+// UpdatePgConf mocks base method.
+func (m *MockAgentClient) UpdatePgConf(ctx context.Context, in *idl.UpdatePgConfRequest, opts ...grpc.CallOption) (*idl.UpdatePgConfRespoonse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdatePgConf", varargs...)
+	ret0, _ := ret[0].(*idl.UpdatePgConfRespoonse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdatePgConf indicates an expected call of UpdatePgConf.
+func (mr *MockAgentClientMockRecorder) UpdatePgConf(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePgConf", reflect.TypeOf((*MockAgentClient)(nil).UpdatePgConf), varargs...)
+}
+
+// UpdatePgHbaConfAndReload mocks base method.
+func (m *MockAgentClient) UpdatePgHbaConfAndReload(ctx context.Context, in *idl.UpdatePgHbaConfRequest, opts ...grpc.CallOption) (*idl.UpdatePgHbaConfResponse, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "UpdatePgHbaConfAndReload", varargs...)
+	ret0, _ := ret[0].(*idl.UpdatePgHbaConfResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdatePgHbaConfAndReload indicates an expected call of UpdatePgHbaConfAndReload.
+func (mr *MockAgentClientMockRecorder) UpdatePgHbaConfAndReload(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePgHbaConfAndReload", reflect.TypeOf((*MockAgentClient)(nil).UpdatePgHbaConfAndReload), varargs...)
+}
+
 // ValidateHostEnv mocks base method.
 func (m *MockAgentClient) ValidateHostEnv(ctx context.Context, in *idl.ValidateHostEnvRequest, opts ...grpc.CallOption) (*idl.ValidateHostEnvReply, error) {
 	m.ctrl.T.Helper()
@@ -159,6 +239,21 @@ func (m *MockAgentServer) EXPECT() *MockAgentServerMockRecorder {
 	return m.recorder
 }
 
+// GetInterfaceAddrs mocks base method.
+func (m *MockAgentServer) GetInterfaceAddrs(arg0 context.Context, arg1 *idl.GetInterfaceAddrsRequest) (*idl.GetInterfaceAddrsResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetInterfaceAddrs", arg0, arg1)
+	ret0, _ := ret[0].(*idl.GetInterfaceAddrsResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetInterfaceAddrs indicates an expected call of GetInterfaceAddrs.
+func (mr *MockAgentServerMockRecorder) GetInterfaceAddrs(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetInterfaceAddrs", reflect.TypeOf((*MockAgentServer)(nil).GetInterfaceAddrs), arg0, arg1)
+}
+
 // MakeSegment mocks base method.
 func (m *MockAgentServer) MakeSegment(arg0 context.Context, arg1 *idl.MakeSegmentRequest) (*idl.MakeSegmentReply, error) {
 	m.ctrl.T.Helper()
@@ -172,6 +267,21 @@ func (m *MockAgentServer) MakeSegment(arg0 context.Context, arg1 *idl.MakeSegmen
 func (mr *MockAgentServerMockRecorder) MakeSegment(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeSegment", reflect.TypeOf((*MockAgentServer)(nil).MakeSegment), arg0, arg1)
+}
+
+// PgBasebackup mocks base method.
+func (m *MockAgentServer) PgBasebackup(arg0 context.Context, arg1 *idl.PgBasebackupRequest) (*idl.PgBasebackupResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "PgBasebackup", arg0, arg1)
+	ret0, _ := ret[0].(*idl.PgBasebackupResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// PgBasebackup indicates an expected call of PgBasebackup.
+func (mr *MockAgentServerMockRecorder) PgBasebackup(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PgBasebackup", reflect.TypeOf((*MockAgentServer)(nil).PgBasebackup), arg0, arg1)
 }
 
 // StartSegment mocks base method.
@@ -217,6 +327,36 @@ func (m *MockAgentServer) Stop(arg0 context.Context, arg1 *idl.StopAgentRequest)
 func (mr *MockAgentServerMockRecorder) Stop(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stop", reflect.TypeOf((*MockAgentServer)(nil).Stop), arg0, arg1)
+}
+
+// UpdatePgConf mocks base method.
+func (m *MockAgentServer) UpdatePgConf(arg0 context.Context, arg1 *idl.UpdatePgConfRequest) (*idl.UpdatePgConfRespoonse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePgConf", arg0, arg1)
+	ret0, _ := ret[0].(*idl.UpdatePgConfRespoonse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdatePgConf indicates an expected call of UpdatePgConf.
+func (mr *MockAgentServerMockRecorder) UpdatePgConf(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePgConf", reflect.TypeOf((*MockAgentServer)(nil).UpdatePgConf), arg0, arg1)
+}
+
+// UpdatePgHbaConfAndReload mocks base method.
+func (m *MockAgentServer) UpdatePgHbaConfAndReload(arg0 context.Context, arg1 *idl.UpdatePgHbaConfRequest) (*idl.UpdatePgHbaConfResponse, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePgHbaConfAndReload", arg0, arg1)
+	ret0, _ := ret[0].(*idl.UpdatePgHbaConfResponse)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UpdatePgHbaConfAndReload indicates an expected call of UpdatePgHbaConfAndReload.
+func (mr *MockAgentServerMockRecorder) UpdatePgHbaConfAndReload(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePgHbaConfAndReload", reflect.TypeOf((*MockAgentServer)(nil).UpdatePgHbaConfAndReload), arg0, arg1)
 }
 
 // ValidateHostEnv mocks base method.
