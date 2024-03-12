@@ -303,13 +303,6 @@ ResolveRecoveryConflictWithVirtualXIDs(VirtualTransactionId *waitlist,
 			}
 		}
 
-		/* Reset ps display if we changed it */
-		if (new_status)
-		{
-			set_ps_display(new_status, false);
-			pfree(new_status);
-		}
-
 		/* The virtual transaction is gone now, wait for the next one */
 		waitlist++;
 	}
