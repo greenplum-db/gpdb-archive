@@ -133,7 +133,7 @@ extern Oid	get_commutator(Oid opno);
 extern Oid	get_negator(Oid opno);
 extern RegProcedure get_oprrest(Oid opno);
 extern RegProcedure get_oprjoin(Oid opno);
-extern bool has_update_triggers(Oid relid);
+extern bool has_update_triggers(Oid relid, bool including_children);
 extern int32 get_trigger_type(Oid triggerid);
 extern bool trigger_enabled(Oid triggerid);
 extern char *get_func_name(Oid funcid);
@@ -237,7 +237,6 @@ Oid get_check_constraint_relid(Oid oidCheckconstraint);
 extern bool has_subclass_slow(Oid relationId);
 extern GpPolicy *relation_policy(Relation rel);
 extern bool child_distribution_mismatch(Relation rel);
-extern bool child_triggers(Oid relationId, int32 triggerType);
 
 extern bool get_cast_func(Oid oidSrc, Oid oidDest, bool *is_binary_coercible, Oid *oidCastFunc, CoercionPathType *pathtype);
 
