@@ -2982,17 +2982,6 @@ struct config_bool ConfigureNamesBool_gp[] =
 		false,
 		NULL, NULL, NULL
 	},
-
-	{
-		{"gp_pause_on_restore_point_replay", PGC_SIGHUP, DEVELOPER_OPTIONS,
-		 gettext_noop("Pause recovery when a restore point is replayed."),
-		 NULL,
-		 GUC_NO_SHOW_ALL | GUC_NOT_IN_SAMPLE
-		},
-		&gp_pause_on_restore_point_replay,
-		false,
-		NULL, NULL, NULL
-	},
 	{
 		{"gp_autostats_allow_nonowner", PGC_SUSET, DEVELOPER_OPTIONS,
 			gettext_noop("Allow automatic stats collection on tables even for users who are not the owner of the relation."),
@@ -4760,6 +4749,18 @@ struct config_string ConfigureNamesString_gp[] =
 		NULL, NULL, NULL
 	},
 #endif  /* ENABLE_IC_PROXY */
+
+	{
+		{"gp_pause_on_restore_point_replay", PGC_SUSET, DEVELOPER_OPTIONS,
+			gettext_noop("Specifies the restore point to pause replay on."),
+			gettext_noop("Unlike recovery_target_name, this can be used to continuously set/reset "
+						"how much a standby should replay up to."),
+			GUC_NO_SHOW_ALL | GUC_NOT_IN_SAMPLE
+		},
+		&gp_pause_on_restore_point_replay,
+		"",
+		NULL, NULL, NULL
+	},
 
 	/* End-of-list marker */
 	{
