@@ -843,7 +843,8 @@ check_views_with_removed_operators()
 
 	prep_status("Checking for views with removed operators");
 
-	snprintf(output_path, sizeof(output_path), "views_with_removed_operators.txt");
+	snprintf(output_path, sizeof(output_path), "%s/%s",
+			 log_opts.basedir, "views_with_removed_operators.txt");
 
 	for (dbnum = 0; dbnum < old_cluster.dbarr.ndbs; dbnum++)
 	{
@@ -930,7 +931,8 @@ check_views_with_removed_functions()
 
 	prep_status("Checking for views with removed functions");
 
-	snprintf(output_path, sizeof(output_path), "views_with_removed_functions.txt");
+	snprintf(output_path, sizeof(output_path), "%s/%s",
+			 log_opts.basedir, "views_with_removed_functions.txt");
 
 	for (dbnum = 0; dbnum < old_cluster.dbarr.ndbs; dbnum++)
 	{
@@ -1018,7 +1020,8 @@ check_views_with_removed_types()
 
 	prep_status("Checking for views with removed types");
 
-	snprintf(output_path, sizeof(output_path), "views_with_removed_types.txt");
+	snprintf(output_path, sizeof(output_path), "%s/%s",
+			 log_opts.basedir, "views_with_removed_types.txt");
 
 	for (dbnum = 0; dbnum < old_cluster.dbarr.ndbs; dbnum++)
 	{
