@@ -17,9 +17,18 @@ extract_deb_to_tar () {
   popd
 }
 
-if test -n "$(find gpdb_package -maxdepth 1 -name '*.rpm' -print -quit)"
-then
-    extract_rpm_to_tar "${@}"
-else
-    extract_deb_to_tar "${@}"
-fi
+copy_bin_gpdb () {
+  cp gpdb_package/bin_gpdb.tar.gz gpdb_artifacts/bin_gpdb.tar.gz
+}
+
+#if test -n "$(find gpdb_package -maxdepth 1 -name '*.rpm' -print -quit)"
+#then
+#    extract_rpm_to_tar "${@}"
+#else
+#    extract_deb_to_tar "${@}"
+#fi
+
+## FIXME: we copy a gpdb binary from some dev pipeline instead of extracting from
+## a product release, in order to workaround the binswap test. Revert this change,
+## when 7.2.0 is released and point pivotal-gpdb-pivnet-product-version to 7.2.0.
+copy_bin_gpdb
