@@ -31,6 +31,7 @@ static void check_views_with_removed_operators(void);
 static void check_views_with_removed_functions(void);
 static void check_views_with_removed_types(void);
 static void check_for_disallowed_pg_operator(void);
+static void check_for_ao_matview_with_relfrozenxid(ClusterInfo *cluster);
 static void check_views_with_changed_function_signatures(void);
 
 /*
@@ -57,6 +58,7 @@ check_greenplum(void)
 	check_views_with_removed_types();
 	check_for_disallowed_pg_operator();
 	check_views_with_changed_function_signatures();
+	check_for_ao_matview_with_relfrozenxid(&old_cluster);
 }
 
 /*
@@ -1149,6 +1151,96 @@ check_for_disallowed_pg_operator(void)
 					 "| You will need to remove the disallowed OPERATOR =>\n"
 					 "| from the list of databases in the file:\n"
 					 "|    %s\n\n", output_path);
+	}
+	else
+		check_ok();
+}
+
+/* Check for any AO materialized views with relfrozenxid != 0
+ *
+ * An AO materialized view must have invalid relfrozenxid (0).
+ * However, some views might have valid relfrozenxid due to a known code issue.
+ * We need to check for problematic views before upgrading.
+ * The problem can be fixed by issuing "REFRESH MATERIALIZED VIEW <viewname>"
+ * with latest code.
+ * See the PR for details:
+ *
+ * https://github.com/greenplum-db/gpdb/pull/11662/
+ */
+static void
+check_for_ao_matview_with_relfrozenxid(ClusterInfo *cluster)
+{
+	char  output_path[MAXPGPATH];
+	FILE *script = NULL;
+	int   dbnum;
+
+	/* For now, the issue exists only for Greenplum 6.x/PostgreSQL 9.4 */
+	if (GET_MAJOR_VERSION(old_cluster.major_version) != 904)
+		return;
+
+	prep_status("Checking for AO materialized views with relfrozenxid");
+
+	snprintf(output_path, sizeof(output_path), "%s/%s",
+			 log_opts.basedir,
+				"ao_materialized_view_with_relfrozenxid.txt");
+
+	for (dbnum = 0; dbnum < cluster->dbarr.ndbs; dbnum++)
+	{
+		PGresult   *res;
+		bool		db_used = false;
+		int			ntups;
+		int			rowno;
+		int			i_nspname,
+					i_relname;
+		DbInfo	   *active_db = &cluster->dbarr.dbs[dbnum];
+		PGconn	   *conn = connectToServer(cluster, active_db->db_name);
+
+		/*
+		 * Detect any materialized view where relstorage is
+		 * RELSTORAGE_AOROWS or RELSTORAGE_AOCOLS with relfrozenxid != 0
+		 */
+		res = executeQueryOrDie(conn,
+								"select tb.relname, tb.relfrozenxid, tbsp.nspname "
+								" from pg_catalog.pg_class tb "
+								" left join pg_catalog.pg_namespace tbsp "
+								" on tb.relnamespace = tbsp.oid "
+								" where tb.relkind = 'm' "
+								" and (tb.relstorage = 'a' or tb.relstorage = 'c') "
+								" and tb.relfrozenxid::text <> '0';");
+
+		ntups = PQntuples(res);
+		i_nspname = PQfnumber(res, "nspname");
+		i_relname = PQfnumber(res, "relname");
+		for (rowno = 0; rowno < ntups; rowno++)
+		{
+			if (script == NULL && (script = fopen_priv(output_path, "w")) == NULL)
+				pg_fatal("could not open file \"%s\": %s\n",
+							output_path, strerror(errno));
+			if (!db_used)
+			{
+				fprintf(script, "In database: %s\n", active_db->db_name);
+				db_used = true;
+			}
+
+			fprintf(script, "  %s.%s\n",
+					PQgetvalue(res, rowno, i_nspname),
+					PQgetvalue(res, rowno, i_relname));
+		}
+
+		PQclear(res);
+
+		PQfinish(conn);
+	}
+
+	if(script)
+	{
+		fclose(script);
+		gp_fatal_log(
+				"| Detected AO materialized views with incorrect relfrozenxid.\n"
+				"| Issue \"REFRESH MATERIALIZED VIEW <schemaname>.<viewname> on the problem\n"
+				"| views to resolve the issue.\n"
+				"| A list of the problem materialized views are in the file:\n"
+				"| %s\n\n", output_path);
 	}
 	else
 		check_ok();
