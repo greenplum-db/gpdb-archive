@@ -1159,6 +1159,8 @@ FROM tenk1 WHERE unique1 < 10;
   17 |       9
 (10 rows)
 
+-- disable query paramters in Orca to ensure stable fallback messages
+set optimizer_enable_query_parameter=off;
 CREATE TEMP VIEW v_window AS
 	SELECT i, sum(i) over (order by i rows between 1 preceding and 1 following) as sum_rows
 	FROM generate_series(1, 10) i;
@@ -1327,6 +1329,7 @@ SELECT pg_get_viewdef('v_window');
     FROM generate_series(now(), (now() + '@ 100 days'::interval), '@ 1 hour'::interval) i(i);
 (1 row)
 
+reset optimizer_enable_query_parameter;
 -- RANGE offset PRECEDING/FOLLOWING tests
 SELECT sum(unique1) over (order by four range between 2::int8 preceding and 1::int2 preceding),
 	unique1, four

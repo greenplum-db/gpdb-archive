@@ -1088,6 +1088,10 @@ choose_custom_plan(CachedPlanSource *plansource, ParamListInfo boundParams, Into
 	if (plansource->cursor_options & CURSOR_OPT_CUSTOM_PLAN)
 		return true;
 
+	/* Generate custom plans if optimizer_enable_query_parameter is disabled and Orca is enabled */
+	if (optimizer && !optimizer_enable_query_parameter)
+		return true;
+
 	/* Generate custom plans until we have done at least 5 (arbitrary) */
 	if (plansource->num_custom_plans < 5)
 		return true;
