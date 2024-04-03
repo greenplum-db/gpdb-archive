@@ -1361,20 +1361,21 @@ select * from
 
 --
 -- test for appropriate join order in the presence of lateral references
+-- GPDB: add order by to ensure consistent results
 --
 explain (verbose, costs off)
 select * from
   text_tbl t1
   left join int8_tbl i8
   on i8.q2 = 123,
-  lateral (select i8.q1, t2.f1 from text_tbl t2 limit 1) as ss
+  lateral (select i8.q1, t2.f1 from text_tbl t2 order by f1 limit 1) as ss
 where t1.f1 = ss.f1;
 
 select * from
   text_tbl t1
   left join int8_tbl i8
   on i8.q2 = 123,
-  lateral (select i8.q1, t2.f1 from text_tbl t2 limit 1) as ss
+  lateral (select i8.q1, t2.f1 from text_tbl t2 order by f1 limit 1) as ss
 where t1.f1 = ss.f1;
 
 explain (verbose, costs off)
@@ -1382,16 +1383,16 @@ select * from
   text_tbl t1
   left join int8_tbl i8
   on i8.q2 = 123,
-  lateral (select i8.q1, t2.f1 from text_tbl t2 limit 1) as ss1,
-  lateral (select ss1.* from text_tbl t3 limit 1) as ss2
+  lateral (select i8.q1, t2.f1 from text_tbl t2 order by f1 limit 1) as ss1,
+  lateral (select ss1.* from text_tbl t3 order by f1 limit 1) as ss2
 where t1.f1 = ss2.f1;
 
 select * from
   text_tbl t1
   left join int8_tbl i8
   on i8.q2 = 123,
-  lateral (select i8.q1, t2.f1 from text_tbl t2 limit 1) as ss1,
-  lateral (select ss1.* from text_tbl t3 limit 1) as ss2
+  lateral (select i8.q1, t2.f1 from text_tbl t2 order by f1 limit 1) as ss1,
+  lateral (select ss1.* from text_tbl t3 order by f1 limit 1) as ss2
 where t1.f1 = ss2.f1;
 
 explain (verbose, costs off)
@@ -1400,7 +1401,7 @@ select 1 from
   inner join text_tbl as tt2 on (tt1.f1 = 'foo')
   left join text_tbl as tt3 on (tt3.f1 = 'foo')
   left join text_tbl as tt4 on (tt3.f1 = tt4.f1),
-  lateral (select tt4.f1 as c0 from text_tbl as tt5 limit 1) as ss1
+  lateral (select tt4.f1 as c0 from text_tbl as tt5 order by f1 limit 1) as ss1
 where tt1.f1 = ss1.c0;
 
 select 1 from
@@ -1408,7 +1409,7 @@ select 1 from
   inner join text_tbl as tt2 on (tt1.f1 = 'foo')
   left join text_tbl as tt3 on (tt3.f1 = 'foo')
   left join text_tbl as tt4 on (tt3.f1 = tt4.f1),
-  lateral (select tt4.f1 as c0 from text_tbl as tt5 limit 1) as ss1
+  lateral (select tt4.f1 as c0 from text_tbl as tt5 order by f1 limit 1) as ss1
 where tt1.f1 = ss1.c0;
 
 
@@ -1423,7 +1424,7 @@ select ss2.* from
           from int4_tbl i42, int4_tbl i43) ss1
     on i8.q1 = ss1.c2
   on i41.f1 = ss1.c1,
-  lateral (select i41.*, i8.*, ss1.* from text_tbl limit 1) ss2
+  lateral (select i41.*, i8.*, ss1.* from text_tbl order by f1 limit 1) ss2
 where ss1.c2 = 0;
 
 select ss2.* from
@@ -1433,7 +1434,7 @@ select ss2.* from
           from int4_tbl i42, int4_tbl i43) ss1
     on i8.q1 = ss1.c2
   on i41.f1 = ss1.c1,
-  lateral (select i41.*, i8.*, ss1.* from text_tbl limit 1) ss2
+  lateral (select i41.*, i8.*, ss1.* from text_tbl order by f1 limit 1) ss2
 where ss1.c2 = 0;
 
 --
