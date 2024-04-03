@@ -457,7 +457,9 @@ resources:
 - name: previous_gpdb
   type: gcs
   source:
-    bucket: ((gcs-bucket-intermediates))
+# FIXME: hard coded until we do the 7.2.0 tagging. Revert to ((gcs-bucket-intermediates))
+# once 7.2.0 is tagged.
+    bucket: pivotal-gpdb-concourse-resources-intermediates-dev
     json_key: ((concourse-gcs-resources-service-account-key))
     versioned_file: addcol-binswap-rc-only/bin_gpdb/bin_gpdb.tar.gz
 {% endif %}
