@@ -277,9 +277,6 @@ static MergeJoin *make_mergejoin(List *tlist,
 								 Plan *lefttree, Plan *righttree,
 								 JoinType jointype, bool inner_unique,
 								 bool skip_mark_restore);
-static Sort *make_sort(Plan *lefttree, int numCols,
-					   AttrNumber *sortColIdx, Oid *sortOperators,
-					   Oid *collations, bool *nullsFirst);
 static Plan *prepare_sort_from_pathkeys(Plan *lefttree, List *pathkeys,
 										Relids relids,
 										const AttrNumber *reqColIdx,
@@ -6736,7 +6733,7 @@ make_mergejoin(List *tlist,
  * Caller must have built the sortColIdx, sortOperators, collations, and
  * nullsFirst arrays already.
  */
-static Sort *
+Sort *
 make_sort(Plan *lefttree, int numCols,
 		  AttrNumber *sortColIdx, Oid *sortOperators,
 		  Oid *collations, bool *nullsFirst)
@@ -8092,13 +8089,9 @@ cdbpathtoplan_create_motion_plan(PlannerInfo *root,
 									hashOpfamilies,
 									numHashSegments);
 	}
-	else if (CdbPathLocus_IsOuterQuery(path->path.locus))
-	{
-		motion = make_union_motion(subplan);
-		motion->motionType = MOTIONTYPE_OUTER_QUERY;
-	}
 	/* Send all tuples to a single process? */
-	else if (CdbPathLocus_IsBottleneck(path->path.locus))
+	else if (CdbPathLocus_IsBottleneck(path->path.locus)
+			|| CdbPathLocus_IsOuterQuery(path->path.locus))
 	{
 		if (path->path.pathkeys)
 		{
@@ -8153,6 +8146,13 @@ cdbpathtoplan_create_motion_plan(PlannerInfo *root,
 		{
 			motion = make_union_motion(subplan);
 		}
+		/*
+		 * When path.locus is CdbLocusType_OuterQuery, We will miss the pathkeys
+		 * if use make_union_motion. So use make_sorted_union_motion instead of
+		 * make_union_motion if path has pathkeys.
+		 */
+		if (CdbPathLocus_IsOuterQuery(path->path.locus))
+			motion->motionType = MOTIONTYPE_OUTER_QUERY;
 	}
 
 	/* Send all of the tuples to all of the QEs in gang above... */

@@ -912,8 +912,6 @@ fix_outer_query_motions_mutator(Node *node, decorate_subplans_with_motions_conte
 		 */
 		if (motion->motionType == MOTIONTYPE_OUTER_QUERY)
 		{
-			Assert(!motion->sendSorted);
-
 			if (context->currentPlanFlow->flotype == FLOW_SINGLETON)
 			{
 				motion->motionType = MOTIONTYPE_GATHER;
@@ -922,6 +920,20 @@ fix_outer_query_motions_mutator(Node *node, decorate_subplans_with_motions_conte
 					 context->currentPlanFlow->flotype == FLOW_PARTITIONED)
 			{
 				motion->motionType = MOTIONTYPE_BROADCAST;
+				/*
+				 * In cdbpathtoplan_create_motion_plan if locus is CdbLocusType_OuterQuery
+				 * We use make_sorted_union_motion to keep the pathkeys of path.
+				 * But, sendSorted of BroadCast motion can not be true.
+				 * So make sort plan above broad cast motion to keep pathkeys.
+				 */
+				if (motion->sendSorted)
+				{
+					motion->sendSorted = false;
+					newnode = (Node *)make_sort((Plan *)motion, motion->numSortCols,
+						 motion->sortColIdx, motion->sortOperators,
+						 motion->collations, motion->nullsFirst);
+					return newnode;
+				}
 			}
 			else
 				elog(ERROR, "unexpected Flow type in parent of a SubPlan");

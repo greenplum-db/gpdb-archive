@@ -79,6 +79,9 @@ extern Plan *add_sort_cost(PlannerInfo *root, Plan *input,
 extern Sort *make_sort_from_pathkeys(Plan *lefttree, List *pathkeys, Relids relids);
 extern Sort *make_sort_from_sortclauses(List *sortcls,
 						   Plan *lefttree);
+extern Sort *make_sort(Plan *lefttree, int numCols,
+					   AttrNumber *sortColIdx, Oid *sortOperators,
+					   Oid *collations, bool *nullsFirst);
 extern Agg *make_agg(List *tlist, List *qual,
 					 AggStrategy aggstrategy, AggSplit aggsplit,
 					 bool streaming,
