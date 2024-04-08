@@ -42,11 +42,18 @@
 #define GPOS_ASSERT(x) ;
 #endif	// !GPOS_DEBUG
 
+#define GPOS_UNITTEST_ASSERT GPOS_RTL_ASSERT
+
 // implication assert
 #define GPOS_ASSERT_IMP(x, y) GPOS_ASSERT(!(x) || (y))
 
+#define GPOS_UNITTEST_ASSERT_IMP(x, y) GPOS_RTL_ASSERT(!(x) || (y))
+
 // if-and-only-if assert
 #define GPOS_ASSERT_IFF(x, y) GPOS_ASSERT((!(x) || (y)) && (!(y) || (x)))
+
+#define GPOS_UNITTEST_ASSERT_IFF(x, y) \
+	GPOS_RTL_ASSERT((!(x) || (y)) && (!(y) || (x)))
 
 // compile assert
 #define GPOS_CPL_ASSERT static_assert
@@ -56,6 +63,9 @@
 
 // retail assert, with message
 #define GPOS_RTL_ASSERT_MSG(x, msg) GPOS_RTL_ASSERT((x) && (msg))
+
+// unittest assert, with message
+#define GPOS_UNITTEST_ASSERT_MSG(x, msg) GPOS_RTL_ASSERT((x) && (msg))
 
 
 #endif	// !GPOS_assert_H
