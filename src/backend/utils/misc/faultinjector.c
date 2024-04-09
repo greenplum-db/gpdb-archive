@@ -469,6 +469,7 @@ FaultInjector_InjectFaultIfSet_out_of_line(
 			while ((entry = FaultInjector_LookupHashEntry(entryLocal->faultName)) != NULL &&
 				   entry->faultInjectorType != FaultInjectorTypeResume)
 			{
+				CHECK_FOR_INTERRUPTS();
 				pg_usleep(1000000L);  // 1 sec
 			}
 

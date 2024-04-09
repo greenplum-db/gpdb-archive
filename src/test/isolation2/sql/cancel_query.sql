@@ -39,3 +39,15 @@ PARTITION BY RANGE(a_date)
 1<:
 
 SELECT gp_inject_fault('zlib_decompress_after_decompress_fn', 'reset', dbid) FROM gp_segment_configuration;
+
+CREATE TABLE  a_suspend_blocking(a int, b int, c int);
+INSERT INTO a_suspend_blocking select i,i,i from generate_series(1, 100) i;
+
+0: SELECT gp_inject_fault_infinite('exec_mpp_query_start', 'suspend', dbid) FROM gp_segment_configuration WHERE role = 'p' AND content >= 0;
+0&: SELECT * FROM a_suspend_blocking;
+
+1: SELECT pg_cancel_backend(pid) FROM pg_stat_activity WHERE query LIKE 'SELECT * FROM a_suspend_blocking%';
+0<:
+
+SELECT gp_inject_fault_infinite('exec_mpp_query_start', 'reset', dbid) FROM gp_segment_configuration WHERE role = 'p' AND content >= 0;
+DROP TABLE a_suspend_blocking;
