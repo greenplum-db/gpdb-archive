@@ -196,9 +196,12 @@ get_relation_info(PlannerInfo *root, Oid relationObjectId, bool inhparent,
 		 * GPDB supports index-only scan on AO starting from AORelationVersion_GP7.
 		 */
 		bool enable_ios_ao = false;
-		if (RelationIsAppendOptimized(relation) &&
-			AORelationVersion_Validate(relation, AORelationVersion_GP7))
-			enable_ios_ao = true;
+		if (RelationStorageIsAO(relation))
+		{
+			Assert(relation->rd_appendonly != NULL);
+			if (AORelationVersion_Validate(relation, AORelationVersion_GP7))
+				enable_ios_ao = true;
+		}
 
 		indexoidlist = RelationGetIndexList(relation);
 

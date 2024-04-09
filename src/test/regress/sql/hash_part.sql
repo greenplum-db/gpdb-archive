@@ -88,3 +88,21 @@ select satisfies_hash_partition('text_hashp'::regclass, 2, 0, 'xxx'::text) OR
 DROP TABLE mchash;
 DROP TABLE mcinthash;
 DROP TABLE text_hashp;
+
+-- Test case for AO Hash partitioning table
+-- https://github.com/greenplum-db/gpdb/pull/17280
+CREATE TABLE tbl_17280(c0 int) PARTITION BY HASH(c0) WITH (appendonly=true);
+CREATE INDEX idx_17280 ON tbl_17280 USING HASH(c0) WHERE (c0!=0);
+-- should not panic
+SELECT count(*) FROM tbl_17280;
+
+create table tbl_17280_p1 partition of tbl_17280 for values with (modulus 2, remainder 0) WITH (appendonly=true);
+create table tbl_17280_p2 partition of tbl_17280 for values with (modulus 2, remainder 1) WITH (appendonly=true);
+insert into tbl_17280 select generate_series(1,1000);
+set optimizer to off;
+set enable_seqscan to off;
+analyze tbl_17280_p1;
+-- should use bitmap index scan
+explain select c0 from tbl_17280_p1 where c0=12;
+
+DROP TABLE tbl_17280;
