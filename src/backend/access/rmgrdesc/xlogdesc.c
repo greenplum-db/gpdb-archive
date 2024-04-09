@@ -132,6 +132,13 @@ xlog_desc(StringInfo buf, XLogReaderState *record)
 		nextGxid = *((DistributedTransactionId *) rec);
 		appendStringInfo(buf, UINT64_FORMAT, nextGxid);
 	}
+	else if (info == XLOG_LATESTCOMPLETED_GXID)
+	{
+		DistributedTransactionId gxid;
+
+		gxid = *((DistributedTransactionId *) rec);
+		appendStringInfo(buf, UINT64_FORMAT, gxid);
+	}
 	else if (info == XLOG_NEXTRELFILENODE)
 	{
 		Oid			nextRelfilenode;
@@ -238,6 +245,9 @@ xlog_identify(uint8 info)
 			break;
 		case XLOG_NEXTGXID:
 			id = "NEXTGXID";
+			break;
+		case XLOG_LATESTCOMPLETED_GXID:
+			id = "XLOG_LATESTCOMPLETED_GXID";
 			break;
 		case XLOG_NEXTRELFILENODE:
 			id = "NEXTRELFILENODE";

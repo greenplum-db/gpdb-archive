@@ -203,6 +203,7 @@ DecodeXLogOp(LogicalDecodingContext *ctx, XLogRecordBuffer *buf)
 		case XLOG_NOOP:
 		case XLOG_NEXTOID:
 		case XLOG_NEXTGXID:
+		case XLOG_LATESTCOMPLETED_GXID:
 		case XLOG_SWITCH:
 		case XLOG_BACKUP_END:
 		case XLOG_PARAMETER_CHANGE:
