@@ -323,6 +323,8 @@ _bitmap_xlog_insert_bitmapwords(XLogRecPtr lsn, XLogReaderState *record)
 		if (BufferIsValid(bitmapBuffers[bmpageno]))
 			UnlockReleaseBuffer(bitmapBuffers[bmpageno]);
 	}
+
+	pfree(bitmapBuffers);
 }
 
 static void
