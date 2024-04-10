@@ -47,7 +47,6 @@ class CgroupValidationVersionTwo(CgroupValidation):
         self.validate_permission("gpdb/cgroup.procs", "rw")
 
         self.validate_permission("gpdb/cpu.max", "rw")
-        self.validate_permission("gpdb/cpu.pressure", "rw")
         self.validate_permission("gpdb/cpu.weight", "rw")
         self.validate_permission("gpdb/cpu.weight.nice", "rw")
         self.validate_permission("gpdb/cpu.stat", "r")

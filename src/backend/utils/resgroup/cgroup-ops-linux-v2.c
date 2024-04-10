@@ -91,7 +91,6 @@ static int64 system_cfs_quota_us = -1LL;
 static const PermItem perm_items_cpu[] =
 {
 	{ CGROUP_COMPONENT_PLAIN, "cpu.max", R_OK | W_OK },
-	{ CGROUP_COMPONENT_PLAIN, "cpu.pressure", R_OK | W_OK },
 	{ CGROUP_COMPONENT_PLAIN, "cpu.weight", R_OK | W_OK },
 	{ CGROUP_COMPONENT_PLAIN, "cpu.weight.nice", R_OK | W_OK },
 	{ CGROUP_COMPONENT_PLAIN, "cpu.stat", R_OK },
