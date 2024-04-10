@@ -1576,11 +1576,11 @@ EXPLAIN (costs off) SELECT t1.a, t1.b FROM my_table AS t1 WHERE EXISTS (SELECT 1
 ------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Semi Join
-         Hash Cond: (my_table.a = your_table.a)
-         ->  Seq Scan on my_table
+         Hash Cond: (t1.a = t2.a)
+         ->  Seq Scan on my_table t1
                Filter: (NOT (a IS NULL))
          ->  Hash
-               ->  Seq Scan on your_table
+               ->  Seq Scan on your_table t2
  Optimizer: GPORCA
 (8 rows)
 
@@ -1592,10 +1592,10 @@ EXPLAIN (costs off) SELECT t1.a, t1.b FROM my_table AS t1 WHERE NOT EXISTS (SELE
 ------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Anti Join
-         Hash Cond: (my_table.a = your_table.a)
-         ->  Seq Scan on my_table
+         Hash Cond: (t1.a = t2.a)
+         ->  Seq Scan on my_table t1
          ->  Hash
-               ->  Seq Scan on your_table
+               ->  Seq Scan on your_table t2
  Optimizer: GPORCA
 (7 rows)
 
