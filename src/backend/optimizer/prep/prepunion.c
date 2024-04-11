@@ -841,7 +841,7 @@ generate_nonunion_paths(SetOperationStmt *op, PlannerInfo *root,
 	/* CDB: Decide on approach, condition argument plans to suit. */
 	if ( Gp_role == GP_ROLE_DISPATCH )
 	{
-		optype = choose_setop_type(pathlist);
+		optype = choose_setop_type(pathlist,tlist_list);
 		adjust_setop_arguments(root, pathlist, tlist_list, optype);
 	}
 	else if ( Gp_role == GP_ROLE_UTILITY 
