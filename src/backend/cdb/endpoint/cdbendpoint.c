@@ -334,7 +334,6 @@ SetupEndpointExecState(TupleDesc tupleDesc, const char *cursorName,
 	 */
 	CurrentEndpointExecState->endpoint =
 		alloc_endpoint(cursorName, dsm_segment_handle(CurrentEndpointExecState->dsmSeg));
-	setup_endpoint_token_entry();
 
 	CurrentEndpointExecState->dest = CreateTupleQueueDestReceiver(shmMqHandle);
 	(CurrentEndpointExecState->dest->rStartup)(CurrentEndpointExecState->dest, operation, tupleDesc);
@@ -496,6 +495,12 @@ static Endpoint
 	OwnLatch(&sharedEndpoints[i].ackDone);
 	ret = &sharedEndpoints[i];
 
+	/*
+	 * setup the token entry here to ensure that the 'sharedEndpoints'
+	 * and 'EndpointTokenHash' stay synchronized.
+	 */
+	setup_endpoint_token_entry();
+
 	LWLockRelease(ParallelCursorEndpointLock);
 	return ret;
 }
@@ -567,6 +572,8 @@ create_and_connect_mq(TupleDesc tupleDesc, dsm_segment **mqSeg /* out */ ,
 /*
  * Create/reuse EndpointTokenEntry for current session in shared memory.
  * EndpointTokenEntry is used for authentication in the retrieve sessions.
+ *
+ * Needs to be called with exclusive lock on ParallelCursorEndpointLock.
  */
 static void
 setup_endpoint_token_entry()
@@ -579,7 +586,7 @@ setup_endpoint_token_entry()
 	tag.sessionID = gp_session_id;
 	tag.userID = GetUserId();
 
-	LWLockAcquire(ParallelCursorEndpointLock, LW_EXCLUSIVE);
+	Assert(LWLockHeldByMeInMode(ParallelCursorEndpointLock, LW_EXCLUSIVE));
 	infoEntry = (EndpointTokenEntry *) hash_search(EndpointTokenHash, &tag, HASH_ENTER, &found);
 	elogif(gp_log_endpoints, LOG, "CDB_ENDPOINT: Finish endpoint init. Found EndpointTokenEntry? %d", found);
 
@@ -596,8 +603,6 @@ setup_endpoint_token_entry()
 
 	infoEntry->refCount++;
 	Assert(infoEntry->refCount <= MAX_ENDPOINT_SIZE);
-
-	LWLockRelease(ParallelCursorEndpointLock);
 }
 
 /*
@@ -716,6 +721,7 @@ detach_mq(dsm_segment *dsmSeg)
  *
  * Clean the Endpoint entry sender pid when endpoint finish it's
  * job or abort.
+ *
  * Needs to be called with exclusive lock on ParallelCursorEndpointLock.
  */
 static void
@@ -723,6 +729,7 @@ unset_endpoint_sender_pid(Endpoint *endpoint)
 {
 	Assert(endpoint);
 	Assert(!endpoint->empty);
+	Assert(LWLockHeldByMeInMode(ParallelCursorEndpointLock, LW_EXCLUSIVE));
 
 	elogif(gp_log_endpoints, LOG, "CDB_ENDPOINT: unset endpoint sender pid");
 
@@ -853,6 +860,7 @@ free_endpoint(Endpoint *endpoint)
 
 	Assert(endpoint);
 	Assert(!endpoint->empty);
+	Assert(LWLockHeldByMeInMode(ParallelCursorEndpointLock, LW_EXCLUSIVE));
 
 	elogif(gp_log_endpoints, LOG, "CDB_ENDPOINT: free endpoint '%s'", endpoint->name);
 
