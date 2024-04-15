@@ -931,6 +931,20 @@ DefineRelation(CreateStmt *stmt, char relkind, Oid ownerId,
 	else
 		policy = getPolicyForDistributedBy(stmt->distributedBy, descriptor);
 
+	/* Greenplum specific code */
+	if (list_length(schema) == 0)
+	{
+		elogif(Gp_role == GP_ROLE_DISPATCH, WARNING,
+			   "creating a table with no columns.");
+
+		/*
+		 * Guard code: Github Issue 17271. Zero-column table
+		 * if distributed, must have randomly policy.
+		 */
+		if (GpPolicyIsHashPartitioned(policy))
+			policy = createRandomPartitionedPolicy(policy->numsegments);
+	}
+
 	if (partitioned && GpPolicyIsReplicated(policy))
 		ereport(ERROR,
 				(errcode(ERRCODE_FEATURE_NOT_SUPPORTED),
