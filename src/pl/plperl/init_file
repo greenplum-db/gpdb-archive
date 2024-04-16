@@ -5,4 +5,7 @@ s/ \(plperl\.c:\d+\)//
 
 -- start_matchignore
 m/^(?:HINT|NOTICE):\s+.+\'DISTRIBUTED BY\' clause.*/
+
+# Ignore creating zero-column table warning
+m/^WARNING:  creating a table with no columns./
 -- end_matchignore

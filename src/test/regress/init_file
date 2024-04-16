@@ -97,6 +97,9 @@ m/^DEBUG:  probing availability of JIT provider/
 m/^DEBUG:  LLVMJIT detected CPU/
 m/^DEBUG:  time to inline:/
 
+# Ignore creating zero-column table warning
+m/^WARNING:  creating a table with no columns./
+
 # Ignore data access indicator notice.
 m/NOTICE:  specifying ".*" acts as no operation./
 

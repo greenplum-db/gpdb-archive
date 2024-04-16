@@ -27,4 +27,7 @@ m/^(?:HINT|NOTICE):\s+.+\'DISTRIBUTED BY\' clause.*/
 # to manually modify the corresponding expected output. Hence we want to ignore these.
 m/^NOTICE:  resource group required -- using .* resource group ".*"$/
 
+# Ignore creating zero-column table warning
+m/^WARNING:  creating a table with no columns./
+
 -- end_matchignore

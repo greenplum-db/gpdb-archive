@@ -1,3 +1,10 @@
+-- we ingore this in global init-file, replace words here
+-- so that we can let only this case tested in this sql.
+-- start_matchsubs
+-- m/WARNING:  creating a table with no columns./
+-- s/WARNING:  creating a table with no columns./WARNING:  create a table with no columns (misc_jiras)./
+-- end_matchsubs
+
 drop schema if exists misc_jiras;
 create schema misc_jiras;
 
