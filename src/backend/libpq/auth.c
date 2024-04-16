@@ -547,10 +547,10 @@ internal_client_authentication(Port *port)
 		 *
 		 * The goal here is to block network connection from out of
 		 * coordinator to coordinator db with magic bit packet.
-		 * So, only when it comes from the same host, the connection
-		 * is authenticated, if this connection is TCP/UDP.
 		 *
-		 * If unix domain socket comes, just authenticate it.
+		 * Internal connections originating from the same host (be it TCP/IP or
+		 * Unix domain socket) are considered already authenticated, and receive
+		 * a free pass.
 		 */
 		if (port->raddr.addr.ss_family == AF_INET
 #ifdef HAVE_IPV6
@@ -560,18 +560,18 @@ internal_client_authentication(Port *port)
 		{
 			if (check_same_host_or_net(&port->raddr, ipCmpSameHost))
 			{
-				if (gp_reject_internal_tcp_conn)
-				{
-					elog(DEBUG1, "rejecting TCP connection to coordinator using internal"
-						 "connection protocol, because the GUC gp_reject_internal_tcp_conn is true");
-					return false;
-				}
-				else
-				{
-					elog(DEBUG1, "received same host internal TCP connection");
-					FakeClientAuthentication(port);
-					return true;
-				}
+				/*
+				 * Note: We do take steps to prevent TCP/IP connections from the
+				 * coordinator to entry DB QEs (see cdbconn_doConnectStart()),
+				 * in favor of Unix domain socket communication. However, if
+				 * PGHOST is set in the coordinator's environment to a hostname,
+				 * then the connection will still be TCP/IP.
+				 */
+				ereport(DEBUG1,
+						(errmsg("received same host internal connection over TCP/IP"),
+						 errdetail("check if PGHOST or PGHOSTADDR is set in the coordinator environment")));
+				FakeClientAuthentication(port);
+				return true;
 			}
 
 			/* Security violation? */

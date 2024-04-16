@@ -2717,14 +2717,13 @@ struct config_bool ConfigureNamesBool_gp[] =
 	},
 
 	{
-		{"gp_reject_internal_tcp_connection", PGC_POSTMASTER,
-			DEVELOPER_OPTIONS,
-			gettext_noop("Permit internal TCP connections to the coordinator."),
+		{"gp_reject_internal_tcp_connection", PGC_POSTMASTER, DEFUNCT_OPTIONS,
+			gettext_noop("Unused. Syntax check only for GPDB compatibility."),
 			NULL,
 			GUC_NO_SHOW_ALL | GUC_NOT_IN_SAMPLE
 		},
 		&gp_reject_internal_tcp_conn,
-		true,
+		false,
 		NULL, NULL, NULL
 	},
 

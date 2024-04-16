@@ -162,12 +162,15 @@ cdbconn_doConnectStart(SegmentDatabaseDescriptor *segdbDesc,
 
 	/*
 	 * For entry DB connection, we make sure both "hostaddr" and "host" are
-	 * empty string. Or else, it will fall back to environment variables and
-	 * won't use domain socket in function connectDBStart. Also we set the
+	 * empty string, as we want to force Unix domain socket usage. The reason is
+	 * that for same host communication, Unix domain sockets are more performant.
+	 * However, if the PGHOST or PGHOSTADDR variables are set in the coordinator
+	 * postmaster environment, TCP/IP sockets will still be used. Also, we set the
 	 * connection type for entrydb connection so that QE could change Gp_role
 	 * from DISPATCH to EXECUTE.
 	 *
-	 * For other QE connections, we set "hostaddr". "host" is not used.
+	 * For other QE connections, we set "hostaddr". "host" is not used, as
+	 * hostaddr saves on the cost of hostname resolution.
 	 */
 	if (segdbDesc->segindex == COORDINATOR_CONTENT_ID &&
 		IS_QUERY_DISPATCHER())
