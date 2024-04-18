@@ -2,7 +2,10 @@
 
 # Install needed packages. Please add to this list if you discover additional prerequisites
 sudo yum group install -y "Development Tools"
-INSTALL_PKGS="apr-devel bison bzip2-devel cmake3 epel-release flex gcc gcc-c++ krb5-devel libcurl-devel libevent-devel libkadm5 libxml2-devel libzstd-devel openssl-devel python3.11 python3-devel python3.11-devel python3-psutil python3.11-pip perl-ExtUtils-MakeMaker.noarch perl-ExtUtils-Embed.noarch readline-devel rsync xerces-c-devel zlib-devel python3-psutil python3-pyyaml python3-psycopg2"
+# Install epel-release
+sudo yum install -y epel-release
+
+INSTALL_PKGS="apr-devel bison bzip2-devel cmake3 flex gcc gcc-c++ krb5-devel libcurl-devel libevent-devel libkadm5 libxml2-devel libzstd-devel openssl-devel python3.11 python3-devel python3.11-devel python3-psutil python3.11-pip perl-ExtUtils-MakeMaker.noarch perl-ExtUtils-Embed.noarch readline-devel rsync xerces-c-devel zlib-devel python3-psutil python3-pyyaml python3-psycopg2"
 
 sudo yum install -y $INSTALL_PKGS
 
@@ -12,7 +15,8 @@ sudo yum install -y postgresql
 sudo yum install -y postgresql-devel
 sudo yum install -y python3-pip
 
-pip3 install -r python-dependencies.txt
+# These dependencies are installed by `yum install`
+# pip3 install -r python-dependencies.txt
 
 #For all Greenplum Database host systems running RHEL, CentOs or Rocky8, SELinux must either be Disabled or configured to allow unconfined access to Greenplum processes, directories, and the gpadmin user.
 setenforce 0
