@@ -624,6 +624,11 @@ extern int explain_memory_verbosity;
  */
 extern bool gp_enable_sort_limit;
 
+/*
+ * May planner consider regular Index Scans on append-optimized tables?
+ */
+extern bool gp_enable_ao_indexscan;
+
 extern bool trace_sort;
 
 /**

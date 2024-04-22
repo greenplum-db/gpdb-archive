@@ -270,6 +270,7 @@ bool		gp_enable_relsize_collection = false;
 bool		gp_recursive_cte = true;
 bool		gp_eager_two_phase_agg = false;
 bool		gp_force_random_redistribution = false;
+bool		gp_enable_ao_indexscan = true;
 
 /* Optimizer related gucs */
 bool		optimizer;
@@ -1861,6 +1862,17 @@ struct config_bool ConfigureNamesBool_gp[] =
 		},
 		&gp_force_random_redistribution,
 		false, NULL, NULL
+	},
+
+	{
+		{"gp_enable_ao_indexscan", PGC_USERSET, QUERY_TUNING_METHOD,
+		 gettext_noop("Enable regular Index scans for append-optimized tables."),
+		 NULL,
+		 GUC_NOT_IN_SAMPLE
+		},
+		&gp_enable_ao_indexscan,
+		true,
+		NULL, NULL, NULL
 	},
 
 	{

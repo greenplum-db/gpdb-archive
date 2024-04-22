@@ -40,7 +40,7 @@
 #include "optimizer/subselect.h"
 #include "parser/parsetree.h"
 #include "utils/index_selfuncs.h"
-
+#include "cdb/cdbvars.h"
 
 /* source-code-compatibility hacks for pull_varnos() API change */
 #define pull_varnos(a,b) pull_varnos_new(a,b)
@@ -787,6 +787,9 @@ get_index_paths(PlannerInfo *root, RelOptInfo *rel,
 	 * matter.  However, some of the indexes might support only bitmap scans,
 	 * and those we mustn't submit to add_path here.)
 	 *
+	 * GPDB: We also disallow regular Index Scans on append-optimized tables if
+	 * the gp_enable_ao_indexscan GUC is set to off.
+	 *
 	 * Also, pick out the ones that are usable as bitmap scans.  For that, we
 	 * must discard indexes that don't support bitmap scans, and we also are
 	 * only interested in paths that have some selectivity; we should discard
@@ -795,8 +798,10 @@ get_index_paths(PlannerInfo *root, RelOptInfo *rel,
 	foreach(lc, indexpaths)
 	{
 		IndexPath  *ipath = (IndexPath *) lfirst(lc);
+		bool		indexonly = ipath->path.pathtype == T_IndexOnlyScan;
 
-		if (index->amhasgettuple)
+		if (index->amhasgettuple &&
+			((!IsAccessMethodAO(rel->relam)) || indexonly || gp_enable_ao_indexscan))
 			add_path(rel, (Path *) ipath);
 
 		if (index->amhasgetbitmap &&

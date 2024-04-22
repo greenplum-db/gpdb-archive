@@ -28,6 +28,13 @@ select * from aoindexscantab_uncomp order by i limit 5;
 -- IndexOnlyScan should still be preferred when only the index key is involved.
 explain (costs off) select j from aoindexscantab_uncomp order by j limit 15;
 
+-- When gp_enable_ao_indexscan is off, we should not pick an Index Scan. But
+-- IndexOnly Scans continue to be picked.
+set gp_enable_ao_indexscan to off;
+explain (costs off) select i, j from aoindexscantab_uncomp where i = 90;
+explain (costs off) select i from aoindexscantab_uncomp where i = 90;
+reset gp_enable_ao_indexscan;
+
 -- Create a compressed test ao_row table
 create table aoindexscantab (i int4, j int4) with (appendonly=true, compresstype=zstd);
 insert into aoindexscantab select g, g % 10000 from generate_series(1, 10000000) g;
@@ -54,6 +61,13 @@ select * from aoindexscantab order by i limit 5;
 -- IndexOnlyScan should still be preferred when only the index key is involved.
 explain (costs off) select j from aoindexscantab order by j limit 15;
 
+-- When gp_enable_ao_indexscan is off, we should not pick an Index Scan. But
+-- IndexOnly Scans continue to be picked.
+set gp_enable_ao_indexscan to off;
+explain (costs off) select i, j from aoindexscantab where i = 90;
+explain (costs off) select i from aoindexscantab where i = 90;
+reset gp_enable_ao_indexscan;
+
 -- Create an uncompressed test ao_column table
 create table aocsindexscantab_uncomp (i int4, j int4) using ao_column;
 insert into aocsindexscantab_uncomp select g, g % 10000 from generate_series(1, 10000000) g;
@@ -77,6 +91,14 @@ select * from aocsindexscantab_uncomp order by i limit 5;
 
 -- IndexOnlyScan should still be preferred when only the index key is involved.
 explain (costs off) select j from aocsindexscantab_uncomp order by j limit 15;
+
+-- When gp_enable_ao_indexscan is off, we should not pick an Index Scan.
+-- When gp_enable_ao_indexscan is off, we should not pick an Index Scan. But
+-- IndexOnly Scans continue to be picked.
+set gp_enable_ao_indexscan to off;
+explain (costs off) select i, j from aocsindexscantab_uncomp where i = 90;
+explain (costs off) select i from aocsindexscantab_uncomp where i = 90;
+reset gp_enable_ao_indexscan;
 
 -- Create a compressed test ao_column table
 create table aocsindexscantab (i int4, j int4) with (appendonly=true, orientation=column, compresstype=zstd);
@@ -103,3 +125,11 @@ explain (costs off) select j from aocsindexscantab order by j limit 15;
 -- pessimistic towards IndexScans when the table is compressed, which is why the
 -- predicate is 10x lower here as compared to the uncompressed case).
 explain (costs off) select * from aocsindexscantab where i < 100000;
+
+-- When gp_enable_ao_indexscan is off, we should not pick an Index Scan.
+-- When gp_enable_ao_indexscan is off, we should not pick an Index Scan. But
+-- IndexOnly Scans continue to be picked.
+set gp_enable_ao_indexscan to off;
+explain (costs off) select i, j from aocsindexscantab where i = 90;
+explain (costs off) select i from aocsindexscantab where i = 90;
+reset gp_enable_ao_indexscan;

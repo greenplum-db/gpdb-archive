@@ -82,6 +82,30 @@ explain (costs off) select j from aoindexscantab_uncomp order by j limit 15;
  Optimizer: Postgres-based planner
 (6 rows)
 
+-- When gp_enable_ao_indexscan is off, we should not pick an Index Scan. But
+-- IndexOnly Scans continue to be picked.
+set gp_enable_ao_indexscan to off;
+explain (costs off) select i, j from aoindexscantab_uncomp where i = 90;
+                          QUERY PLAN                          
+--------------------------------------------------------------
+ Gather Motion 1:1  (slice1; segments: 1)
+   ->  Bitmap Heap Scan on aoindexscantab_uncomp
+         Recheck Cond: (i = 90)
+         ->  Bitmap Index Scan on aoindexscantab_uncomp_i_idx
+               Index Cond: (i = 90)
+ Optimizer: Postgres-based planner
+(6 rows)
+
+explain (costs off) select i from aoindexscantab_uncomp where i = 90;
+                                    QUERY PLAN                                    
+----------------------------------------------------------------------------------
+ Gather Motion 1:1  (slice1; segments: 1)
+   ->  Index Only Scan using aoindexscantab_uncomp_i_idx on aoindexscantab_uncomp
+         Index Cond: (i = 90)
+ Optimizer: Postgres-based planner
+(4 rows)
+
+reset gp_enable_ao_indexscan;
 -- Create a compressed test ao_row table
 create table aoindexscantab (i int4, j int4) with (appendonly=true, compresstype=zstd);
 NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'i' as the Greenplum Database data distribution key for this table.
@@ -164,6 +188,30 @@ explain (costs off) select j from aoindexscantab order by j limit 15;
  Optimizer: Postgres-based planner
 (6 rows)
 
+-- When gp_enable_ao_indexscan is off, we should not pick an Index Scan. But
+-- IndexOnly Scans continue to be picked.
+set gp_enable_ao_indexscan to off;
+explain (costs off) select i, j from aoindexscantab where i = 90;
+                      QUERY PLAN                       
+-------------------------------------------------------
+ Gather Motion 1:1  (slice1; segments: 1)
+   ->  Bitmap Heap Scan on aoindexscantab
+         Recheck Cond: (i = 90)
+         ->  Bitmap Index Scan on aoindexscantab_i_idx
+               Index Cond: (i = 90)
+ Optimizer: Postgres-based planner
+(6 rows)
+
+explain (costs off) select i from aoindexscantab where i = 90;
+                             QUERY PLAN                             
+--------------------------------------------------------------------
+ Gather Motion 1:1  (slice1; segments: 1)
+   ->  Index Only Scan using aoindexscantab_i_idx on aoindexscantab
+         Index Cond: (i = 90)
+ Optimizer: Postgres-based planner
+(4 rows)
+
+reset gp_enable_ao_indexscan;
 -- Create an uncompressed test ao_column table
 create table aocsindexscantab_uncomp (i int4, j int4) using ao_column;
 NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'i' as the Greenplum Database data distribution key for this table.
@@ -244,6 +292,31 @@ explain (costs off) select j from aocsindexscantab_uncomp order by j limit 15;
  Optimizer: Postgres-based planner
 (6 rows)
 
+-- When gp_enable_ao_indexscan is off, we should not pick an Index Scan.
+-- When gp_enable_ao_indexscan is off, we should not pick an Index Scan. But
+-- IndexOnly Scans continue to be picked.
+set gp_enable_ao_indexscan to off;
+explain (costs off) select i, j from aocsindexscantab_uncomp where i = 90;
+                           QUERY PLAN                           
+----------------------------------------------------------------
+ Gather Motion 1:1  (slice1; segments: 1)
+   ->  Bitmap Heap Scan on aocsindexscantab_uncomp
+         Recheck Cond: (i = 90)
+         ->  Bitmap Index Scan on aocsindexscantab_uncomp_i_idx
+               Index Cond: (i = 90)
+ Optimizer: Postgres-based planner
+(6 rows)
+
+explain (costs off) select i from aocsindexscantab_uncomp where i = 90;
+                                      QUERY PLAN                                      
+--------------------------------------------------------------------------------------
+ Gather Motion 1:1  (slice1; segments: 1)
+   ->  Index Only Scan using aocsindexscantab_uncomp_i_idx on aocsindexscantab_uncomp
+         Index Cond: (i = 90)
+ Optimizer: Postgres-based planner
+(4 rows)
+
+reset gp_enable_ao_indexscan;
 -- Create a compressed test ao_column table
 create table aocsindexscantab (i int4, j int4) with (appendonly=true, orientation=column, compresstype=zstd);
 NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'i' as the Greenplum Database data distribution key for this table.
@@ -326,3 +399,28 @@ explain (costs off) select * from aocsindexscantab where i < 100000;
  Optimizer: Postgres-based planner
 (6 rows)
 
+-- When gp_enable_ao_indexscan is off, we should not pick an Index Scan.
+-- When gp_enable_ao_indexscan is off, we should not pick an Index Scan. But
+-- IndexOnly Scans continue to be picked.
+set gp_enable_ao_indexscan to off;
+explain (costs off) select i, j from aocsindexscantab where i = 90;
+                       QUERY PLAN                        
+---------------------------------------------------------
+ Gather Motion 1:1  (slice1; segments: 1)
+   ->  Bitmap Heap Scan on aocsindexscantab
+         Recheck Cond: (i = 90)
+         ->  Bitmap Index Scan on aocsindexscantab_i_idx
+               Index Cond: (i = 90)
+ Optimizer: Postgres-based planner
+(6 rows)
+
+explain (costs off) select i from aocsindexscantab where i = 90;
+                               QUERY PLAN                               
+------------------------------------------------------------------------
+ Gather Motion 1:1  (slice1; segments: 1)
+   ->  Index Only Scan using aocsindexscantab_i_idx on aocsindexscantab
+         Index Cond: (i = 90)
+ Optimizer: Postgres-based planner
+(4 rows)
+
+reset gp_enable_ao_indexscan;
