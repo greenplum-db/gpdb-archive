@@ -820,7 +820,6 @@ typedef struct TableAmRoutine
 											 MultiXactId *multi_cutoff,
 											 TransactionId OldestXmin,
 											 double *num_tuples);
-									 
 } TableAmRoutine;
 
 
