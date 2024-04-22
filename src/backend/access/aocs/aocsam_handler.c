@@ -750,10 +750,39 @@ aoco_index_fetch_begin(Relation rel)
 	IndexFetchAOCOData *aocoscan = palloc0(sizeof(IndexFetchAOCOData));
 
 	aocoscan->xs_base.rel = rel;
-
+	/* allocate proj array, will be initialized later */
+	aocoscan->proj = palloc0(RelationGetNumberOfAttributes(rel));
 	/* aocoscan other variables are initialized lazily on first fetch */
 
 	return &aocoscan->xs_base;
+}
+
+/*
+ * Set up column projection information in the fetch data structure, to be
+ * utilized during fetches. This information will be passed down lazily to
+ * aocs_fetch_init() on first tuple fetch.
+ */
+static void
+aoco_index_fetch_set_projection(IndexFetchTableData *scan,
+								List *targetlist, List *qual)
+{
+	IndexFetchAOCOData	*aocoscan = (IndexFetchAOCOData	*) scan;
+	Relation 			rel = scan->rel;
+	AttrNumber			natts = RelationGetNumberOfAttributes(rel);
+	bool				found = false;
+
+	/* projection array was already allocated */
+	Assert(aocoscan->proj);
+
+	found |= extractcolumns_from_node((Node *) targetlist, aocoscan->proj, natts);
+	found |= extractcolumns_from_node((Node *) qual, aocoscan->proj, natts);
+	/*
+	 * In some cases (for example, count(*)), targetlist and qual may be null,
+	 * extractcolumns_walker will return immediately, so no columns are specified.
+	 * We always scan the first column.
+	 */
+	if (!found && natts > 0)
+		aocoscan->proj[0] = true;
 }
 
 static void
@@ -811,13 +840,8 @@ aoco_index_fetch_tuple(struct IndexFetchTableData *scan,
 	if (!aocoscan->aocofetch)
 	{
 		Snapshot	appendOnlyMetaDataSnapshot;
-		int			natts;
 
-		/* Initiallize the projection info, assumes the whole row */
-		Assert(!aocoscan->proj);
-		natts = RelationGetNumberOfAttributes(scan->rel);
-		aocoscan->proj = palloc(natts * sizeof(*aocoscan->proj));
-		MemSet(aocoscan->proj, true, natts * sizeof(*aocoscan->proj));
+		Assert(aocoscan->proj);
 
 		appendOnlyMetaDataSnapshot = snapshot;
 		if (appendOnlyMetaDataSnapshot == SnapshotAny)
@@ -2780,6 +2804,7 @@ static const TableAmRoutine ao_column_methods = {
 	.parallelscan_reinitialize = aoco_parallelscan_reinitialize,
 
 	.index_fetch_begin = aoco_index_fetch_begin,
+	.index_fetch_set_projection = aoco_index_fetch_set_projection,
 	.index_fetch_reset = aoco_index_fetch_reset,
 	.index_fetch_end = aoco_index_fetch_end,
 	.index_fetch_tuple = aoco_index_fetch_tuple,

@@ -1432,13 +1432,15 @@ SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'reset', d
 
 -- Test for COUNT(*) : should pick the smallest column to scan
 CREATE TABLE count_proj(a INT, b BIGINT, c INT2) USING AO_COLUMN;
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
 INSERT INTO count_proj SELECT i,i,i%32768 FROM generate_series(1,1000000) i;
 -- Check block count for scanning individual columns and count(*).
 -- The count(*) should be the same as the smallest column.
 SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'skip', '', '', '', 1, -1, 0, dbid)
   FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
  gp_inject_fault 
-------------
+-----------------
  Success:
 (1 row)
 
@@ -1459,14 +1461,14 @@ SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'status', 
 SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'reset', dbid)
     FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
  gp_inject_fault 
-------------
+-----------------
  Success:
 (1 row)
 
 SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'skip', '', '', '', 1, -1, 0, dbid)
   FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
  gp_inject_fault 
-------------
+-----------------
  Success:
 (1 row)
 
@@ -1487,14 +1489,14 @@ SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'status', 
 SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'reset', dbid)
     FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
  gp_inject_fault 
-------------
+-----------------
  Success:
 (1 row)
 
 SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'skip', '', '', '', 1, -1, 0, dbid)
   FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
  gp_inject_fault 
-------------
+-----------------
  Success:
 (1 row)
 
@@ -1507,7 +1509,7 @@ SELECT count(c) FROM count_proj;
 SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'status', dbid)
     FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
                                                                                                                   gp_inject_fault                                                                                                                  
-------------
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
  Success: fault name:'AppendOnlyStorageRead_ReadNextBlock_success' fault type:'skip' ddl statement:'' database name:'' table name:'' start occurrence:'1' end occurrence:'-1' extra arg:'0' fault injection state:'triggered'  num times hit:'21' +
  
 (1 row)
@@ -1515,14 +1517,14 @@ SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'status', 
 SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'reset', dbid)
     FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
  gp_inject_fault 
-------------
+-----------------
  Success:
 (1 row)
 
 SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'skip', '', '', '', 1, -1, 0, dbid)
   FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
  gp_inject_fault 
-------------
+-----------------
  Success:
 (1 row)
 
@@ -1563,13 +1565,15 @@ SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'skip', ''
 (1 row)
 
 EXPLAIN (COSTS OFF) SELECT * FROM aoco_idx_proj WHERE j = 1;
-                         QUERY PLAN                          
--------------------------------------------------------------
+                      QUERY PLAN                      
+------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
-   ->  Index Scan using aoco_idx_proj_j_idx on aoco_idx_proj
-         Index Cond: (j = 1)
- Optimizer: Postgres-based planner
-(4 rows)
+   ->  Bitmap Heap Scan on aoco_idx_proj
+         Recheck Cond: (j = 1)
+         ->  Bitmap Index Scan on aoco_idx_proj_j_idx
+               Index Cond: (j = 1)
+ Optimizer: GPORCA
+(6 rows)
 
 SELECT * FROM aoco_idx_proj WHERE j = 1;
  i | j | k | l | m 
@@ -1603,13 +1607,16 @@ SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'skip', ''
 (1 row)
 
 EXPLAIN (COSTS OFF) SELECT k FROM aoco_idx_proj WHERE j = 1;
-                         QUERY PLAN                          
--------------------------------------------------------------
- Gather Motion 3:1  (slice1; segments: 3)
-   ->  Index Scan using aoco_idx_proj_j_idx on aoco_idx_proj
-         Index Cond: (j = 1)
- Optimizer: Postgres-based planner
-(4 rows)
+                         QUERY PLAN                         
+------------------------------------------------------------
+ Result
+   ->  Gather Motion 3:1  (slice1; segments: 3)
+         ->  Bitmap Heap Scan on aoco_idx_proj
+               Recheck Cond: (j = 1)
+               ->  Bitmap Index Scan on aoco_idx_proj_j_idx
+                     Index Cond: (j = 1)
+ Optimizer: GPORCA
+(7 rows)
 
 SELECT k FROM aoco_idx_proj WHERE j = 1;
  k 
@@ -1621,7 +1628,7 @@ SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'status', 
     FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
                                                                                                                  gp_inject_fault                                                                                                                  
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- Success: fault name:'AppendOnlyStorageRead_ReadNextBlock_success' fault type:'skip' ddl statement:'' database name:'' table name:'' start occurrence:'1' end occurrence:'-1' extra arg:'0' fault injection state:'triggered'  num times hit:'1' +
+ Success: fault name:'AppendOnlyStorageRead_ReadNextBlock_success' fault type:'skip' ddl statement:'' database name:'' table name:'' start occurrence:'1' end occurrence:'-1' extra arg:'0' fault injection state:'triggered'  num times hit:'2' +
  
 (1 row)
 
@@ -1642,15 +1649,18 @@ SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'skip', ''
 (1 row)
 
 EXPLAIN (COSTS OFF) SELECT i FROM aoco_idx_proj ORDER BY j LIMIT 1;
-                               QUERY PLAN                                
--------------------------------------------------------------------------
- Limit
-   ->  Gather Motion 3:1  (slice1; segments: 3)
-         Merge Key: j
-         ->  Limit
-               ->  Index Scan using aoco_idx_proj_j_idx on aoco_idx_proj
- Optimizer: Postgres-based planner
-(6 rows)
+                       QUERY PLAN                        
+---------------------------------------------------------
+ Result
+   ->  Limit
+         ->  Gather Motion 3:1  (slice1; segments: 3)
+               Merge Key: j
+               ->  Limit
+                     ->  Sort
+                           Sort Key: j
+                           ->  Seq Scan on aoco_idx_proj
+ Optimizer: GPORCA
+(9 rows)
 
 SELECT i FROM aoco_idx_proj ORDER BY j LIMIT 1;
  i 
@@ -1660,9 +1670,9 @@ SELECT i FROM aoco_idx_proj ORDER BY j LIMIT 1;
 
 SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'status', dbid)
     FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
-                                                                                                                 gp_inject_fault                                                                                                                  
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- Success: fault name:'AppendOnlyStorageRead_ReadNextBlock_success' fault type:'skip' ddl statement:'' database name:'' table name:'' start occurrence:'1' end occurrence:'-1' extra arg:'0' fault injection state:'triggered'  num times hit:'2' +
+                                                                                                                   gp_inject_fault                                                                                                                   
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Success: fault name:'AppendOnlyStorageRead_ReadNextBlock_success' fault type:'skip' ddl statement:'' database name:'' table name:'' start occurrence:'1' end occurrence:'-1' extra arg:'0' fault injection state:'triggered'  num times hit:'2446' +
  
 (1 row)
 
@@ -1683,14 +1693,17 @@ SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'skip', ''
 (1 row)
 
 EXPLAIN (COSTS OFF) SELECT i FROM aoco_idx_proj WHERE j = 1 AND m = 4;
-                         QUERY PLAN                          
--------------------------------------------------------------
- Gather Motion 3:1  (slice1; segments: 3)
-   ->  Index Scan using aoco_idx_proj_j_idx on aoco_idx_proj
-         Index Cond: (j = 1)
-         Filter: (m = 4)
- Optimizer: Postgres-based planner
-(5 rows)
+                         QUERY PLAN                         
+------------------------------------------------------------
+ Result
+   ->  Gather Motion 3:1  (slice1; segments: 3)
+         ->  Bitmap Heap Scan on aoco_idx_proj
+               Recheck Cond: (j = 1)
+               Filter: (m = 4)
+               ->  Bitmap Index Scan on aoco_idx_proj_j_idx
+                     Index Cond: (j = 1)
+ Optimizer: GPORCA
+(8 rows)
 
 SELECT i FROM aoco_idx_proj WHERE j = 1 AND m = 4;
  i 
@@ -1702,7 +1715,7 @@ SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'status', 
     FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
                                                                                                                  gp_inject_fault                                                                                                                  
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
- Success: fault name:'AppendOnlyStorageRead_ReadNextBlock_success' fault type:'skip' ddl statement:'' database name:'' table name:'' start occurrence:'1' end occurrence:'-1' extra arg:'0' fault injection state:'triggered'  num times hit:'2' +
+ Success: fault name:'AppendOnlyStorageRead_ReadNextBlock_success' fault type:'skip' ddl statement:'' database name:'' table name:'' start occurrence:'1' end occurrence:'-1' extra arg:'0' fault injection state:'triggered'  num times hit:'3' +
  
 (1 row)
 

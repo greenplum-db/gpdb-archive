@@ -23,7 +23,7 @@
 #include "utils/guc.h"
 #include "utils/rel.h"
 #include "utils/snapshot.h"
-
+#include "genam.h"
 
 #define DEFAULT_TABLE_ACCESS_METHOD	"heap"
 
@@ -820,6 +820,13 @@ typedef struct TableAmRoutine
 											 MultiXactId *multi_cutoff,
 											 TransactionId OldestXmin,
 											 double *num_tuples);
+
+	/*
+	 * GPDB: Setup column projection information, to be utilized to scan only a
+	 * subset of columns from the base table during an index scan.
+	 */
+	void		(*index_fetch_set_projection) (IndexFetchTableData *scan,
+											   List *targetlist, List *qual);
 } TableAmRoutine;
 
 
@@ -1111,6 +1118,21 @@ static inline IndexFetchTableData *
 table_index_fetch_begin(Relation rel)
 {
 	return rel->rd_tableam->index_fetch_begin(rel);
+}
+
+/*
+ * GPDB: Allow projection-aware table access methods to set up column projection
+ * information in the fetch descriptor 'scan', to be used during an Index Scan.
+ */
+static inline void
+table_index_fetch_set_projection(IndexFetchTableData *scan,
+								 List *targetlist, List *qual)
+{
+	Relation	rel;
+
+	rel = scan->rel;
+	if (rel->rd_tableam->index_fetch_set_projection)
+		rel->rd_tableam->index_fetch_set_projection(scan, targetlist, qual);
 }
 
 /*

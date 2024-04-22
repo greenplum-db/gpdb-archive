@@ -2753,6 +2753,7 @@ static const TableAmRoutine heapam_methods = {
 	.dml_finish = heap_dml_finish,
 
 	.index_fetch_begin = heapam_index_fetch_begin,
+	.index_fetch_set_projection = NULL,
 	.index_fetch_reset = heapam_index_fetch_reset,
 	.index_fetch_end = heapam_index_fetch_end,
 	.index_fetch_tuple = heapam_index_fetch_tuple,

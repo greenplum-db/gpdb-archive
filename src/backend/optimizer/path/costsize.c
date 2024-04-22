@@ -967,7 +967,7 @@ cost_index(IndexPath *path, PlannerInfo *root, double loop_count,
 	{
 		Cost min_decompress_cost;
 		Cost max_decompress_cost;
-		Cost decompression_coeff = get_ao_decompress_coefficient(baserel_orig, false);
+		Cost decompression_coeff = get_ao_decompress_coefficient(baserel_orig);
 
 		/* due to high clustering, we don't have repeated decompressions */
 		min_decompress_cost = decompression_coeff *
@@ -1303,7 +1303,7 @@ cost_bitmap_heap_scan(Path *path, PlannerInfo *root, RelOptInfo *baserel_orig,
 		Cost 	decompression_coeff;
 
 		num_varblocks = ao_estimate_num_varblocks(baserel, root);
-		decompression_coeff = get_ao_decompress_coefficient(baserel_orig, true);
+		decompression_coeff = get_ao_decompress_coefficient(baserel_orig);
 		decompress_cost = decompression_coeff *
 			ceil((tuples_fetched / baserel->tuples) * num_varblocks * loop_count);
 		cpu_run_cost += decompress_cost;

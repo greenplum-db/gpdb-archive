@@ -2424,6 +2424,7 @@ static const TableAmRoutine ao_row_methods = {
 	.parallelscan_reinitialize = appendonly_parallelscan_reinitialize,
 
 	.index_fetch_begin = appendonly_index_fetch_begin,
+	.index_fetch_set_projection = NULL,
 	.index_fetch_reset = appendonly_index_fetch_reset,
 	.index_fetch_end = appendonly_index_fetch_end,
 	.index_fetch_tuple = appendonly_index_fetch_tuple,

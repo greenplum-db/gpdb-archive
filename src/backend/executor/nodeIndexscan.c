@@ -115,6 +115,13 @@ IndexNext(IndexScanState *node)
 								   estate->es_snapshot,
 								   node->iss_NumScanKeys,
 								   node->iss_NumOrderByKeys);
+		/*
+		 * GPDB: Allow the table AM a chance to set up column projection
+		 * information.
+		 */
+		table_index_fetch_set_projection(scandesc->xs_heapfetch,
+										 node->ss.ps.plan->targetlist,
+										 node->ss.ps.plan->qual);
 
 		node->iss_ScanDesc = scandesc;
 
@@ -210,6 +217,13 @@ IndexNextWithReorder(IndexScanState *node)
 								   estate->es_snapshot,
 								   node->iss_NumScanKeys,
 								   node->iss_NumOrderByKeys);
+		/*
+		 * GPDB: Allow the table AM a chance to set up column projection
+		 * information.
+		 */
+		table_index_fetch_set_projection(scandesc->xs_heapfetch,
+										 node->ss.ps.plan->targetlist,
+										 node->ss.ps.plan->qual);
 
 		node->iss_ScanDesc = scandesc;
 

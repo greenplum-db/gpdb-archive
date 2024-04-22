@@ -885,3 +885,65 @@ SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'status', 
     FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
 SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'reset', dbid)
     FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
+
+-- Tests to validate column projection for regular Index Scan
+CREATE TABLE aoco_idx_proj(i int, j int, k int, l int, m int) USING ao_column;
+INSERT INTO aoco_idx_proj SELECT 1, a, a*2, a*3, a*4 FROM generate_series(1, 10000000) a;
+CREATE INDEX ON aoco_idx_proj(j);
+ANALYZE aoco_idx_proj;
+
+-- Reads all columns from the table
+SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'skip', '', '', '', 1, -1, 0, dbid)
+    FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
+
+EXPLAIN (COSTS OFF) SELECT * FROM aoco_idx_proj WHERE j = 1;
+SELECT * FROM aoco_idx_proj WHERE j = 1;
+
+SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'status', dbid)
+    FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
+
+SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'reset', dbid)
+    FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
+
+-- Reads only k from the table (even though j is specified in the quals, it is
+-- redundant to read it again from the table, as it is already obtained from the
+-- index)
+SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'skip', '', '', '', 1, -1, 0, dbid)
+    FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
+
+EXPLAIN (COSTS OFF) SELECT k FROM aoco_idx_proj WHERE j = 1;
+SELECT k FROM aoco_idx_proj WHERE j = 1;
+
+SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'status', dbid)
+    FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
+
+SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'reset', dbid)
+    FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
+
+-- Reads only i and j from the table, both of which are part of the effective
+-- target list here (yes even j is in the target list here).
+SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'skip', '', '', '', 1, -1, 0, dbid)
+    FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
+
+EXPLAIN (COSTS OFF) SELECT i FROM aoco_idx_proj ORDER BY j LIMIT 1;
+SELECT i FROM aoco_idx_proj ORDER BY j LIMIT 1;
+
+SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'status', dbid)
+    FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
+
+SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'reset', dbid)
+    FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
+
+-- Reads only i and m from the table (i and j from the target list, m from the
+-- qual; reading j is redundant from the same reasons)
+SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'skip', '', '', '', 1, -1, 0, dbid)
+    FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
+
+EXPLAIN (COSTS OFF) SELECT i FROM aoco_idx_proj WHERE j = 1 AND m = 4;
+SELECT i FROM aoco_idx_proj WHERE j = 1 AND m = 4;
+
+SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'status', dbid)
+    FROM gp_segment_configuration WHERE content = 1 AND role = 'p';
+
+SELECT gp_inject_fault('AppendOnlyStorageRead_ReadNextBlock_success', 'reset', dbid)
+    FROM gp_segment_configuration WHERE content = 1 AND role = 'p';

@@ -2801,16 +2801,12 @@ set_ao_storage_info(Relation relation, RelOptInfo *rel)
  *
  * XXX: We can penalize higher compression levels more.
  *
- * XXX: For index scans on CO tables, we currently don't support column
- * projection pushdown. Once it becomes available, we can get rid of the extra
- * proj_pushdown parameter.
- *
  * XXX: For CO tables, we could take into account column projection information,
  * instead of estimating (once we make it available for planner).
  */
 
 Cost
-get_ao_decompress_coefficient(RelOptInfo *rel, bool proj_pushdown)
+get_ao_decompress_coefficient(RelOptInfo *rel)
 {
 	AOStorageInfo	*ao_storage_info = rel->ao_storage_info;
 	Cost 			coefficient = 0.0;
@@ -2869,10 +2865,7 @@ get_ao_decompress_coefficient(RelOptInfo *rel, bool proj_pushdown)
 		 * XXX: For now consider that we project 1/3rd of the columns, until
 		 * we can access column projection information here.
 		 */
-		if (proj_pushdown)
-			cols_proj_est = ceil(rel->max_attr * 0.33);
-		else
-			cols_proj_est = 1.0;
+		cols_proj_est = ceil(rel->max_attr * 0.33);
 		coefficient = coefficient * cols_proj_est / rel->max_attr;
 	}
 
