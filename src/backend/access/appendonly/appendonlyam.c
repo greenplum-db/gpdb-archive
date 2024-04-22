@@ -1320,7 +1320,15 @@ appendonly_getblock(AppendOnlyScanDesc scan, int64 targrow, int64 *startrow)
 			/* continue next block */
 		}
 		else
-			pg_unreachable(); /* unreachable code */
+			/*
+			 * Fatal and raise message for unexpected code path here.
+			 * We didn't use PANIC as having a read-only backend crash
+			 * the whole instance is a little overkill.
+			 */
+			ereport(FATAL,
+					(errcode(ERRCODE_INTERNAL_ERROR),
+					 errmsg("Unexpected result was returned when getting AO block info for table '%s', targrow %ld",
+							AppendOnlyStorageRead_RelationName(&scan->storageRead), targrow)));
 	}
 }
 
