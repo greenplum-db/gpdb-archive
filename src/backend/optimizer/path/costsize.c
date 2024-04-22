@@ -712,9 +712,6 @@ cost_index(IndexPath *path, PlannerInfo *root, double loop_count,
 	
 	/* 
 	 * GPDB: see appendonly_estimate_rel_size()/aoco_estimate_rel_size()
-	 *
-	 * FIXME: cost model may need to adapt to AO/CO auxiliary tables (such
-	 * like aoblkdir and aovisimap) lookups during index-only scan.
 	 */
 	AssertImply(IsAccessMethodAO(baserel_orig->relam), baserel->allvisfrac == 1);
 
