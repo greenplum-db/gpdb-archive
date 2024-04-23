@@ -562,6 +562,7 @@
 		"wal_recycle",
 		"wal_retrieve_retry_interval",
 		"wal_segment_size",
+		"wal_sender_archiving_status_interval",
 		"wal_sync_method",
 		"wal_writer_delay",
 		"wal_writer_flush_after",

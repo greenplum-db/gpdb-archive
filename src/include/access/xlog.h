@@ -192,6 +192,9 @@ extern PGDLLIMPORT int wal_level;
 #define XLogArchivingAlways() \
 	(AssertMacro(XLogArchiveMode == ARCHIVE_MODE_OFF || wal_level >= WAL_LEVEL_REPLICA), XLogArchiveMode == ARCHIVE_MODE_ALWAYS)
 #define XLogArchiveCommandSet() (XLogArchiveCommand[0] != '\0')
+/* Is WAL archiving status streaming enabled? */
+#define XLogArchivingStatusReportingActive() \
+	(XLogArchivingActive() && wal_sender_archiving_status_interval > 0)
 
 /*
  * Is WAL-logging necessary for archival or log-shipping, or can we skip

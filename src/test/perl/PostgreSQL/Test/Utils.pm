@@ -84,6 +84,7 @@ our @EXPORT = qw(
   command_like_safe
   command_fails_like
   command_checks_all
+  wait_until_file_exists
 
   $windows_os
 );
@@ -745,6 +746,14 @@ sub command_checks_all
 	}
 
 	return;
+}
+
+sub wait_until_file_exists
+{
+	my ($node, $filepath, $filedesc) = @_;
+	my $query = "SELECT size IS NOT NULL FROM pg_stat_file('$filepath')";
+	$node->poll_query_until('postgres', $query)
+		or die "Timed out while waiting for $filedesc $filepath";
 }
 
 1;

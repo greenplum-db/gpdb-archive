@@ -1452,6 +1452,8 @@ extern void pgstat_report_queuestat(void); /* GPDB */
 
 extern void pgstat_drop_database(Oid databaseid);
 
+extern void pgstat_request_update(TimestampTz cur_ts, TimestampTz min_ts);
+extern void pgstat_use_stale_snapshot(void);
 extern void pgstat_clear_snapshot(void);
 extern void pgstat_reset_counters(void);
 extern void pgstat_reset_shared_counters(const char *);

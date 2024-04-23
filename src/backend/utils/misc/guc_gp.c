@@ -456,6 +456,9 @@ double		optimizer_jit_optimize_above_cost;
 /* Switch to toggle block-directory based sampling for AO/CO tables */
 bool		gp_enable_blkdir_sampling;
 
+/* GUC to set interval for streaming archival status */
+int wal_sender_archiving_status_interval;
+
 static const struct config_enum_entry gp_log_format_options[] = {
 	{"text", 0},
 	{"csv", 1},
@@ -4402,6 +4405,16 @@ struct config_int ConfigureNamesInt_gp[] =
 		},
 		&gp_max_parallel_cursors,
 		-1, -1, 1024,
+		NULL, NULL, NULL
+	},
+
+	{
+		{"wal_sender_archiving_status_interval", PGC_SIGHUP, REPLICATION_SENDING,
+			gettext_noop("Sets the maximum interval for streaming archival status to standby"),
+			NULL, GUC_UNIT_MS
+		},
+		&wal_sender_archiving_status_interval,
+		10000, 0, INT_MAX,
 		NULL, NULL, NULL
 	},
 

@@ -2770,6 +2770,47 @@ pgstat_fetch_slru(void)
 	return slruStats;
 }
 
+/*
+ * ---------
+ * pgstat_use_stale_snapshot() -
+ *
+ * Take a "snapshot" of the current stats into backend-private memory.
+ * pgstat_fetch_*() functions can then be used to interrogate the stats.
+ *
+ * The first call pgstat_fetch_*() in a transaction will take a snapshot
+ * implicitly, so this is normally not required. But this can be used if
+ * you don't want to wait for fresh stats, like pgstat_fetch_*() functions will
+ * ---------
+ */
+void
+pgstat_use_stale_snapshot(void)
+{
+	pgstat_clear_snapshot();
+
+	/* For all the current callers, shallow stats are enough.
+	 *
+	 * XXX: There is no way to request global stats only; we'll get stats
+	 * for all databases.
+	 */
+	pgStatDBHash = pgstat_read_statsfiles(InvalidOid, false, false);
+}
+
+/*
+ * ---------
+ * pgstat_request_update() -
+ *
+ * Ask the stats collector to refresh the stats file. Normally,
+ * pgstat_fetch_*() will do this automatically, but this can be used together
+ * with pgstat_take_snapshot() to wait for poll for updated stats
+ * asynchronously.
+ * ---------
+ */
+void
+pgstat_request_update(TimestampTz cur_ts, TimestampTz min_ts)
+{
+	pgstat_send_inquiry(cur_ts, min_ts, InvalidOid);
+}
+
 
 /* ------------------------------------------------------------
  * Functions for management of the shared-memory PgBackendStatus array

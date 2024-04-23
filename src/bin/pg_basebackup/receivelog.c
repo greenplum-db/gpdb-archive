@@ -846,6 +846,10 @@ HandleCopyStream(PGconn *conn, StreamCtl *stream,
 				if (!CheckCopyStreamStop(conn, stream, blockpos, stoppos))
 					goto error;
 			}
+			else if (copybuf[0] == 'a')
+			{
+				/* GPDB: Skip archive report message. */
+			}
 			else
 			{
 				pg_log_error("unrecognized streaming header: \"%c\"",

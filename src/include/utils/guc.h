@@ -377,6 +377,8 @@ extern bool execute_pruned_plan;
 extern int gp_max_partition_level;
 extern bool gp_enable_relsize_collection;
 
+extern int wal_sender_archiving_status_interval;
+
 /* Debug DTM Action */
 typedef enum
 {

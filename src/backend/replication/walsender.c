@@ -111,6 +111,13 @@
  */
 #define MAX_SEND_SIZE (XLOG_BLCKSZ * 16)
 
+/*
+ * After requesting the stats collector for fresh stats, we poll
+ * for the result this often.
+ * A new request is sent after each poll.
+ */
+#define ARCHIVAL_REQUEST_INTERVAL 1000
+
 /* Array of WalSnds in shared memory */
 WalSndCtlData *WalSndCtl = NULL;
 
@@ -210,6 +217,19 @@ static volatile sig_atomic_t replication_active = false;
 static LogicalDecodingContext *logical_decoding_ctx = NULL;
 static XLogRecPtr logical_startptr = InvalidXLogRecPtr;
 
+/*
+ * Last file archived. This is updated from pgstats, last update was at
+ * last_archival_report_timestamp.
+ */
+static char last_archived_file[MAX_XFN_CHARS + 1] = "";
+static TimestampTz last_archival_report_timestamp = 0;
+
+/*
+ * Have we requested fresh stats from the stats collector? And when?
+ */
+static bool	archival_status_requested = false;
+static TimestampTz last_archival_request_timestamp = 0;
+
 /* A sample associating a WAL location with the time it was written. */
 typedef struct
 {
@@ -258,6 +278,8 @@ static void ProcessPendingWrites(void);
 static const char *WalSndGetStateString(WalSndState state);
 static void WalSndKeepalive(bool requestReply);
 static void WalSndKeepaliveIfNecessary(void);
+static void WalSndArchivalReport(void);
+static void WalSndArchivalReportIfNecessary(TimestampTz now);
 static void WalSndCheckTimeOut(void);
 static long WalSndComputeSleeptime(TimestampTz now);
 static void WalSndPrepareWrite(LogicalDecodingContext *ctx, XLogRecPtr lsn, TransactionId xid, bool last_write);
@@ -2169,35 +2191,60 @@ ProcessStandbyHSFeedbackMessage(void)
  * If wal_sender_timeout is enabled we want to wake up in time to send
  * keepalives and to abort the connection if wal_sender_timeout has been
  * reached.
+ *
+ * GPDB: If WAL archiving and WAL archiving status streaming are enabled, we
+ * also want to wake up in time to send the archival report.
  */
 static long
 WalSndComputeSleeptime(TimestampTz now)
 {
-	long		sleeptime = 10000;	/* 10 s */
+	long		sleeptime;
+	TimestampTz wakeup_time;
+	TimestampTz w;
+
+	wakeup_time = TimestampTzPlusMilliseconds(now, 10000);
 
 	if (wal_sender_timeout > 0 && last_reply_timestamp > 0)
 	{
-		TimestampTz wakeup_time;
-
 		/*
 		 * At the latest stop sleeping once wal_sender_timeout has been
 		 * reached.
-		 */
-		wakeup_time = TimestampTzPlusMilliseconds(last_reply_timestamp,
-												  wal_sender_timeout);
-
-		/*
+		 *
 		 * If no ping has been sent yet, wakeup when it's time to do so.
 		 * WalSndKeepaliveIfNecessary() wants to send a keepalive once half of
 		 * the timeout passed without a response.
 		 */
-		if (!waiting_for_ping_response)
-			wakeup_time = TimestampTzPlusMilliseconds(last_reply_timestamp,
-													  wal_sender_timeout / 2);
+		if (waiting_for_ping_response)
+			w = TimestampTzPlusMilliseconds(last_reply_timestamp,
+											wal_sender_timeout);
+		else
+			w = TimestampTzPlusMilliseconds(last_reply_timestamp,
+											wal_sender_timeout / 2);
 
-		/* Compute relative time until wakeup. */
-		sleeptime = TimestampDifferenceMilliseconds(now, wakeup_time);
+		if (w < wakeup_time)
+			wakeup_time = w;
 	}
+
+	if (XLogArchivingStatusReportingActive())
+	{
+		/*
+		 * If we requested an update from pgstat, poll every
+		 * ARCHIVE_REQUEST_INTERVAL for the result. Otherwise wait until it's
+		 * time to send a new report.
+		 */
+		if (archival_status_requested)
+			w = TimestampTzPlusMilliseconds(last_archival_request_timestamp,
+											ARCHIVAL_REQUEST_INTERVAL);
+		else
+			w = TimestampTzPlusMilliseconds(last_archival_report_timestamp,
+										wal_sender_archiving_status_interval);
+
+		if (w < wakeup_time)
+			wakeup_time = w;
+	}
+
+	/* Compute relative time until wakeup. */
+	sleeptime = TimestampDifferenceMilliseconds(now, wakeup_time);
 
 	return sleeptime;
 }
@@ -3819,6 +3866,12 @@ WalSndKeepaliveIfNecessary(void)
 	TimestampTz ping_time;
 
 	/*
+	 * Send an archival status message, if necessary.
+	 */
+	if (XLogArchivingStatusReportingActive())
+		WalSndArchivalReportIfNecessary(GetCurrentTimestamp());
+
+	/*
 	 * Don't send keepalive messages if timeouts are globally disabled or
 	 * we're doing something not partaking in timeouts.
 	 */
@@ -3842,6 +3895,88 @@ WalSndKeepaliveIfNecessary(void)
 		/* Try to flush pending output to the client */
 		if (pq_flush_if_writable() != 0)
 			WalSndShutdown();
+	}
+}
+
+/*
+ * This function is used to send archival report message to standby.
+ */
+static void
+WalSndArchivalReport(void)
+{
+	elog(LOG, "sending archival report: %s", last_archived_file);
+
+	/* construct the message... */
+	resetStringInfo(&output_message);
+	pq_sendbyte(&output_message, 'a');
+	pq_sendbytes(&output_message, last_archived_file, strlen(last_archived_file));
+
+	/* ... and send it wrapped in CopyData */
+	pq_putmessage_noblock('d', output_message.data, output_message.len);
+}
+
+/*
+ * This function sends an archival report message to the standby when
+ * wal_sender_archiving_status_interval has elapsed.
+ */
+static void
+WalSndArchivalReportIfNecessary(TimestampTz now)
+{
+	TimestampTz report_time;
+
+	/*
+	 * If we had already asked pgstat for an update, wait until it's had
+	 * some time to update the stats file before we retry.
+	 */
+	if (archival_status_requested)
+	{
+		TimestampTz next_retry;
+
+		next_retry =
+			TimestampTzPlusMilliseconds(last_archival_request_timestamp,
+											ARCHIVAL_REQUEST_INTERVAL);
+		if (now < next_retry)
+			return;
+	}
+
+	/*
+	 * If more than wal_sender_archiving_status_interval has elapsed since we got
+	 * the archival status from pgstat, poll.
+	 */
+	report_time = TimestampTzPlusMilliseconds(last_archival_report_timestamp,
+										wal_sender_archiving_status_interval);
+	if (now >= report_time)
+	{
+		PgStat_ArchiverStats *archiver_stats;
+		PgStat_GlobalStats *global_stats;
+		TimestampTz min_ts;
+
+		pgstat_use_stale_snapshot();
+		archiver_stats = pgstat_fetch_stat_archiver();
+		global_stats = pgstat_fetch_global();
+
+		last_archival_report_timestamp = global_stats->stats_timestamp;
+
+		if (strcmp(last_archived_file, archiver_stats->last_archived_wal) != 0)
+		{
+			strlcpy(last_archived_file, archiver_stats->last_archived_wal,
+											sizeof(last_archived_file));
+			WalSndArchivalReport();
+		}
+
+		/* If this wasn't fresh enough, request an update */
+		min_ts = TimestampTzPlusMilliseconds(now, -wal_sender_archiving_status_interval);
+		if (last_archival_report_timestamp > min_ts)
+			archival_status_requested = false;
+		else
+		{
+			/* Not fresh enough. Request an update */
+			pgstat_request_update(now, min_ts);
+			last_archival_request_timestamp = now;
+			archival_status_requested = true;
+		}
+
+		pgstat_clear_snapshot();
 	}
 }
 

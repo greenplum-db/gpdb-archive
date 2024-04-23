@@ -111,6 +111,9 @@ static struct
 	XLogRecPtr	Flush;			/* last byte + 1 flushed in the standby */
 }			LogstreamResult;
 
+/* Last archived WAL segment file obtained from the primary */
+static char primary_last_archived[MAX_XFN_CHARS + 1];
+
 static StringInfoData reply_message;
 static StringInfoData incoming_message;
 
@@ -125,6 +128,7 @@ static void XLogWalRcvClose(XLogRecPtr recptr);
 static void XLogWalRcvSendReply(bool force, bool requestReply);
 static void XLogWalRcvSendHSFeedback(bool immed);
 static void ProcessWalSndrMessage(XLogRecPtr walEnd, TimestampTz sendTime);
+static void ProcessArchivalReport(void);
 
 /* Signal handlers */
 static void WalRcvSigHupHandler(SIGNAL_ARGS);
@@ -595,13 +599,19 @@ WalReceiverMain(void)
 
 			/*
 			 * Create .done file forcibly to prevent the streamed segment from
-			 * being archived later.
+			 * being archived later unless ARCHIVE_MODE_ALWAYS is set.
+			 *
+			 * GPDB: The WAL archiving status reporting will be active if the GUC
+			 * wal_sender_archiving_status_interval is non-zero and archiving is
+			 * enabled. This will enable creation of .ready files instead of .done
+			 * The .ready files will be transitioned to .done files after receiving
+			 * WAL archiving status update messages from the primary segment.
 			 */
 			XLogFileName(xlogfname, recvFileTLI, recvSegNo, wal_segment_size);
-			if (XLogArchiveMode != ARCHIVE_MODE_ALWAYS)
-				XLogArchiveForceDone(xlogfname);
-			else
+			if (XLogArchiveMode == ARCHIVE_MODE_ALWAYS || XLogArchivingStatusReportingActive())
 				XLogArchiveNotify(xlogfname);
+			else
+				XLogArchiveForceDone(xlogfname);
 		}
 		recvFile = -1;
 
@@ -896,6 +906,26 @@ XLogWalRcvProcessMsg(unsigned char type, char *buf, Size len)
 					XLogWalRcvSendReply(true, false);
 				break;
 			}
+		case 'a':             /* Archival Report */
+			{
+				/* the content of the message is a filename */
+				if (len >= sizeof(primary_last_archived))
+					ereport(ERROR,
+							(errcode(ERRCODE_PROTOCOL_VIOLATION),
+							errmsg_internal("invalid archival report message with length %d",
+							(int) len)));
+				memcpy(primary_last_archived, buf, len);
+				primary_last_archived[len] = '\0';
+				if (strspn(buf, VALID_XFN_CHARS) != len)
+				{
+					primary_last_archived[0] = '\0';
+					ereport(ERROR,
+							(errcode(ERRCODE_PROTOCOL_VIOLATION),
+								errmsg_internal("unexpected character in primary's last archived filename")));
+				}
+				ProcessArchivalReport();
+				break;
+			}
 		default:
 			ereport(ERROR,
 					(errcode(ERRCODE_PROTOCOL_VIOLATION),
@@ -1090,14 +1120,19 @@ XLogWalRcvClose(XLogRecPtr recptr)
 				 errmsg("could not close log segment %s: %m",
 						xlogfname)));
 
-	/*
-	 * Create .done file forcibly to prevent the streamed segment from being
-	 * archived later.
+	/* Create .done file forcibly to prevent the streamed segment from
+	 * being archived later unless ARCHIVE_MODE_ALWAYS is set.
+	 *
+	 * GPDB: The WAL archiving status reporting will be active if the GUC
+	 * wal_sender_archiving_status_interval is non-zero and archiving is
+	 * enabled. This will enable creation of .ready files instead of .done.
+	 * The .ready files will be transitioned to .done files after receiving
+	 * WAL archiving status update messages from the primary segment.
 	 */
-	if (XLogArchiveMode != ARCHIVE_MODE_ALWAYS)
-		XLogArchiveForceDone(xlogfname);
+	if(XLogArchiveMode == ARCHIVE_MODE_ALWAYS || XLogArchivingStatusReportingActive())
+		XLogArchiveNotify (xlogfname);
 	else
-		XLogArchiveNotify(xlogfname);
+		XLogArchiveForceDone (xlogfname);
 
 	recvFile = -1;
 }
@@ -1343,6 +1378,58 @@ ProcessWalSndrMessage(XLogRecPtr walEnd, TimestampTz sendTime)
 		pfree(sendtime);
 		pfree(receipttime);
 	}
+}
+
+/*
+ * Create .done files, based on the primary's last archival report.
+ */
+static void
+ProcessArchivalReport(void)
+{
+	DIR		   *xldir;
+	struct dirent *xlde;
+
+	elog(DEBUG2, "received archival report from primary: %s", primary_last_archived);
+
+	if (wal_sender_archiving_status_interval <= 0)
+		return;
+
+	/* Check that the wal filename reported by primary looks valid */
+	if (strlen(primary_last_archived) < 24 ||
+		strspn(primary_last_archived, "0123456789ABCDEF") != 24)
+		return;
+
+	xldir = AllocateDir(XLOGDIR);
+	if (xldir == NULL)
+		ereport(ERROR,
+			(errcode_for_file_access(),
+			errmsg("could not open transaction log directory \"%s\": %m",
+				XLOGDIR)));
+	while ((xlde = ReadDir(xldir, XLOGDIR)) != NULL)
+	{
+		/*
+		 * We ignore the timeline part of the XLOG segment identifiers in
+		 * deciding whether a segment is still needed.  This ensures that we
+		 * won't prematurely remove a segment from a parent timeline.
+		 *
+		 * We use the alphanumeric sorting property of the filenames to decide
+		 * which ones are earlier than the lastoff segment.
+		 */
+		if (strlen(xlde->d_name) == 24 &&
+			strspn(xlde->d_name, "0123456789ABCDEF") == 24 &&
+			strcmp(xlde->d_name + 8, primary_last_archived + 8) <= 0)
+		{
+			XLogArchiveForceDone(xlde->d_name);
+		}
+	}
+	FreeDir(xldir);
+
+	/*
+	 * Remember this location in pgstat as well. This makes it visible in
+	 * pg_stat_archiver, and allows the location to be relayed to cascaded
+	 * standbys.
+	 */
+	pgstat_send_archiver(primary_last_archived, false);
 }
 
 /*
