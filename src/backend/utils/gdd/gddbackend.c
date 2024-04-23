@@ -202,6 +202,8 @@ doDeadLockCheck(void)
 
 	oldContext = MemoryContextSwitchTo(gddContext);
 
+	elog(LOG, "start a new round of global deadlock check");
+
 	PG_TRY();
 	{
 		ctx = GddCtxNew();
@@ -240,6 +242,8 @@ doDeadLockCheck(void)
 
 	MemoryContextSwitchTo(oldContext);
 	MemoryContextReset(gddContext);
+
+	elog(LOG, "finish the round of global deadlock check.");
 
 	return ret_status;
 }
@@ -282,6 +286,9 @@ buildWaitGraph(GddCtx *ctx)
 			tuple_num = (int) SPI_processed;
 			tupdesc = SPI_tuptable->tupdesc;
 			tuptable = SPI_tuptable;
+
+			elogif(tuple_num > 0, LOG,
+				 "GDD get %d wait relationship from all segments.", tuple_num);
 
 			/*
 			 * Switch back to gdd memory context otherwise the graphs will be
