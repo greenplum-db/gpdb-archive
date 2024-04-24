@@ -12,6 +12,7 @@ Extension packages can be downloaded from the Greenplum Database page on [VMware
 -   [Greenplum PL/Java Language Extension](../analytics/pl_java.html)
 -   [Greenplum MADlib Extension for Analytics](../analytics/madlib.html)
 -   [Greenplum PostGIS Extension](../analytics/postGIS.html)
+-   [Greenplum H3 Extension](../analytics/h3.html)
 
 > **Important** If you intend to use an extension package with Greenplum Database 6 you must install and use a Greenplum Database extension package \(gppkg files and contrib modules\) that is built for Greenplum Database 6. Any custom modules that were used with earlier versions must be rebuilt for use with Greenplum Database 6.
 
