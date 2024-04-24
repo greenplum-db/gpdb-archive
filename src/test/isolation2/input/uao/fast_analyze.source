@@ -423,3 +423,78 @@ select * from gp_acquire_sample_rows('test_dead_values_return_@amname@'::regclas
   (totalrows pg_catalog.float8, totaldeadrows pg_catalog.float8, oversized_cols_length pg_catalog._float8, i int, j int, k int);
 
 drop table test_dead_values_return_@amname@;
+
+--
+-- Test sampling on ADD COLUMN rows.
+--
+-- Case 1, the added column row is a sample row, verify no reading exceeded EOF issue.
+drop table if exists sampling_add_column_@amname@_1;
+create table sampling_add_column_@amname@_1 (a int) using @amname@ distributed replicated;
+insert into sampling_add_column_@amname@_1 values (1);
+alter table sampling_add_column_@amname@_1 add column b int;
+insert into sampling_add_column_@amname@_1 values(100, 100);
+
+create or replace function test_sample_add_column() returns boolean as $$
+declare
+     cnt int; /* in func */
+begin
+     cnt := 0; /* in func */
+     while (cnt = 0)
+     loop
+          select count(*) into cnt from pg_catalog.gp_acquire_sample_rows('sampling_add_column_@amname@_1'::regclass, 1, 'f') as
+            (totalrows pg_catalog.float8, totaldeadrows pg_catalog.float8, oversized_cols_length pg_catalog._float8, a int, b int)
+            where a = 100; /* in func */
+     end loop; /* in func */
+     return true; /* in func */
+end; /* in func */
+$$ language plpgsql;
+
+select test_sample_add_column();
+
+-- Case 2, verify sample rows are correct after ADD COLUMN operation.
+drop table if exists sampling_add_column_@amname@_2;
+create table sampling_add_column_@amname@_2 (a int) using @amname@;
+
+1: begin;
+2: begin;
+3: begin;
+
+1: insert into sampling_add_column_@amname@_2 select * from generate_series(1, 10);
+2: insert into sampling_add_column_@amname@_2 select * from generate_series(11, 20);
+3: insert into sampling_add_column_@amname@_2 select * from generate_series(21, 30);
+
+1: commit;
+2: commit;
+3: commit;
+
+alter table sampling_add_column_@amname@_2 add column b int;
+
+1: begin;
+2: begin;
+3: begin;
+
+1: insert into sampling_add_column_@amname@_2 values(100, 100);
+2: insert into sampling_add_column_@amname@_2 values(200, 200);
+3: insert into sampling_add_column_@amname@_2 values(300, 300);
+
+1: commit;
+2: commit;
+3: abort;
+
+alter table sampling_add_column_@amname@_2 add column c text;
+
+1: begin;
+2: begin;
+3: begin;
+
+1: insert into sampling_add_column_@amname@_2 values (100, 100, 'c100');
+2: insert into sampling_add_column_@amname@_2 values (200, 200, 'c200');
+3: insert into sampling_add_column_@amname@_2 values (300, 300, 'c300');
+
+1: commit;
+2: abort;
+3: commit;
+
+select * from sampling_add_column_@amname@_2;
+select * from gp_acquire_sample_rows('sampling_add_column_@amname@_2'::regclass, 32, 'f') as
+  (totalrows pg_catalog.float8, totaldeadrows pg_catalog.float8, oversized_cols_length pg_catalog._float8, a int, b int, c text);
