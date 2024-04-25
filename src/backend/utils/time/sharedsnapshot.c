@@ -214,7 +214,6 @@ volatile SharedSnapshotSlot *SharedLocalSnapshotSlot = NULL;
 static Size slotSize = 0;
 static Size slotCount = 0;
 static Size xipEntryCount = 0;
-static Size subXipEntryCount = 0;
 
 /* prototypes for internal functions */
 static SharedSnapshotSlot *SharedSnapshotAdd(int32 slotId);
@@ -230,11 +229,9 @@ SharedSnapshotShmemSize(void)
 
 	/* should be the same as PROCARRAY_MAXPROCS */
 	xipEntryCount = MaxBackends + max_prepared_xacts;
-	subXipEntryCount = GetMaxSnapshotSubxidCount();
 
 	slotSize = sizeof(SharedSnapshotSlot);
 	slotSize += mul_size(sizeof(TransactionId), (xipEntryCount));
-	slotSize += mul_size(sizeof(TransactionId), (subXipEntryCount));
 	slotSize = MAXALIGN(slotSize);
 
 	/*
@@ -275,7 +272,6 @@ CreateSharedSnapshotArray(void)
 
 	Assert(slotCount != 0);
 	Assert(xipEntryCount != 0);
-	Assert(subXipEntryCount != 0);
 
 	if (!found)
 	{
@@ -314,14 +310,11 @@ CreateSharedSnapshotArray(void)
 			/*
 			 * Fixup xip array pointer reference space allocated after slot structs:
 			 *
-			 * Note: xipEntryCount and subXipEntryCount are initialized in SharedSnapshotShmemSize().
-			 * So each slot gets (MaxBackends + max_prepared_xacts) transaction-ids and
-			 * ((64 + 1) * (MaxBackends + max_prepared_xacts)) sub transaction-ids.
+			 * Note: xipEntryCount is initialized in SharedSnapshotShmemSize().
+			 * So each slot gets (MaxBackends + max_prepared_xacts) transaction-ids.
 			 */
 			tmpSlot->snapshot.xip = &xip_base[0];
 			xip_base += xipEntryCount;
-			tmpSlot->snapshot.subxip = &xip_base[0];
-			xip_base += subXipEntryCount;
 		}
 	}
 }
@@ -751,22 +744,11 @@ readSharedLocalSnapshot_forCursor(Snapshot snapshot, DtxContext distributedTrans
 	snapshot->xmin = dumpsnapshot->xmin;
 	snapshot->xmax = dumpsnapshot->xmax;
 	snapshot->xcnt = dumpsnapshot->xcnt;
-	snapshot->suboverflowed = dumpsnapshot->suboverflowed;
-	snapshot->subxcnt = dumpsnapshot->subxcnt;
 
 	memcpy(snapshot->xip, dumpsnapshot->xip, snapshot->xcnt * sizeof(TransactionId));
 
 	/* zero out the slack in the xip-array */
 	memset(snapshot->xip + snapshot->xcnt, 0, (xipEntryCount - snapshot->xcnt)*sizeof(TransactionId));
-
-	if (snapshot->subxcnt > 0)
-	{
-		Assert(snapshot->subxcnt <= subXipEntryCount);
-
-		memcpy(snapshot->subxip, dumpsnapshot->subxip, snapshot->subxcnt * sizeof(TransactionId));
-		/* zero out the slack in the subxip-array */
-		memset(snapshot->subxip + snapshot->subxcnt, 0, (subXipEntryCount - snapshot->subxcnt)*sizeof(TransactionId));
-	}
 
 	snapshot->curcid = dumpsnapshot->curcid;
 

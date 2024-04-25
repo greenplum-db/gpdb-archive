@@ -1624,8 +1624,6 @@ updateSharedLocalSnapshot(DtxContextInfo *dtxContextInfo,
 	SharedLocalSnapshotSlot->snapshot.xmin = snapshot->xmin;
 	SharedLocalSnapshotSlot->snapshot.xmax = snapshot->xmax;
 	SharedLocalSnapshotSlot->snapshot.xcnt = snapshot->xcnt;
-	SharedLocalSnapshotSlot->snapshot.suboverflowed = snapshot->suboverflowed;
-	SharedLocalSnapshotSlot->snapshot.subxcnt = snapshot->subxcnt;
 
 	if (snapshot->xcnt > 0)
 	{
@@ -1636,20 +1634,6 @@ updateSharedLocalSnapshot(DtxContextInfo *dtxContextInfo,
 						SharedLocalSnapshotSlot->snapshot.xcnt)));
 
 		memcpy(SharedLocalSnapshotSlot->snapshot.xip, snapshot->xip, snapshot->xcnt * sizeof(TransactionId));
-	}
-
-	if (snapshot->suboverflowed && !snapshot->takenDuringRecovery)
-		SharedLocalSnapshotSlot->snapshot.subxcnt = 0;
-
-	if (SharedLocalSnapshotSlot->snapshot.subxcnt > 0)
-	{
-		Assert(snapshot->subxip != NULL);
-
-		ereport((Debug_print_full_dtm ? LOG : DEBUG5),
-				(errmsg("updateSharedLocalSnapshot count of in-doubt sub-ids %u",
-						SharedLocalSnapshotSlot->snapshot.subxcnt)));
-
-		memcpy(SharedLocalSnapshotSlot->snapshot.subxip, snapshot->subxip, snapshot->subxcnt * sizeof(TransactionId));
 	}
 	
 	SharedLocalSnapshotSlot->snapshot.curcid = snapshot->curcid;
@@ -1721,16 +1705,12 @@ copyLocalSnapshot(Snapshot snapshot)
 	snapshot->xmin = SharedLocalSnapshotSlot->snapshot.xmin;
 	snapshot->xmax = SharedLocalSnapshotSlot->snapshot.xmax;
 	snapshot->xcnt = SharedLocalSnapshotSlot->snapshot.xcnt;
-	snapshot->suboverflowed = SharedLocalSnapshotSlot->snapshot.suboverflowed;
-	snapshot->subxcnt = SharedLocalSnapshotSlot->snapshot.subxcnt;
 
 	/* We now capture our current view of the xip/combocid arrays */
 	memcpy(snapshot->xip, SharedLocalSnapshotSlot->snapshot.xip, snapshot->xcnt * sizeof(TransactionId));
 
-	if (snapshot->subxcnt > 0)
-		memcpy(snapshot->subxip, SharedLocalSnapshotSlot->snapshot.subxip, snapshot->subxcnt * sizeof(TransactionId));
-
 	snapshot->curcid = SharedLocalSnapshotSlot->snapshot.curcid;
+	snapshot->subxcnt = -1;
 
 	if (TransactionIdPrecedes(snapshot->xmin, TransactionXmin))
 		TransactionXmin = snapshot->xmin;
