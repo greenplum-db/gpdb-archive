@@ -20,6 +20,9 @@ const (
 	ReplicationSlotName = "internal_wal_replication_slot"
 	DefaultStartTimeout = 600
 	DefaultPostgresLogDir = "log"
+	GroupMirroring      = "group"
+	SpreadMirroring     = "spread"
+	DefaultSegName      = "gpseg"
 )
 
 // gp_segment_configuration specific constants

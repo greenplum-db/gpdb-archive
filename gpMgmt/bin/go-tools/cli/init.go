@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -51,6 +52,14 @@ type InitConfig struct {
 	SegmentConfig     map[string]string `mapstructure:"segment-config"`
 	Coordinator       Segment           `mapstructure:"coordinator"`
 	SegmentArray      []SegmentPair     `mapstructure:"segment-array"`
+
+	//Expansion config parameters
+	PrimaryBasePort        int      `mapstructure:"primary-base-port"`
+	PrimaryDataDirectories []string `mapstructure:"primary-data-directories"`
+	HostList               []string `mapstructure:"hostlist"`
+	MirrorBasePort         int      `mapstructure:"mirror-base-port"`
+	MirrorDataDirectories  []string `mapstructure:"mirror-data-directories"`
+	MirroringType          string   `mapstructure:"mirroring-type"`
 }
 
 var (
@@ -64,6 +73,8 @@ var (
 	IsGpServicesEnabled                  = IsGpServicesEnabledFn
 )
 var cliForceFlag bool
+var ContainsMirror bool
+var HubClient idl.HubClient
 
 // initCmd adds support for command "gp init <config-file> [--force]
 func initCmd() *cobra.Command {
@@ -114,11 +125,18 @@ func RunInitClusterCmd(cmd *cobra.Command, args []string) error {
 InitClusterServiceFn does input config file validation followed by actual cluster creation
 */
 func InitClusterServiceFn(inputConfigFile string, force, verbose bool) error {
-	if _, err := utils.System.Stat(inputConfigFile); err != nil {
+	_, err := utils.System.Stat(inputConfigFile)
+	if err != nil {
 		return err
 	}
 	// Viper instance to read the input config
 	cliHandler := viper.New()
+
+	// Make call to MakeCluster RPC and wait for results
+	HubClient, err = ConnectToHub(Conf)
+	if err != nil {
+		return err
+	}
 
 	// Load cluster-request from the config file
 	clusterReq, err := LoadInputConfigToIdl(inputConfigFile, cliHandler, force, verbose)
@@ -131,14 +149,8 @@ func InitClusterServiceFn(inputConfigFile string, force, verbose bool) error {
 		return err
 	}
 
-	// Make call to MakeCluster RPC and wait for results
-	client, err := ConnectToHub(Conf)
-	if err != nil {
-		return err
-	}
-
 	// Call RPC on Hub to create the cluster
-	stream, err := client.MakeCluster(context.Background(), clusterReq)
+	stream, err := HubClient.MakeCluster(context.Background(), clusterReq)
 	if err != nil {
 		return utils.FormatGrpcError(err)
 	}
@@ -171,7 +183,398 @@ func LoadInputConfigToIdlFn(inputConfigFile string, cliHandler *viper.Viper, for
 		return &idl.MakeClusterRequest{}, fmt.Errorf("while unmarshaling config file: %w", err)
 	}
 
+	if AnyExpansionConfigPresent(cliHandler) {
+		// Validate expansion config
+		err := ValidateExpansionConfigAndSetDefault(&config, cliHandler)
+		if err != nil {
+			return &idl.MakeClusterRequest{}, err
+		}
+
+		// Check for multi-home
+		isMultiHome, NameAddressMap, AddressNameMap, err := IsMultiHome(config.HostList)
+		if err != nil {
+			gplog.Error("multihome detection failed, error: %v", err)
+			return &idl.MakeClusterRequest{}, err
+		}
+
+		if isMultiHome {
+			isValidMultiHomeConfig, err := ValidateMultiHomeConfig(config, NameAddressMap)
+			if !isValidMultiHomeConfig {
+				return &idl.MakeClusterRequest{}, err
+			}
+		}
+
+		//Expand details to config for primary
+		segmentPairArray := ExpandSegPairArray(config, isMultiHome, NameAddressMap, AddressNameMap)
+		config.SegmentArray = segmentPairArray
+		// TODO to print expanded configuration here for user reference and print to file if required
+	}
+
 	return CreateMakeClusterReq(&config, force, verbose), nil
+}
+
+// ValidateMultiHomeConfig performs validation checks for multi-home environment
+func ValidateMultiHomeConfig(config InitConfig, addressMap map[string][]string) (bool, error) {
+	// Check if all the hosts in the host-list have same number of addresses
+	var addressLengthList []int
+	index := 0
+	for _, addressList := range addressMap {
+		addressLengthList = append(addressLengthList, len(addressList))
+		if index > 0 {
+			if addressLengthList[index] != addressLengthList[index-1] {
+				return false, fmt.Errorf("multi-home validation failed, all hosts should have same number of interfaces/aliases")
+			}
+		}
+		index++
+	}
+	// the number of directories per host is in multiple of number of addresses per host
+	if (addressLengthList[0] < len(config.PrimaryDataDirectories)) && len(config.PrimaryDataDirectories)%(addressLengthList[0]) != 0 {
+		return false, fmt.Errorf("multi-host setup must have data-directories in multiple of number of addresses or more. "+
+			"Number of data-directories:%d and number of addresses per host: %d", len(config.PrimaryDataDirectories), addressLengthList[0])
+	}
+
+	if ContainsMirror {
+		// Check if the total number of actual hosts is enough for spread mirroring
+		if config.MirroringType == constants.SpreadMirroring && !(len(addressMap) > len(config.MirrorDataDirectories)) {
+			return false, fmt.Errorf("to enable spread mirroring, number of hosts should be more than number of primary segments per host. "+
+				"Current number of unique hosts is: %d and number of primaries per host is: %d", len(addressMap), len(config.MirrorDataDirectories))
+		}
+	}
+
+	return true, nil
+}
+
+// IsMultiHome checks if it is a multi-home environment
+// Makes a call to resolve all addresses to hostname and returns a map of address vs hostnames
+// In case of error, map will be empty, and returns false
+func IsMultiHome(hostlist []string) (isMultiHome bool, NameAddress map[string][]string, AddressNameMap map[string]string, err error) {
+	// get a list of hostnames against each address
+	request := idl.GetAllHostNamesRequest{HostList: hostlist}
+	reply, err := HubClient.GetAllHostNames(context.Background(), &request)
+	if err != nil {
+
+		return false, nil, nil, utils.LogAndReturnError(fmt.Errorf("failed names of the host against address: %v", err))
+	}
+	isMultiHome = false
+	NameAddressMap := make(map[string][]string)
+	// convert address-name map to name-address map
+	for address, hostname := range reply.HostNameMap {
+		NameAddressMap[hostname] = append(NameAddressMap[hostname], address)
+	}
+	// Sort the address-list
+	for hostname := range NameAddressMap {
+		slices.Sort(NameAddressMap[hostname])
+	}
+
+	if len(hostlist) > len(NameAddressMap) {
+		isMultiHome = true
+	}
+
+	return isMultiHome, NameAddressMap, reply.HostNameMap, nil
+}
+
+func AnyExpansionConfigPresent(cliHandle *viper.Viper) bool {
+	expansionKeys := []string{"hostlist", "primary-base-port", "primary-data-directories", "mirroring-type", "mirror-base-port", "mirror-data-directories"}
+	for _, key := range expansionKeys {
+		if cliHandle.IsSet(key) {
+			return true
+		}
+	}
+	return false
+}
+
+func AnyExpansionMirrorConfigPresent(cliHandle *viper.Viper) bool {
+	expansionKeys := []string{"mirroring-type", "mirror-base-port", "mirror-data-directories"}
+	for _, key := range expansionKeys {
+		if cliHandle.IsSet(key) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// ValidateStringArray checks if there are no empty values in the array
+// Returns false if any empty string in the array
+func ValidateStringArray(input []string) bool {
+	for _, entry := range input {
+		if strings.TrimSpace(entry) == "" {
+			return false
+		}
+	}
+	return true
+}
+
+func ValidateExpansionConfigAndSetDefault(config *InitConfig, cliHandle *viper.Viper) error {
+	// If provided expansion config and primary/mirrors array is also defined
+	if cliHandle.IsSet("segment-array") && len(config.SegmentArray) > 0 {
+		return fmt.Errorf("cannot specify segments-array and primary-base-directories together")
+	}
+
+	// Check if mandatory primary expansion parameters are provided
+	if !cliHandle.IsSet("primary-data-directories") || len(config.PrimaryDataDirectories) < 1 {
+		return fmt.Errorf("primary-data-directories not specified. Please specify primary-data-directories to continue")
+	}
+
+	if !ValidateStringArray(config.PrimaryDataDirectories) {
+		return fmt.Errorf("empty primary-data-directories entry provided, please provide valid directory")
+	}
+
+	if !cliHandle.IsSet("hostlist") || len(config.HostList) < 1 {
+		return fmt.Errorf("hostlist not specified. Please specify hostlist to continue")
+	}
+
+	if !ValidateStringArray(config.HostList) {
+		return fmt.Errorf("empty hostlist entry detected, Please provide valid hostlist")
+	}
+
+	if !cliHandle.IsSet("primary-base-port") {
+		defaultPrimaryBasePort := config.Coordinator.Port + 2
+		gplog.Warn("primary-base-port value not specified. Setting default to: %d", defaultPrimaryBasePort)
+		config.PrimaryBasePort = defaultPrimaryBasePort
+	}
+
+	if cliHandle.IsSet("primary-base-port") && config.PrimaryBasePort < 1 {
+		return fmt.Errorf("invalid primary-base-port value provided: %d", config.PrimaryBasePort)
+	}
+
+	if config.PrimaryBasePort == config.Coordinator.Port {
+		return fmt.Errorf("coordinator port and primary-base-port value cannot be same. Please provide different values")
+	}
+
+	// Check if mandatory mirror expansion parameters are provided
+	if AnyExpansionMirrorConfigPresent(cliHandle) {
+		ContainsMirror = true
+		if len(config.PrimaryDataDirectories) != len(config.MirrorDataDirectories) {
+			return fmt.Errorf("number of primary-data-directories should be equal to number of mirror-data-directories")
+		}
+
+		if !ValidateStringArray(config.MirrorDataDirectories) {
+			return fmt.Errorf("empty mirror-data-directories entry provided, please provide valid directory")
+		}
+
+		// validate mirror base port
+		if !cliHandle.IsSet("mirror-base-port") {
+			defaultMirrorBasePort := config.PrimaryBasePort + 1000
+			gplog.Warn("mirror-base-port value not specified. Setting default to: %d", defaultMirrorBasePort)
+			config.MirrorBasePort = defaultMirrorBasePort
+		}
+
+		if config.MirrorBasePort < 1 {
+			return fmt.Errorf("invalid mirror-base-port value provided: %d", config.MirrorBasePort)
+		}
+
+		if config.MirrorBasePort == config.Coordinator.Port {
+			return fmt.Errorf("coordinator port and mirror-base-port value cannot be same. Please provide different values")
+		}
+
+		if config.MirrorBasePort == config.PrimaryBasePort {
+			return fmt.Errorf("primary-base-port and mirror-base-port value cannot be same. Please provide different values")
+		}
+
+		//TODO Check if the primary and mirror range overlaps
+
+		if !cliHandle.IsSet("mirroring-type") || config.MirroringType == "" {
+			// Default is group mirroring
+			config.MirroringType = constants.GroupMirroring
+			gplog.Warn("Mirroring type not specified. Setting default as 'group' mirroring")
+		} else {
+			config.MirroringType = strings.ToLower(config.MirroringType)
+
+			if config.MirroringType != constants.SpreadMirroring && config.MirroringType != constants.GroupMirroring {
+				return fmt.Errorf("invalid mirroring-Type: %s. Valid options are 'group' and 'spread'", config.MirroringType)
+			}
+		}
+
+		// Check if mirroring type is spread mirroring, the number of hosts should be greater than the number of primaries
+		// per host so that we can spread segments
+		if strings.ToLower(config.MirroringType) == constants.SpreadMirroring && !(len(config.MirrorDataDirectories) < len(config.HostList)) {
+			strErr := fmt.Sprintf("To enable spread mirroring, number of hosts should be more than number of primary segments per host. "+
+				"Current number of hosts is: %d and number of primaries per host is:%d", len(config.HostList), len(config.MirrorDataDirectories))
+			return fmt.Errorf(strErr)
+		}
+	} else {
+		// Mirror-less configuration
+		gplog.Warn("No mirror-data-directories provided. Will create mirror-less cluster")
+		ContainsMirror = false
+	}
+
+	return nil
+}
+
+func ExpandNonMultiHomePrimaryList(segPairList *[]SegmentPair, PrimaryBasePort int, PrimaryDataDirectories []string, hostList []string, addressNameMap map[string]string) *[]SegmentPair {
+	segNum := 0
+	for _, hostAddress := range hostList {
+		for segIdx, directory := range PrimaryDataDirectories {
+			seg := Segment{
+				Hostname:      addressNameMap[hostAddress],
+				Address:       hostAddress,
+				Port:          PrimaryBasePort + segIdx,
+				DataDirectory: filepath.Join(directory, fmt.Sprintf("%s%d", constants.DefaultSegName, segNum)),
+			}
+			*segPairList = append(*segPairList, SegmentPair{Primary: &seg})
+			segNum++
+		}
+	}
+	return segPairList
+}
+func ExpandNonMultiHomeGroupMirrorList(segPairList *[]SegmentPair, mirrorBasePort int, mirrorDataDirectories []string, hostList []string, addressNameMap map[string]string) *[]SegmentPair {
+	segNum := 0
+	hostListLen := len(hostList)
+	for hostIdx := range hostList {
+		for segIdx, directory := range mirrorDataDirectories {
+			hostAddress := hostList[(hostIdx+1)%hostListLen]
+			seg := Segment{
+				Hostname:      addressNameMap[hostAddress],
+				Address:       hostAddress,
+				Port:          mirrorBasePort + segIdx,
+				DataDirectory: filepath.Join(directory, fmt.Sprintf("%s%d", constants.DefaultSegName, segNum)),
+			}
+			(*segPairList)[segNum].Mirror = &seg
+			segNum++
+		}
+	}
+
+	return segPairList
+}
+
+func ExpandNonMultiHomeSpreadMirroring(segPairList *[]SegmentPair, mirrorBasePort int, mirrorDataDirectories []string, hostList []string, addressNameMap map[string]string) *[]SegmentPair {
+	segmentsPerHost := len(mirrorDataDirectories)
+	hostListLen := len(hostList)
+	segNum := 0
+	for hostIndex := range hostList {
+		mirrorHostIndex := (hostIndex + 1) % hostListLen
+		for localSeg := 0; localSeg < segmentsPerHost; localSeg++ {
+			hostAddress := hostList[mirrorHostIndex]
+			seg := Segment{
+				Hostname:      addressNameMap[hostAddress],
+				Address:       hostAddress,
+				Port:          mirrorBasePort + localSeg,
+				DataDirectory: filepath.Join(mirrorDataDirectories[localSeg], fmt.Sprintf("%s%d", constants.DefaultSegName, segNum)),
+			}
+			(*segPairList)[segNum].Mirror = &seg
+			segNum++
+			mirrorHostIndex = (mirrorHostIndex + 1) % hostListLen
+		}
+	}
+
+	return segPairList
+}
+
+func ExpandMultiHomePrimaryArray(segPairList *[]SegmentPair, primaryBasePort int, primaryDataDirectories []string, hostnameArray []string, nameAddressMap map[string][]string) *[]SegmentPair {
+	segNum := 0
+	for _, hostname := range hostnameArray {
+		addressList := nameAddressMap[hostname]
+		for idx, directory := range primaryDataDirectories {
+			seg := Segment{
+				Hostname:      hostname,
+				Address:       addressList[idx%len(addressList)],
+				Port:          primaryBasePort + idx,
+				DataDirectory: filepath.Join(directory, fmt.Sprintf("%s%d", constants.DefaultSegName, segNum)),
+			}
+			*segPairList = append(*segPairList, SegmentPair{Primary: &seg})
+			segNum++
+		}
+	}
+	return segPairList
+}
+
+func ExpandMultiHomeGroupMirrorList(segPairList *[]SegmentPair, mirrorBasePort int, mirrorDataDirectories []string, hostnameArray []string, nameAddressMap map[string][]string) *[]SegmentPair {
+	uniqueHostCount := len(hostnameArray)
+	segNum := 0
+	// Group mirroring
+	for idx := 0; idx < uniqueHostCount; idx++ {
+		hostname := hostnameArray[(idx+1)%uniqueHostCount]
+		addressList := nameAddressMap[hostname]
+		for segIdx, directory := range mirrorDataDirectories {
+			seg := Segment{
+				Hostname:      hostname,
+				Address:       addressList[segIdx%len(addressList)],
+				Port:          mirrorBasePort + segIdx,
+				DataDirectory: filepath.Join(directory, fmt.Sprintf("%s%d", constants.DefaultSegName, segNum)),
+			}
+			(*segPairList)[segNum].Mirror = &seg
+			segNum++
+		}
+	}
+
+	return segPairList
+}
+
+func ExpandMultiHomeSpreadMirrorList(segPairList *[]SegmentPair, mirrorBasePort int, mirrorDataDirectories []string, hostnameArray []string, nameAddressMap map[string][]string) *[]SegmentPair {
+	segNum := 0
+	uniqueHostCount := len(hostnameArray)
+	for hostnameIdx := range hostnameArray {
+		for segIdx, directory := range mirrorDataDirectories {
+			nxtHostIdx := (hostnameIdx + segIdx + 1) % uniqueHostCount
+			// if the current hostname and mirror hostname is same, move to next
+			if nxtHostIdx == hostnameIdx {
+				nxtHostIdx = (nxtHostIdx + 1) % uniqueHostCount
+			}
+			nxtHostName := hostnameArray[nxtHostIdx]
+			addressList := nameAddressMap[nxtHostName]
+			addressCnt := len(addressList)
+			seg := Segment{
+				Address:       addressList[(hostnameIdx+segIdx)%addressCnt],
+				Hostname:      nxtHostName,
+				Port:          mirrorBasePort + segIdx,
+				DataDirectory: filepath.Join(directory, fmt.Sprintf("%s%d", constants.DefaultSegName, segNum)),
+			}
+			(*segPairList)[segNum].Mirror = &seg
+			segNum++
+		}
+	}
+
+	return segPairList
+}
+
+/*
+ExpandSegPairArray expands primary and mirror configuration from the given configuration
+Returns an array of segmentPair to be updated in the MakeCluster request
+*/
+func ExpandSegPairArray(config InitConfig, multiHome bool, nameAddressMap map[string][]string, addressNameMap map[string]string) []SegmentPair {
+	var segPairList []SegmentPair
+
+	slices.Sort(config.HostList)
+	if multiHome {
+		// Build a list of unit hosts
+		var hostnameArray []string
+		for hostname := range nameAddressMap {
+			hostnameArray = append(hostnameArray, hostname)
+		}
+		slices.Sort(hostnameArray)
+
+		// Expand Primaries
+		segPairList = *ExpandMultiHomePrimaryArray(&segPairList, config.PrimaryBasePort, config.PrimaryDataDirectories, hostnameArray, nameAddressMap)
+
+		// Add mirrors to this expansion
+		if ContainsMirror {
+			if config.MirroringType == constants.GroupMirroring {
+				segPairList = *ExpandMultiHomeGroupMirrorList(&segPairList, config.MirrorBasePort, config.MirrorDataDirectories, hostnameArray, nameAddressMap)
+			} else {
+				// Spread mirroring
+				segPairList = *ExpandMultiHomeSpreadMirrorList(&segPairList, config.MirrorBasePort, config.MirrorDataDirectories, hostnameArray, nameAddressMap)
+			}
+		}
+		return segPairList
+	} else {
+		// non-multi-home setup,
+		// Create Primary segments
+		segPairList = *ExpandNonMultiHomePrimaryList(&segPairList, config.PrimaryBasePort, config.PrimaryDataDirectories, config.HostList, addressNameMap)
+
+		if ContainsMirror {
+			if config.MirroringType == constants.GroupMirroring {
+				// Perform group mirroring
+				segPairList = *ExpandNonMultiHomeGroupMirrorList(&segPairList, config.MirrorBasePort, config.MirrorDataDirectories, config.HostList, addressNameMap)
+			} else {
+				// Perform spread mirroring
+				segPairList = *ExpandNonMultiHomeSpreadMirroring(&segPairList, config.MirrorBasePort, config.MirrorDataDirectories, config.HostList, addressNameMap)
+			}
+		}
+		//End of non-multi-home expansion
+	}
+
+	return segPairList
 }
 
 /*
@@ -245,7 +648,7 @@ func ValidateInputConfigAndSetDefaultsFn(request *idl.MakeClusterRequest, cliHan
 	}
 
 	//Check if primary segment details are provided
-	if !cliHandler.IsSet("segment-array") {
+	if !cliHandler.IsSet("segment-array") && !cliHandler.IsSet("primary-data-directories") {
 		return fmt.Errorf("no primary segments are provided in input config file")
 	}
 

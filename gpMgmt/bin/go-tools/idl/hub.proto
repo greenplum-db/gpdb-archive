@@ -11,12 +11,21 @@ service Hub {
     rpc StopAgents(StopAgentsRequest) returns (StopAgentsReply) {}
     rpc MakeCluster(MakeClusterRequest) returns (stream HubReply) {}
     rpc AddMirrors(AddMirrorsRequest) returns (stream HubReply) {}
+  rpc GetAllHostNames(GetAllHostNamesRequest) returns (GetAllHostNamesReply) {}
 }
 
 message AddMirrorsRequest {
     string CoordinatorDataDir = 1;
     bool HbaHostnames = 2;
     repeated Segment mirrors = 3;
+}
+
+message GetAllHostNamesRequest{
+    repeated string hostList = 1;
+}
+
+message GetAllHostNamesReply{
+    map<string, string> hostNameMap = 1;
 }
 
 message StopHubRequest {}

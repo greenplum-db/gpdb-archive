@@ -15,7 +15,14 @@ service Agent {
     rpc UpdatePgHbaConfAndReload(UpdatePgHbaConfRequest) returns (UpdatePgHbaConfResponse) {}
     rpc UpdatePgConf(UpdatePgConfRequest) returns (UpdatePgConfRespoonse) {}
     rpc PgBasebackup(PgBasebackupRequest) returns (PgBasebackupResponse) {}
+    rpc GetHostName(GetHostNameRequest) returns(GetHostNameReply){}
 }
+
+message GetHostNameReply{
+    string hostname = 1;
+}
+
+message GetHostNameRequest {}
 
 message StartSegmentRequest{
     string dataDir=1;

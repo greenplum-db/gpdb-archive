@@ -36,6 +36,26 @@ func (m *MockAgentClient) EXPECT() *MockAgentClientMockRecorder {
 	return m.recorder
 }
 
+// GetHostName mocks base method.
+func (m *MockAgentClient) GetHostName(ctx context.Context, in *idl.GetHostNameRequest, opts ...grpc.CallOption) (*idl.GetHostNameReply, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "GetHostName", varargs...)
+	ret0, _ := ret[0].(*idl.GetHostNameReply)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetHostName indicates an expected call of GetHostName.
+func (mr *MockAgentClientMockRecorder) GetHostName(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHostName", reflect.TypeOf((*MockAgentClient)(nil).GetHostName), varargs...)
+}
+
 // GetInterfaceAddrs mocks base method.
 func (m *MockAgentClient) GetInterfaceAddrs(ctx context.Context, in *idl.GetInterfaceAddrsRequest, opts ...grpc.CallOption) (*idl.GetInterfaceAddrsResponse, error) {
 	m.ctrl.T.Helper()
@@ -237,6 +257,21 @@ func NewMockAgentServer(ctrl *gomock.Controller) *MockAgentServer {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAgentServer) EXPECT() *MockAgentServerMockRecorder {
 	return m.recorder
+}
+
+// GetHostName mocks base method.
+func (m *MockAgentServer) GetHostName(arg0 context.Context, arg1 *idl.GetHostNameRequest) (*idl.GetHostNameReply, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetHostName", arg0, arg1)
+	ret0, _ := ret[0].(*idl.GetHostNameReply)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetHostName indicates an expected call of GetHostName.
+func (mr *MockAgentServerMockRecorder) GetHostName(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetHostName", reflect.TypeOf((*MockAgentServer)(nil).GetHostName), arg0, arg1)
 }
 
 // GetInterfaceAddrs mocks base method.
