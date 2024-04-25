@@ -685,3 +685,25 @@ Feature: expand the cluster by adding more segments
         And table "test_good_2" should be marked as expanded
         And table "test_already_expanded" should be marked as expanded
         And table "test_broken" should not be marked as expanded
+
+    @gpexpand_no_mirrors
+    @gpexpand_verify_dtx
+    Scenario: Gpexpand should succeed when xlog has DTX info
+        Given the database is not running
+        And a working directory of the test as '/data/gpdata/gpexpand'
+        And a temporary directory under "/data/gpdata/gpexpand/expandedData" to expand into
+        And the cluster is generated with "3" primaries only
+        And database "gptest" exists
+        And the user runs psql with "-c 'create extension IF NOT EXISTS gp_inject_fault;create table ttt(tc1 int);'" against database "gptest"
+        And the user runs psql with "-c "SELECT gp_inject_fault('before_notify_commited_dtx_transaction', 'suspend', dbid) FROM gp_segment_configuration WHERE content = -1 AND role = 'p';"" against database "gptest"
+        And the user runs the command "psql gptest -c 'insert into ttt select generate_series(1,100);'" in the background without sleep
+        And waiting "1" seconds
+        And there are no gpexpand_inputfiles
+        And the cluster is setup for an expansion on hosts "localhost"
+        When the user runs gpexpand interview to add 1 new segment and 0 new host "ignored.host"
+        Then the number of segments have been saved
+        When the user runs gpexpand with the latest gpexpand_inputfile with additional parameters "--silent"
+        And the user runs psql with "-c "SELECT gp_inject_fault('before_notify_commited_dtx_transaction', 'reset', dbid) FROM gp_segment_configuration WHERE content = -1 AND role = 'p';"" against database "gptest"
+        And waiting "1" seconds
+        And the user runs psql with "-c 'drop table ttt;'" against database "gptest"
+        Then verify that the cluster has 1 new segments

@@ -2890,7 +2890,10 @@ CommitTransaction(void)
 	 * happen after using the dispatcher.
 	 */
 	if (notifyCommittedDtxTransactionIsNeeded())
+	{
+		SIMPLE_FAULT_INJECTOR("before_notify_commited_dtx_transaction");
 		notifyCommittedDtxTransaction();
+	}
 
 	/*
 	 * Let others know about no transaction in progress by me. Note that this
