@@ -37,7 +37,19 @@ CRefCountTest::EresUnittest()
 #ifdef GPOS_DEBUG
 			,
 		GPOS_UNITTEST_FUNC_ASSERT(CRefCountTest::EresUnittest_Stack),
+
+// This test ensures that an exception is raised with an illegal refcount.
+// However, MacOS seems to have extra protection and no exception is raised.
+//
+// GPOS_DELETE_ARRAY indirectly calls into CMemoryPoolTracker::DeleteImpl()
+// which sets memory to 0xcdcdcdcd. But the last step in that function
+// calls clib::Free(header) which on MacOS unexpectedly set the bits back
+// to 0. The header is part of the allocation block so that's probably
+// legal.  Although Mac sets this to 0, it's not necessarily something we
+// can assume.
+#ifndef __APPLE__
 		GPOS_UNITTEST_FUNC_ASSERT(CRefCountTest::EresUnittest_Check)
+#endif
 #endif	// GPOS_DEBUG
 	};
 
