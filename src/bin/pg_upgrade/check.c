@@ -998,7 +998,7 @@ check_for_isn_and_int8_passing_mismatch(ClusterInfo *cluster)
 	if (script)
 	{
 		fclose(script);
-		pg_log(PG_REPORT, "fatal");
+		pg_log(PG_REPORT, "fatal\n");
 		gp_fatal_log(
 				"| Your installation contains \"contrib/isn\" functions which rely on the\n"
 				"| bigint data type.  Your old and new clusters pass bigint values\n"
@@ -1075,7 +1075,7 @@ check_for_tables_with_oids(ClusterInfo *cluster)
 	if (script)
 	{
 		fclose(script);
-		pg_log(PG_REPORT, "fatal");
+		pg_log(PG_REPORT, "fatal\n");
 		gp_fatal_log(
 				"| Your installation contains tables declared WITH OIDS, which is not\n"
 				"| supported anymore. Consider removing the oid column using\n"
@@ -1310,7 +1310,7 @@ check_for_pg_role_prefix(ClusterInfo *cluster)
 	for (int rowno = 0; rowno < ntups; rowno++)
 	{
 		if (script == NULL && (script = fopen_priv(output_path, "w")) == NULL)
-			gp_fatal_log("could not open file \"%s\": %s",
+			pg_fatal("could not open file \"%s\": %s",
 					 output_path, strerror(errno));
 		fprintf(script, "%s (oid=%s)\n",
 				PQgetvalue(res, rowno, i_rolname),
@@ -1329,7 +1329,7 @@ check_for_pg_role_prefix(ClusterInfo *cluster)
 				 "| \"pg_\" is a reserved prefix for system roles, the cluster\n"
 				 "| cannot be upgraded until these roles are renamed.\n"
 				 "| A list of roles starting with \"pg_\" is in the file:\n"
-				 "|     %s", output_path);
+				 "|     %s\n\n", output_path);
 	}
 	else
 		check_ok();

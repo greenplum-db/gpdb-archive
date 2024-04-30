@@ -142,7 +142,6 @@ check_external_partition(void)
 {
 	char		output_path[MAXPGPATH];
 	FILE	   *script = NULL;
-	bool		found = false;
 	int			dbnum;
 
 	/*
@@ -170,50 +169,57 @@ check_external_partition(void)
 	for (dbnum = 0; dbnum < old_cluster.dbarr.ndbs; dbnum++)
 	{
 		PGresult   *res;
+		bool		db_used = false;
 		int			ntups;
 		int			rowno;
+		int			i_nspname,
+					i_relname,
+					i_partname;
 		DbInfo	   *active_db = &old_cluster.dbarr.dbs[dbnum];
-		PGconn	   *conn;
+		PGconn	   *conn = connectToServer(&old_cluster, active_db->db_name);
 
-		conn = connectToServer(&old_cluster, active_db->db_name);
 		res = executeQueryOrDie(conn,
-			 "SELECT cc.relname, c.relname AS partname, c.relnamespace "
-			 "FROM   pg_inherits i "
-			 "       JOIN pg_class c ON (i.inhrelid = c.oid AND c.relstorage = '%c') "
-			 "       JOIN pg_class cc ON (i.inhparent = cc.oid);",
-			 RELSTORAGE_EXTERNAL);
+				 "SELECT n.nspname, cc.relname, c.relname AS partname "
+				 "FROM pg_inherits i "
+				 "JOIN pg_class c ON (i.inhrelid = c.oid AND c.relstorage = '%c') "
+				 "JOIN pg_class cc ON (i.inhparent = cc.oid) "
+				 "JOIN pg_namespace n ON (cc.relnamespace = n.oid) ",
+				 RELSTORAGE_EXTERNAL);
 
 		ntups = PQntuples(res);
-
-		if (ntups > 0)
+		i_nspname = PQfnumber(res, "nspname");
+		i_relname = PQfnumber(res, "relname");
+		i_partname = PQfnumber(res, "partname");
+		for (rowno = 0; rowno < ntups; rowno++)
 		{
-			found = true;
-
-			if (script == NULL && (script = fopen(output_path, "w")) == NULL)
-				pg_log(PG_FATAL, "Could not create necessary file:  %s\n",
-					   output_path);
-
-			for (rowno = 0; rowno < ntups; rowno++)
+			if (script == NULL && (script = fopen_priv(output_path, "w")) == NULL)
+				pg_fatal("could not open file \"%s\": %s\n",
+						 output_path, strerror(errno));
+			if (!db_used)
 			{
-				fprintf(script, "External partition \"%s\" in relation \"%s\"\n",
-						PQgetvalue(res, rowno, PQfnumber(res, "partname")),
-						PQgetvalue(res, rowno, PQfnumber(res, "relname")));
+				fprintf(script, "In database: %s\n", active_db->db_name);
+				db_used = true;
 			}
+			fprintf(script, "External partition \"%s\" in relation \"%s.%s\"\n",
+					PQgetvalue(res, rowno, i_partname),
+					PQgetvalue(res, rowno, i_nspname),
+					PQgetvalue(res, rowno, i_relname));
 		}
 
 		PQclear(res);
 		PQfinish(conn);
 	}
-	if (found)
+
+	if (script)
 	{
 		fclose(script);
 		pg_log(PG_REPORT, "fatal\n");
 		gp_fatal_log(
-			   "| Your installation contains partitioned tables with external\n"
-			   "| tables as partitions.  These partitions need to be removed\n"
-			   "| from the partition hierarchy before the upgrade.  A list of\n"
-			   "| external partitions to remove is in the file:\n"
-			   "| \t%s\n\n", output_path);
+				"| Your installation contains partitioned tables with external\n"
+				"| tables as partitions.  These partitions need to be removed\n"
+				"| from the partition hierarchy before the upgrade.  A list of\n"
+				"| external partitions to remove is in the file:\n"
+				"| \t%s\n\n", output_path);
 	}
 	else
 		check_ok();
@@ -263,7 +269,6 @@ check_covering_aoindex(void)
 {
 	char			output_path[MAXPGPATH];
 	FILE		   *script = NULL;
-	bool			found = false;
 	int				dbnum;
 
 	prep_status("Checking for non-covering indexes on partitioned AO tables");
@@ -274,12 +279,14 @@ check_covering_aoindex(void)
 	for (dbnum = 0; dbnum < old_cluster.dbarr.ndbs; dbnum++)
 	{
 		PGresult   *res;
-		PGconn	   *conn;
+		bool		db_used = false;
 		int			ntups;
 		int			rowno;
+		int			i_inhrelid,
+					i_relid;
 		DbInfo	   *active_db = &old_cluster.dbarr.dbs[dbnum];
+		PGconn	   *conn = connectToServer(&old_cluster, active_db->db_name);
 
-		conn = connectToServer(&old_cluster, active_db->db_name);
 		res = executeQueryOrDie(conn,
 			 "SELECT DISTINCT ao.relid, inh.inhrelid "
 			 "FROM   pg_catalog.pg_appendonly ao "
@@ -292,28 +299,28 @@ check_covering_aoindex(void)
 			 "WHERE  ao.blkdirrelid <> 0;");
 
 		ntups = PQntuples(res);
-
-		if (ntups > 0)
+		i_inhrelid = PQfnumber(res, "inhrelid");
+		i_relid = PQfnumber(res, "relid");
+		for (rowno = 0; rowno < ntups; rowno++)
 		{
-			found = true;
-
-			if (script == NULL && (script = fopen(output_path, "w")) == NULL)
-				pg_log(PG_FATAL, "Could not create necessary file:  %s\n",
-					   output_path);
-
-			for (rowno = 0; rowno < ntups; rowno++)
+			if (script == NULL && (script = fopen_priv(output_path, "w")) == NULL)
+				pg_fatal("could not open file \"%s\": %s\n",
+						 output_path, strerror(errno));
+			if (!db_used)
 			{
-				fprintf(script, "Mismatched index on partition %s in relation %s\n",
-						PQgetvalue(res, rowno, PQfnumber(res, "inhrelid")),
-						PQgetvalue(res, rowno, PQfnumber(res, "relid")));
+				fprintf(script, "In database: %s\n", active_db->db_name);
+				db_used = true;
 			}
+			fprintf(script, "Mismatched index on partition %s in relation %s\n",
+					PQgetvalue(res, rowno, i_inhrelid),
+					PQgetvalue(res, rowno, i_relid));
 		}
 
 		PQclear(res);
 		PQfinish(conn);
 	}
 
-	if (found)
+	if (script)
 	{
 		fclose(script);
 		pg_log(PG_REPORT, "fatal\n");
@@ -333,7 +340,6 @@ check_covering_aoindex(void)
 static void
 check_orphaned_toastrels(void)
 {
-	bool			found = false;
 	int				dbnum;
 	char			output_path[MAXPGPATH];
 	FILE		   *script = NULL;
@@ -346,11 +352,14 @@ check_orphaned_toastrels(void)
 	for (dbnum = 0; dbnum < old_cluster.dbarr.ndbs; dbnum++)
 	{
 		PGresult   *res;
-		PGconn	   *conn;
+		bool		db_used = false;
 		int			ntups;
+		int			rowno;
+		int			i_nspname,
+					i_relname;
 		DbInfo	   *active_db = &old_cluster.dbarr.dbs[dbnum];
+		PGconn	   *conn = connectToServer(&old_cluster, active_db->db_name);
 
-		conn = connectToServer(&old_cluster, active_db->db_name);
 		res = executeQueryOrDie(conn,
 								"WITH orphan_toast AS ( "
 								"    SELECT c.oid AS reloid, "
@@ -365,27 +374,35 @@ check_orphaned_toastrels(void)
 								"WHERE  reloid IS NULL");
 
 		ntups = PQntuples(res);
-		if (ntups > 0)
+		i_nspname = PQfnumber(res, "nspname");
+		i_relname = PQfnumber(res, "relname");
+		for (rowno = 0; rowno < ntups; rowno++)
 		{
-			found = true;
-			if (script == NULL && (script = fopen(output_path, "w")) == NULL)
-				pg_log(PG_FATAL, "Could not create necessary file:  %s\n", output_path);
-
-			fprintf(script, "Database \"%s\" has %d orphaned toast tables\n", active_db->db_name, ntups);
+			if (script == NULL && (script = fopen_priv(output_path, "w")) == NULL)
+				pg_fatal("could not open file \"%s\": %s\n",
+						 output_path, strerror(errno));
+			if (!db_used)
+			{
+				fprintf(script, "In database: %s\n", active_db->db_name);
+				db_used = true;
+			}
+			fprintf(script, "  %s.%s\n",
+					PQgetvalue(res, rowno, i_nspname),
+					PQgetvalue(res, rowno, i_relname));
 		}
 
 		PQclear(res);
 		PQfinish(conn);
 	}
 
-	if (found)
+	if (script)
 	{
 		fclose(script);
 		pg_log(PG_REPORT, "fatal\n");
 		gp_fatal_log(
 			   "| Your installation contains orphaned toast tables which\n"
 			   "| must be dropped before upgrade.\n"
-			   "| A list of the problem databases is in the file:\n"
+			   "| A list of tables with the problem is in the file:\n"
 			   "| \t%s\n\n", output_path);
 	}
 	else
@@ -407,7 +424,6 @@ check_partition_indexes(void)
 {
 	int				dbnum;
 	FILE		   *script = NULL;
-	bool			found = false;
 	char			output_path[MAXPGPATH];
 
 	/*
@@ -468,12 +484,12 @@ check_partition_indexes(void)
 		i_indexes = PQfnumber(res, "indexes");
 		for (rowno = 0; rowno < ntups; rowno++)
 		{
-			found = true;
-			if (script == NULL && (script = fopen(output_path, "w")) == NULL)
-				pg_log(PG_FATAL, "Could not create necessary file:  %s\n", output_path);
+			if (script == NULL && (script = fopen_priv(output_path, "w")) == NULL)
+				pg_fatal("could not open file \"%s\": %s\n",
+						 output_path, strerror(errno));
 			if (!db_used)
 			{
-				fprintf(script, "Database:  %s\n", active_db->db_name);
+				fprintf(script, "In database: %s\n", active_db->db_name);
 				db_used = true;
 			}
 			fprintf(script, "  %s.%s has %s index(es)\n",
@@ -486,7 +502,7 @@ check_partition_indexes(void)
 		PQfinish(conn);
 	}
 
-	if (found)
+	if (script)
 	{
 		fclose(script);
 		pg_log(PG_REPORT, "fatal\n");
@@ -583,7 +599,6 @@ check_multi_column_list_partition_keys(ClusterInfo *cluster)
 {
 	char			output_path[MAXPGPATH];
 	FILE		   *script = NULL;
-	bool			found = false;
 	int				dbnum;
 
 	if (GET_MAJOR_VERSION(cluster->major_version) > 904)
@@ -617,7 +632,6 @@ check_multi_column_list_partition_keys(ClusterInfo *cluster)
 		i_relname = PQfnumber(res, "relname");
 		for (rowno = 0; rowno < ntups; rowno++)
 		{
-			found = true;
 			if (script == NULL && (script = fopen_priv(output_path, "w")) == NULL)
 				pg_fatal("could not open file \"%s\": %s\n",
 						 output_path, strerror(errno));
@@ -635,7 +649,7 @@ check_multi_column_list_partition_keys(ClusterInfo *cluster)
 		PQfinish(conn);
 	}
 
-	if (found)
+	if (script)
 	{
 		fclose(script);
 		pg_log(PG_REPORT, "fatal\n");
@@ -657,7 +671,6 @@ check_for_plpython2_dependent_functions(ClusterInfo *cluster)
 
 	FILE		*script = NULL;
 	char		output_path[MAXPGPATH];
-	bool		found = false;
 
 	prep_status("Checking for functions dependent on plpython2");
 
@@ -690,7 +703,6 @@ check_for_plpython2_dependent_functions(ClusterInfo *cluster)
 		i_proname = PQfnumber(res, "proname");
 		for (rowno = 0; rowno < ntups; rowno++)
 		{
-			found = true;
 			if (script == NULL && (script = fopen_priv(output_path, "w")) == NULL)
 				pg_fatal("could not open file \"%s\": %s\n",
 						 output_path, strerror(errno));
@@ -710,10 +722,8 @@ check_for_plpython2_dependent_functions(ClusterInfo *cluster)
 	}
 
 	if (script)
-		fclose(script);
-
-	if (found)
 	{
+		fclose(script);
 		pg_log(PG_REPORT, "fatal\n");
 		gp_fatal_log(
 				"| Your installation contains \"plpython\" functions which rely\n"
@@ -837,7 +847,6 @@ check_views_with_removed_operators()
 
 	char  output_path[MAXPGPATH];
 	FILE *script = NULL;
-	bool  found = false;
 	int   dbnum;
 	int   i_viewname;
 
@@ -888,12 +897,12 @@ check_views_with_removed_operators()
 		i_viewname = PQfnumber(res, "badviewname");
 		for (rowno = 0; rowno < ntups; rowno++)
 		{
-			found = true;
-			if (script == NULL && (script = fopen(output_path, "w")) == NULL)
-				pg_fatal("Could not create necessary file:  %s\n", output_path);
+			if (script == NULL && (script = fopen_priv(output_path, "w")) == NULL)
+				pg_fatal("could not open file \"%s\": %s\n",
+						 output_path, strerror(errno));
 			if (!db_used)
 			{
-				fprintf(script, "Database: %s\n", active_db->db_name);
+				fprintf(script, "In database: %s\n", active_db->db_name);
 				db_used = true;
 			}
 			fprintf(script, "  %s\n", PQgetvalue(res, rowno, i_viewname));
@@ -903,8 +912,9 @@ check_views_with_removed_operators()
 		PQfinish(conn);
 	}
 
-	if (found)
+	if (script)
 	{
+		fclose(script);
 		pg_log(PG_REPORT, "fatal\n");
 		gp_fatal_log(
 			   "| Your installation contains views using removed operators.\n"
@@ -925,7 +935,6 @@ check_views_with_removed_functions()
 
 	char  output_path[MAXPGPATH];
 	FILE *script = NULL;
-	bool  found = false;
 	int   dbnum;
 	int   i_viewname;
 
@@ -977,12 +986,12 @@ check_views_with_removed_functions()
 		i_viewname = PQfnumber(res, "badviewname");
 		for (rowno = 0; rowno < ntups; rowno++)
 		{
-			found = true;
-			if (script == NULL && (script = fopen(output_path, "w")) == NULL)
-				pg_fatal("Could not create necessary file:  %s\n", output_path);
+			if (script == NULL && (script = fopen_priv(output_path, "w")) == NULL)
+				pg_fatal("could not open file \"%s\": %s\n",
+						 output_path, strerror(errno));
 			if (!db_used)
 			{
-				fprintf(script, "Database: %s\n", active_db->db_name);
+				fprintf(script, "In database: %s\n", active_db->db_name);
 				db_used = true;
 			}
 			fprintf(script, "  %s\n", PQgetvalue(res, rowno, i_viewname));
@@ -992,8 +1001,9 @@ check_views_with_removed_functions()
 		PQfinish(conn);
 	}
 
-	if (found)
+	if (script)
 	{
+		fclose(script);
 		pg_log(PG_REPORT, "fatal\n");
 		gp_fatal_log(
 			   "| Your installation contains views using removed functions.\n"
@@ -1014,7 +1024,6 @@ check_views_with_removed_types()
 
 	char  output_path[MAXPGPATH];
 	FILE *script = NULL;
-	bool  found = false;
 	int   dbnum;
 	int   i_viewname;
 
@@ -1026,13 +1035,12 @@ check_views_with_removed_types()
 	for (dbnum = 0; dbnum < old_cluster.dbarr.ndbs; dbnum++)
 	{
 		PGresult   *res;
+		bool		db_used = false;
 		int			ntups;
 		int			rowno;
 		DbInfo	   *active_db = &old_cluster.dbarr.dbs[dbnum];
-		PGconn	   *conn;
-		bool		db_used = false;
+		PGconn	   *conn = connectToServer(&old_cluster, active_db->db_name);
 
-		conn = connectToServer(&old_cluster, active_db->db_name);
 		PQclear(executeQueryOrDie(conn, "SET search_path TO 'public';"));
 
 		/*
@@ -1066,12 +1074,12 @@ check_views_with_removed_types()
 		i_viewname = PQfnumber(res, "badviewname");
 		for (rowno = 0; rowno < ntups; rowno++)
 		{
-			found = true;
-			if (script == NULL && (script = fopen(output_path, "w")) == NULL)
-				pg_fatal("Could not create necessary file:  %s\n", output_path);
+			if (script == NULL && (script = fopen_priv(output_path, "w")) == NULL)
+				pg_fatal("could not open file \"%s\": %s\n",
+						 output_path, strerror(errno));
 			if (!db_used)
 			{
-				fprintf(script, "Database: %s\n", active_db->db_name);
+				fprintf(script, "In database: %s\n", active_db->db_name);
 				db_used = true;
 			}
 			fprintf(script, "  %s\n", PQgetvalue(res, rowno, i_viewname));
@@ -1081,8 +1089,9 @@ check_views_with_removed_types()
 		PQfinish(conn);
 	}
 
-	if (found)
+	if (script)
 	{
+		fclose(script);
 		pg_log(PG_REPORT, "fatal\n");
 		gp_fatal_log(
 			   "| Your installation contains views using removed types.\n"
@@ -1105,7 +1114,6 @@ check_for_disallowed_pg_operator(void)
 {
 	int			dbnum;
 	char		output_path[MAXPGPATH];
-	bool		found = false;
 	FILE		*script = NULL;
 
 	if (GET_MAJOR_VERSION(old_cluster.major_version) > 904)
@@ -1120,6 +1128,8 @@ check_for_disallowed_pg_operator(void)
 	for (dbnum = 0; dbnum < old_cluster.dbarr.ndbs; dbnum++)
 	{
 		PGresult   *res;
+		int			ntups;
+		int			rowno;
 		DbInfo	   *active_db = &old_cluster.dbarr.dbs[dbnum];
 		PGconn	   *conn = connectToServer(&old_cluster, active_db->db_name);
 
@@ -1130,11 +1140,12 @@ check_for_disallowed_pg_operator(void)
 								"WHERE oprname = '=>' AND "
 								"	   oid >= 16384");
 
-		if (PQntuples(res) != 0)
+		ntups = PQntuples(res);
+		for (rowno = 0; rowno < ntups; rowno++)
 		{
-			found = true;
-			if (script == NULL && (script = fopen(output_path, "w")) == NULL)
-				pg_fatal("Could not create necessary file:  %s\n", output_path);
+			if (script == NULL && (script = fopen_priv(output_path, "w")) == NULL)
+				pg_fatal("could not open file \"%s\": %s\n",
+						 output_path, strerror(errno));
 
 			fprintf(script, "%s\n", active_db->db_name);
 		}
@@ -1144,10 +1155,8 @@ check_for_disallowed_pg_operator(void)
 	}
 
 	if (script)
-		fclose(script);
-
-	if (found)
 	{
+		fclose(script);
 		pg_log(PG_REPORT, "fatal\n");
 		gp_fatal_log(
 					 "| Your installation contains disallowed OPERATOR =>.\n"
@@ -1257,7 +1266,6 @@ check_views_with_changed_function_signatures()
 
 	char  output_path[MAXPGPATH];
 	FILE *script = NULL;
-	bool  found = false;
 	int   dbnum;
 	int   i_viewname;
 
@@ -1309,12 +1317,11 @@ check_views_with_changed_function_signatures()
 		i_viewname = PQfnumber(res, "badviewname");
 		for (rowno = 0; rowno < ntups; rowno++)
 		{
-			found = true;
 			if (script == NULL && (script = fopen(output_path, "w")) == NULL)
 				pg_fatal("Could not create necessary file:  %s\n", output_path);
 			if (!db_used)
 			{
-				fprintf(script, "Database: %s\n", active_db->db_name);
+				fprintf(script, "In database: %s\n", active_db->db_name);
 				db_used = true;
 			}
 			fprintf(script, "  %s\n", PQgetvalue(res, rowno, i_viewname));
@@ -1324,8 +1331,9 @@ check_views_with_changed_function_signatures()
 		PQfinish(conn);
 	}
 
-	if (found)
+	if (script)
 	{
+		fclose(script);
 		pg_log(PG_REPORT, "fatal\n");
 		gp_fatal_log(
 			"| Your installation contains views using "

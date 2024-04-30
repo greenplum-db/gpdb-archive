@@ -30,7 +30,6 @@ check_hash_partition_usage(void)
 {
 	int				dbnum;
 	FILE		   *script = NULL;
-	bool			found = false;
 	char			output_path[MAXPGPATH];
 
 	/* Merge with PostgreSQL v11 introduced hash partitioning again. */
@@ -64,12 +63,12 @@ check_hash_partition_usage(void)
 		i_relname = PQfnumber(res, "relname");
 		for (rowno = 0; rowno < ntups; rowno++)
 		{
-			found = true;
-			if (script == NULL && (script = fopen(output_path, "w")) == NULL)
-				pg_log(PG_FATAL, "Could not create necessary file:  %s\n", output_path);
+			if (script == NULL && (script = fopen_priv(output_path, "w")) == NULL)
+				pg_fatal("could not open file \"%s\": %s\n",
+						 output_path, strerror(errno));
 			if (!db_used)
 			{
-				fprintf(script, "Database:  %s\n", active_db->db_name);
+				fprintf(script, "In database: %s\n", active_db->db_name);
 				db_used = true;
 			}
 			fprintf(script, "  %s.%s\n",
@@ -82,7 +81,7 @@ check_hash_partition_usage(void)
 		PQfinish(conn);
 	}
 
-	if (found)
+	if (script)
 	{
 		fclose(script);
 		pg_log(PG_REPORT, "fatal\n");
@@ -109,7 +108,6 @@ void
 old_GPDB6_check_for_unsupported_sha256_password_hashes(void)
 {
 	FILE	   *script = NULL;
-	bool		found = false;
 	char		output_path[MAXPGPATH];
 
 	prep_status("Checking for SHA-256 hashed passwords");
@@ -134,7 +132,6 @@ old_GPDB6_check_for_unsupported_sha256_password_hashes(void)
 		i_rolname = PQfnumber(res, "rolname");
 		for (rowno = 0; rowno < ntups; rowno++)
 		{
-			found = true;
 			if (script == NULL && (script = fopen_priv(output_path, "w")) == NULL)
 				pg_fatal("Could not open file \"%s\": %s\n",
 						 output_path, strerror(errno));
@@ -148,10 +145,8 @@ old_GPDB6_check_for_unsupported_sha256_password_hashes(void)
 	}
 
 	if (script)
-		fclose(script);
-
-	if (found)
 	{
+		fclose(script);
 		pg_log(PG_REPORT, "fatal\n");
 		gp_fatal_log(
 				 "| Your installation contains roles with SHA-256 hashed passwords. Using\n"
