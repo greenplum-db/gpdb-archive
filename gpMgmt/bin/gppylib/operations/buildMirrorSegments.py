@@ -4,6 +4,7 @@ import pipes
 import signal
 import time
 import re
+from datetime import datetime
 
 from gppylib.recoveryinfo import RecoveryResult
 from gppylib.mainUtils import *
@@ -261,6 +262,15 @@ class GpMirrorListToBuild:
             live_seg = toRecover.getLiveSegment()
             live_seg.setSegmentMode(gparray.MODE_NOT_SYNC)
 
+    # Remove any existing progress file of segments that will be recovered by current gprecoverseg execution.
+    def remove_existing_progress_files(self, recovery_info_by_host):
+        remove_progress_file_cmds = []
+        for hostName, recovery_info_list in recovery_info_by_host.items():
+            for ri in recovery_info_list:
+                remove_progress_file_cmds.append(self._get_remove_cmd("*dbid{}.out".format(ri.target_segment_dbid),
+                                                                      hostName))
+        self.__runWaitAndCheckWorkerPoolForErrorsAndClear(remove_progress_file_cmds, suppressErrorCheck=True)
+
     def add_mirrors(self, gpEnv, gpArray):
         return self.__build_mirrors(GpMirrorListToBuild.Action.ADDMIRRORS, gpEnv, gpArray)
 
@@ -289,6 +299,9 @@ class GpMirrorListToBuild:
         self._validate_gparray(gpArray)
 
         recovery_info_by_host = recoveryinfo.build_recovery_info(self.__mirrorsToBuild)
+
+        # Remove any existing progress files for segments to be recovered
+        self.remove_existing_progress_files(recovery_info_by_host)
 
         self._run_setup_recovery(actionName, recovery_info_by_host)
 
@@ -341,14 +354,6 @@ class GpMirrorListToBuild:
             # Re-enable Ctrl-C
             signal.signal(signal.SIGINT, old_handler)
             return backout_map
-
-    def _remove_progress_files(self, recovery_info_by_host, recovery_results):
-        remove_progress_file_cmds = []
-        for hostName, recovery_info_list in recovery_info_by_host.items():
-            for ri in recovery_info_list:
-                if recovery_results.was_bb_rewind_rsync_successful(ri.target_segment_dbid):
-                    remove_progress_file_cmds.append(self._get_remove_cmd(ri.progress_file, hostName))
-        self.__runWaitAndCheckWorkerPoolForErrorsAndClear(remove_progress_file_cmds, suppressErrorCheck=False)
 
     def _revert_config_update(self, recovery_results, backout_map):
         if len(backout_map) == 0:
@@ -447,7 +452,7 @@ class GpMirrorListToBuild:
                     else:
                         results = ''
 
-                output.append("%s (dbid %d): %s" % (cmd.remoteHost, cmd.dbid, results))
+                output.append("%s: %s (dbid %d): %s" % (datetime.now(), cmd.remoteHost, cmd.dbid, results))
                 if inplace:
                     output.append("\x1B[K")
                 output.append("\n")
@@ -546,7 +551,7 @@ class GpMirrorListToBuild:
         return None
 
     def _get_remove_cmd(self, remove_file, target_host):
-        return base.Command("remove file", "rm -f {}".format(pipes.quote(remove_file)), ctxt=base.REMOTE, remoteHost=target_host)
+        return base.Command("remove file", "find {} -name {} -delete".format(gplog.get_logger_dir(), pipes.quote(remove_file)), ctxt=base.REMOTE, remoteHost=target_host)
 
     def __runWaitAndCheckWorkerPoolForErrorsAndClear(self, cmds, suppressErrorCheck=False, progressCmds=[]):
         for cmd in cmds:
@@ -584,7 +589,6 @@ class GpMirrorListToBuild:
         recovery_results = RecoveryResult(action_name, completed_recovery_results, self.__logger)
         recovery_results.print_bb_rewind_differential_update_and_start_errors()
 
-        self._remove_progress_files(recovery_info_by_host, recovery_results)
         return recovery_results
 
     def _do_recovery(self, recovery_info_by_host, gpEnv):

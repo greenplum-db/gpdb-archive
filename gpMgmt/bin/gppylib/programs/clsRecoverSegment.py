@@ -477,6 +477,9 @@ class GpRecoverSegmentProgram:
                 self.logger.info("Not able to terminate the recovery process since it has been completed successfully.")
 
             self.logger.info("********************************")
+            self.logger.info("Future gprecoverseg executions might remove the currently created pg_basebackup/pg_rewind/rsync "
+                             "progress files, please save these files if needed.")
+            self.logger.info("********************************")
             self.logger.info("Segments successfully recovered.")
             self.logger.info("********************************")
 

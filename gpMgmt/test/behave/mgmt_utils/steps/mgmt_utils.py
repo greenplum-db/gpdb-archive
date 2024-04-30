@@ -2665,6 +2665,12 @@ def impl(context, expected_file, content_ids):
         ls_outs = listdir_cmd.get_results().stdout.split('\n')
         files_found = [ls_line.split(' ')[-1] for ls_line in ls_outs if ls_line]
 
+        if 'existing_progress_files' not in context:
+            context.existing_progress_files = {}
+        if segHost not in context.existing_progress_files:
+            context.existing_progress_files[segHost] = []
+        context.existing_progress_files[segHost].extend(files_found)
+
         if not files_found:
             raise Exception("expected {} files in {} on host {}, but not found".format(expected_file, log_dir, segHost))
 
@@ -2677,11 +2683,35 @@ def impl(context, expected_file, content_ids):
                 raise Exception("Found unexpected file {} in {}".format(file, log_dir))
 
 
-@then('gpAdminLogs directory {has} "{expected_file}" files on all segment hosts')
-def impl(context, has, expected_file):
+@then('all previous progress files are removed from gpAdminLogs directory on respective hosts only for content {content_ids}')
+def impl(context, content_ids):
+    content_list = [int(c) for c in content_ids.split(',')]
+    all_segments = GpArray.initFromCatalog(dbconn.DbURL()).getDbList()
+    segments = filter(lambda seg: seg.getSegmentRole() == ROLE_MIRROR and
+                                  seg.content in content_list, all_segments)
+    for seg in segments:
+        segHost = seg.getSegmentHostName()
+        segDbid = seg.getSegmentDbId()
+        file_substring = "dbid{}.out".format(segDbid)
+        for file in context.existing_progress_files[segHost]:
+            if file_substring in file:
+                log_dir = "%s/gpAdminLogs" % os.path.expanduser("~")
+                checkfile_cmd = Command(name="check if file exists",
+                                        cmdStr="test -f {}".format(file),
+                                        remoteHost=segHost, ctxt=REMOTE)
+                checkfile_cmd.run()
+                if checkfile_cmd.get_return_code() == 0:
+                    raise Exception(
+                        "Did not expect {} file in {} on host {}, but found".format(file, log_dir, segHost))
+
+
+@then('gpAdminLogs directory {has} "{expected_file}" files on {hosts}')
+def impl(context, has, expected_file, hosts):
     all_segments = GpArray.initFromCatalog(dbconn.DbURL()).getDbList()
     all_segment_hosts = [seg.getSegmentHostName() for seg in all_segments if seg.getSegmentContentId() >= 0]
 
+    if hosts != 'all segment hosts':
+        all_segment_hosts = [host for host in hosts.split(',')]
     for seg_host in all_segment_hosts:
         log_dir = "%s/gpAdminLogs" % os.path.expanduser("~")
         listdir_cmd = Command(name="list logfiles on host",
