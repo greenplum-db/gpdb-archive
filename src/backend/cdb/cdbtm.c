@@ -1265,18 +1265,23 @@ doDispatchDtxProtocolCommand(DtxProtocolCommand dtxProtocolCommand,
 
 	if (qeError)
 	{
-		if (!raiseError)
+		/*
+		 * Report the ERROR under Debug_print_full_dtm, as it can be lost as we
+		 * flush below and the caller may forget to CopyErrorData(). Also, in
+		 * some cases caller may not be able to act on the copy (e.g. due to
+		 * another error).
+		 */
+		ereportif(Debug_print_full_dtm, LOG,
+				  (errmsg("error on dispatch of dtx protocol command '%s' for gid '%s'",
+						  dtxProtocolCommandStr, gid),
+				   errdetail("QE reported error: %s", qeError->message)));
+
+		if (raiseError)
 		{
-			ereport(LOG,
-					(errmsg("DTM error (gathered results from cmd '%s')", dtxProtocolCommandStr),
-					 errdetail("QE reported error: %s", qeError->message)));
-		}
-		else
-		{
+			/* flush then rethrow, to avoid overflowing the error stack */
 			FlushErrorState();
 			ThrowErrorData(qeError);
 		}
-		return false;
 	}
 
 	if (results == NULL)
