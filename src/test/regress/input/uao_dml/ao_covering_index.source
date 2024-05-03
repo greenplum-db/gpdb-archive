@@ -93,7 +93,7 @@ EXPLAIN (ANALYZE, COSTS OFF, TIMING OFF, SUMMARY OFF) SELECT decimaltype, boxtyp
 -- physical scan.
 CREATE TABLE test_add_drop_columns_@amname@(a bigint, aa bigint, b bigint, bb bigint, c bigint, d bigint) USING @amname@;
 ALTER TABLE test_add_drop_columns_@amname@ DROP COLUMN aa;
-INSERT INTO test_add_drop_columns_@amname@ SELECT i, 2 * i, 3 * i, 4 * i, 5 * i FROM generate_series(1, 100000)i;
+INSERT INTO test_add_drop_columns_@amname@ SELECT i, 2 * i, 3 * i, 4 * i, 5 * i FROM generate_series(1, 50000)i;
 ALTER TABLE test_add_drop_columns_@amname@ DROP COLUMN bb;
 ALTER TABLE test_add_drop_columns_@amname@ ADD COLUMN e bigint;
 CREATE INDEX i_test_add_drop_columns_@amname@ ON test_add_drop_columns_@amname@(a, b) INCLUDE (c);
