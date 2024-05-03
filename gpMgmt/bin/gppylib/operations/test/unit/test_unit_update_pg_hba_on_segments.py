@@ -77,7 +77,8 @@ host replication gpadmin {ip_primary2}/32 trust"""
     @patch('gppylib.operations.update_pg_hba_on_segments.update_on_segments')
     @patch('gppylib.operations.update_pg_hba_on_segments.create_entries', 
             side_effect=[['entry0', 'entry1'], ['entry1', 'entry2']])
-    def test_update_pg_hba_on_segments_updated_successfully_all_failed_segments(self, mock_entry, mock_update):
+    @patch('gppylib.commands.pg.kill_existing_walsenders_on_primary')
+    def test_update_pg_hba_on_segments_updated_successfully_all_failed_segments(self, mock, mock_entry, mock_update):
         os.environ["GPHOME"] = "/usr/local/gpdb"
         expected_batch_size = 16
         update_pg_hba_on_segments(self.gparray, False, expected_batch_size)
@@ -100,7 +101,8 @@ host replication gpadmin {ip_primary2}/32 trust"""
 
     @patch('gppylib.operations.update_pg_hba_on_segments.update_on_segments')
     @patch('gppylib.operations.update_pg_hba_on_segments.create_entries', side_effect=[['entry0', 'entry1']])
-    def test_one_primary_seg_unreachable(self, mock_entries, mock_update):
+    @patch('gppylib.commands.pg.kill_existing_walsenders_on_primary')
+    def test_one_primary_seg_unreachable(self, mock, mock_entries, mock_update):
         pair0, pair1 = self.gparray.getSegmentList()
         pair0.primaryDB.unreachable = True
 
@@ -122,7 +124,8 @@ host replication gpadmin {ip_primary2}/32 trust"""
 
     @patch('gppylib.operations.update_pg_hba_on_segments.update_on_segments')
     @patch('gppylib.operations.update_pg_hba_on_segments.create_entries', side_effect=[['entry0', 'entry1']])
-    def test_mirror_seg_is_none(self, mock_entries, mock_update):
+    @patch('gppylib.commands.pg.kill_existing_walsenders_on_primary')
+    def test_mirror_seg_is_none(self, mock, mock_entries, mock_update):
         pair0, pair1 = self.gparray.getSegmentList()
         pair0.mirrorDB = None
         os.environ["GPHOME"] = "/usr/local/gpdb"
@@ -143,7 +146,8 @@ host replication gpadmin {ip_primary2}/32 trust"""
 
     @patch('gppylib.operations.update_pg_hba_on_segments.update_on_segments')
     @patch('gppylib.operations.update_pg_hba_on_segments.create_entries')
-    def test_both_seg_unreachable(self, mock_entries, mock_update):
+    @patch('gppylib.commands.pg.kill_existing_walsenders_on_primary')
+    def test_both_seg_unreachable(self, mock, mock_entries, mock_update):
         pair0, pair1 = self.gparray.getSegmentList()
         pair0.primaryDB.unreachable = True
         pair1.primaryDB.unreachable = True
@@ -158,7 +162,8 @@ host replication gpadmin {ip_primary2}/32 trust"""
 
     @patch('gppylib.operations.update_pg_hba_on_segments.update_on_segments')
     @patch('gppylib.operations.update_pg_hba_on_segments.create_entries', side_effect=[['entry0', 'entry1']])
-    def test_one_seg_to_update(self, mock_entries, mock_update):
+    @patch('gppylib.commands.pg.kill_existing_walsenders_on_primary')
+    def test_one_seg_to_update(self, mock, mock_entries, mock_update):
         pair0, pair1 = self.gparray.getSegmentList()
         os.environ["GPHOME"] = "/usr/local/gpdb"
         expected_batch_size = 16

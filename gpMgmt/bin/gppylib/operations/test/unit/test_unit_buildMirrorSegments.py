@@ -109,9 +109,9 @@ class BuildMirrorsTestCase(GpTestCase):
 
     def _setup_recovery_mocks(self, host_errors=[]):
         host1_recovery_output = gp.GpSegRecovery('test recover 1', 'dummy_info1', '/tmp/log1/', False, 1,
-                                                 'host1', 'dummy_era1', True)
+                                                 'host1', 'dummy_era1', True, None)
         host2_recovery_output = gp.GpSegRecovery('test recover 2', 'dummy_info2', '/tmp/log2/', True, 2,
-                                                 'host2', 'dummy_era2', False)
+                                                 'host2', 'dummy_era2', False, None)
 
         host1_result = CommandResult(0, ''.encode(), ''.encode(), True, False)
         host2_result = CommandResult(0, ''.encode(), ''.encode(), True, False)
@@ -477,7 +477,7 @@ class BuildMirrorsTestCase(GpTestCase):
         build_mirrors_obj._clean_up_failed_segments()
 
         self.mock_get_segments_by_hostname.assert_called_once_with([failed1, failed3])
-        self.mock_logger.info.called_once_with('Cleaning files from 3 segment(s)')
+        self.mock_logger.info.assert_called_once_with('Cleaning files from 2 segment(s)')
 
     def test_clean_up_failed_segments_no_segs_to_cleanup(self):
         failed2 = self._create_primary(dbid='3', status='d')

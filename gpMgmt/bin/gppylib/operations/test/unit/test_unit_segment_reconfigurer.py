@@ -44,19 +44,34 @@ class SegmentReconfiguerTestCase(GpTestCase):
         reconfigurer = SegmentReconfigurer(logger=self.logger,
                 worker_pool=self.worker_pool, timeout=self.timeout)
         reconfigurer.reconfigure()
-        psycopg2.connect.assert_has_calls([
-            call(dbname=self.db, host=self.host, port=self.port, options=None, user=self.user, password=self.passwd),
-            call().query(FTS_PROBE_QUERY),
+        self.connect.assert_has_calls([
+            call(self.db_url),
+            call().cursor(),
+            call().cursor().__enter__(),
+            call().cursor().__enter__().execute('SELECT pg_catalog.gp_request_fts_probe_scan()'),
+            call().cursor().__exit__(None, None, None),
             call().close(),
-            ]
+            call(self.db_url),
+            call().cursor(),
+            call().cursor().__enter__(),
+            call().cursor().__enter__().execute('BEGIN'),
+            call().cursor().__enter__().execute('CREATE TEMP TABLE temp_test(a int)'),
+            call().cursor().__enter__().execute('COMMIT'),
+            call().cursor().__exit__(None, None, None),
+            call().close()]
             )
 
-    def test_it_retries_the_connection(self):
+    @patch('gppylib.operations.segment_reconfigurer.SegmentReconfigurer._trigger_fts_probe')
+    def test_it_retries_the_connection(self, mock):
         self.connect.configure_mock(side_effect=[psycopg2.DatabaseError, psycopg2.DatabaseError, self.conn])
 
         reconfigurer = SegmentReconfigurer(logger=self.logger,
-                worker_pool=self.worker_pool, timeout=self.timeout)
-        reconfigurer.reconfigure()
+                worker_pool=self.worker_pool, timeout=30)
+
+        with self.assertRaises(RuntimeError) as context:
+            reconfigurer.reconfigure()
+            self.assertEqual("Mirror promotion did not complete in {0} seconds.".format(self.timeout),
+                             context.exception.message)
 
         self.connect.assert_has_calls([call(self.db_url), call(self.db_url), call(self.db_url), ])
         self.conn.close.assert_any_call()
