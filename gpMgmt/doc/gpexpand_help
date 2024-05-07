@@ -14,6 +14,7 @@ gpexpand
       | --hba-hostnames
       | --rollback
       | --clean
+      | --without-icproxy-check
 [--verbose] [--silent]
 
 gpexpand -? | -h | --help 
@@ -175,6 +176,9 @@ OPTIONS
 -V | --novacuum
  Do not vacuum catalog tables before creating schema copy.
 
+
+--without-icproxy-check
+ Skip the step of checking the icproxy address.
 
 -? | -h | --help
  Displays the online help.

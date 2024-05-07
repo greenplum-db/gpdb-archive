@@ -152,6 +152,8 @@ def parseargs():
                       help='Do not prompt for confirmation to proceed on warnings')
     parser.add_option('', '--hba-hostnames', action='store_true', default=False,
                       help='use hostnames instead of CIDR in pg_hba.conf')
+    parser.add_option('', '--without-icproxy-check', action='store_true', default=False,
+                      help='no check the icproxy address')
     parser.add_option('--usage', action="briefhelp")
 
     parser.set_defaults(verbose=False, filters=[], slice=(None, None))
@@ -2596,7 +2598,8 @@ def main(options, args, parser):
             _gp_expand.validate_heap_checksums()
             newSegList = _gp_expand.read_input_files()
             _gp_expand.addNewSegments(newSegList)
-            _gp_expand.validate_icproxy_addr(newSegList)
+            if not options.without_icproxy_check:
+                _gp_expand.validate_icproxy_addr(newSegList)
             newTableSpaceInfo = _gp_expand.read_tablespace_file()
             _gp_expand.sync_packages()
             _gp_expand.start_prepare()
