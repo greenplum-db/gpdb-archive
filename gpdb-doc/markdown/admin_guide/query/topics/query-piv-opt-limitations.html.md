@@ -21,10 +21,8 @@ Falling back to Postgres-based planner because GPORCA does not support the follo
 
 These features are unsupported when GPORCA is enabled \(the default\):
 
--   Prepared statements that have parameterized values.
 -   SP-GiST indexing method. GPORCA supports only B-tree, bitmap, GIN, and GiST indexes. GPORCA ignores indexes created with unsupported methods.
 -   The `SELECT` command's `TABLESAMPLE` clause.
--   External parameters.
 -   Multi-level partitioned tables.
 -   Non-uniform partitioned tables.
 -   SortMergeJoin \(SMJ\).
