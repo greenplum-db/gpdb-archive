@@ -486,7 +486,8 @@ get_rel_infos(ClusterInfo *cluster, DbInfo *dbinfo)
 			 "                        'binary_upgrade', 'pg_toast') AND "
 			 "      c.oid >= %u::pg_catalog.oid) OR "
 			 "     (n.nspname = 'pg_catalog' AND "
-			 "      relname IN ('pg_largeobject') ))), ",
+			 "      relname IN ('pg_largeobject', "
+			 "					'gp_fastsequence', 'gp_fastsequence_objid_objmod_index') ))), ",
 			 FirstNormalObjectId);
 
 	/*
