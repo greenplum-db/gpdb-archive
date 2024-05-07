@@ -290,6 +290,9 @@ typedef struct
 	char	   *db_ctype;
 	int			db_encoding;
 	RelInfoArr	rel_arr;		/* array of all user relinfos */
+
+	uint32 		datfrozenxid;	/* GPDB */
+	uint32 		datminmxid;		/* GPDB */
 } DbInfo;
 
 typedef struct

@@ -374,9 +374,11 @@ get_db_infos(ClusterInfo *cluster)
 				i_datctype,
 				i_spclocation;
 	char		query[QUERY_ALLOC];
+	int			i_datfrozenxid;
+	int			i_datminmxid = 0;
 
 	snprintf(query, sizeof(query),
-			 "SELECT d.oid, d.datname, d.encoding, d.datcollate, d.datctype, "
+			 "SELECT d.oid, d.datname, d.encoding, d.datcollate, d.datctype, d.datfrozenxid, d.datminmxid, "
 			 "pg_catalog.pg_tablespace_location(t.oid) AS spclocation "
 			 "FROM pg_catalog.pg_database d "
 			 " LEFT OUTER JOIN pg_catalog.pg_tablespace t "
@@ -393,6 +395,8 @@ get_db_infos(ClusterInfo *cluster)
 	i_datcollate = PQfnumber(res, "datcollate");
 	i_datctype = PQfnumber(res, "datctype");
 	i_spclocation = PQfnumber(res, "spclocation");
+	i_datfrozenxid = PQfnumber(res, "datfrozenxid");
+	i_datminmxid = PQfnumber(res, "datminmxid");
 
 	ntups = PQntuples(res);
 	dbinfos = (DbInfo *) pg_malloc(sizeof(DbInfo) * ntups);
@@ -404,6 +408,8 @@ get_db_infos(ClusterInfo *cluster)
 		dbinfos[tupnum].db_encoding = atoi(PQgetvalue(res, tupnum, i_encoding));
 		dbinfos[tupnum].db_collate = pg_strdup(PQgetvalue(res, tupnum, i_datcollate));
 		dbinfos[tupnum].db_ctype = pg_strdup(PQgetvalue(res, tupnum, i_datctype));
+		dbinfos[tupnum].datfrozenxid = strtoul(PQgetvalue(res, tupnum, i_datfrozenxid), NULL, 10);
+		dbinfos[tupnum].datminmxid = strtoul(PQgetvalue(res, tupnum, i_datminmxid), NULL, 10);
 		snprintf(dbinfos[tupnum].db_tablespace, sizeof(dbinfos[tupnum].db_tablespace), "%s",
 				 PQgetvalue(res, tupnum, i_spclocation));
 	}

@@ -232,6 +232,20 @@ main(int argc, char **argv)
 	}
 
 	/*
+	 * Since freeze_master_data() was executed on the copied master, the xmin of
+	 * the tuples (yet to be copied/linked) for the user created tables can be
+	 * lower than the relfrozenxid updated with vacuum freeze.
+	 * So, it's safe / better to update the relfrozenxid, relminmxid for the
+	 * relations using datfrozenxid which is the lowest available relfrozenxid
+	 * for all the relation in the source database and datminmxid which is the minimum
+	 * of relminmxid for all the relations in source database. This ensures that the
+	 * xmin of the tuples will not be higher than relfrozenxid for the relation.
+	 * Otherwise, vacuuming those tables once data is copied/linked will error out.
+	 */
+	if (!is_greenplum_dispatcher_mode())
+		update_db_xids();
+
+	/*
 	 * In a segment, the data directory already contains all the objects,
 	 * because the segment is initialized by taking a physical copy of the
 	 * upgraded QD data directory. The auxiliary AO tables - containing
