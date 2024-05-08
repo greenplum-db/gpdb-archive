@@ -139,6 +139,14 @@ FROM gp_segment_configuration WHERE role = 'p' AND content != -1;
  Success:
 (3 rows)
 
+-- test against mixed partitioned appendonly table
+CREATE TABLE vac_example_ao(i int, j int) with (appendonly=true, orientation=column) PARTITION BY range (j) 
+(
+    start (1) end (3) with (appendonly=false),
+    start (3) end (6) with (appendonly=true, orientation=row),
+    start (6) end (10) with (appendonly=true, orientation=column)
+);
+VACUUM AO_AUX_ONLY vac_example_ao;
 ALTER SYSTEM RESET autovacuum;
 -- start_ignore
 \! gpstop -u;

@@ -1121,6 +1121,13 @@ expand_vacuum_rel(VacuumRelation *vrel, int options)
 				classForm = (Form_pg_class) GETSTRUCT(tuple);
 				if (IsAccessMethodAO(classForm->relam))
 				{
+					/* no aux tables for a parent AO table */
+					if (classForm->relkind == RELKIND_PARTITIONED_TABLE)
+					{
+						ReleaseSysCache(tuple);
+						continue;
+					}
+
 					Relation aorel = table_open(classForm->oid, AccessShareLock);
 					oldcontext = MemoryContextSwitchTo(vac_context);
 
