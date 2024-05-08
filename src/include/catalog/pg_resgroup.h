@@ -55,7 +55,7 @@ typedef enum ResGroupLimitType
 	RESGROUP_LIMIT_TYPE_CPU,			/* cpu_max_percent */
 	RESGROUP_LIMIT_TYPE_CPU_SHARES,		/* cpu_weight */
 	RESGROUP_LIMIT_TYPE_CPUSET,			/* cpuset */
-	RESGROUP_LIMIT_TYPE_MEMORY_LIMIT,		/* memory_limit */
+	RESGROUP_LIMIT_TYPE_MEMORY_QUOTA,		/* memory_quota */
 	RESGROUP_LIMIT_TYPE_MIN_COST,			/* min_cost */
 	RESGROUP_LIMIT_TYPE_IO_LIMIT,			/* io_limit */
 

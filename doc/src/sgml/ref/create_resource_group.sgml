@@ -26,6 +26,7 @@ where group_attribute is:
    CPU_MAX_PERCENT=integer | CPUSET=tuple
    [ CONCURRENCY=integer ]
    [ CPU_WEIGHT=integer ]
+   [ MEMORY_QUOTA=integer ]
 
 </synopsis>
  </refsynopsisdiv>

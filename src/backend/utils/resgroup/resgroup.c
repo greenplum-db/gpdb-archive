@@ -1433,7 +1433,7 @@ SerializeResGroupInfo(StringInfo str)
 	appendBinaryStringInfo(str, (char *) &itmp, sizeof(int32));
 	itmp = htonl(caps->cpuWeight);
 	appendBinaryStringInfo(str, (char *) &itmp, sizeof(int32));
-	itmp = htonl(caps->memory_limit);
+	itmp = htonl(caps->memory_quota);
 	appendBinaryStringInfo(str, (char *) &itmp, sizeof(int32));
 	itmp = htonl(caps->min_cost);
 	appendBinaryStringInfo(str, (char *) &itmp, sizeof(int32));
@@ -1474,7 +1474,7 @@ DeserializeResGroupInfo(struct ResGroupCaps *capsOut,
 	memcpy(&itmp, ptr, sizeof(int32)); ptr += sizeof(int32);
 	capsOut->cpuWeight = ntohl(itmp);
 	memcpy(&itmp, ptr, sizeof(int32)); ptr += sizeof(int32);
-	capsOut->memory_limit = ntohl(itmp);
+	capsOut->memory_quota = ntohl(itmp);
 	memcpy(&itmp, ptr, sizeof(int32)); ptr += sizeof(int32);
 	capsOut->min_cost = ntohl(itmp);
 
@@ -3632,7 +3632,7 @@ ResourceGroupGetQueryMemoryLimit(void)
 	LWLockAcquire(ResGroupLock, LW_SHARED);
 
 	caps = &self->group->caps;
-	resgLimit = caps->memory_limit;
+	resgLimit = caps->memory_quota;
 
 	AssertImply(resgLimit < 0, resgLimit == -1);
 	if (resgLimit == -1)

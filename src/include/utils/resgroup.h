@@ -74,7 +74,7 @@ typedef struct ResGroupCaps
 	ResGroupCap		concurrency;
 	ResGroupCap		cpuMaxPercent;
 	ResGroupCap		cpuWeight;
-	ResGroupCap		memory_limit;
+	ResGroupCap		memory_quota;
 	volatile ResGroupCap	min_cost;
 
 	/*

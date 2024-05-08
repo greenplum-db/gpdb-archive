@@ -28,6 +28,7 @@ where group_attribute is one of:
    CPU_MAX_PERCENT integer
    CPU_WEIGHT integer
    CPUSET tuple
+   MEMORY_QUOTA integer
 
 </synopsis>
  </refsynopsisdiv>

@@ -57,8 +57,8 @@
 #define RESGROUP_MIN_CPU_WEIGHT	(1)
 #define RESGROUP_MAX_CPU_WEIGHT	(500)
 
-#define RESGROUP_MIN_MEMORY_LIMIT (0)
-#define RESGROUP_DEFAULT_MEMORY_LIMIT (-1)
+#define RESGROUP_MIN_MEMORY_QUOTA (0)
+#define RESGROUP_DEFAULT_MEMORY_QUOTA (-1)
 
 #define RESGROUP_MIN_MIN_COST		(0)
 static int str2Int(const char *str, const char *prop);
@@ -461,8 +461,8 @@ AlterResourceGroup(AlterResourceGroupStmt *stmt)
 			caps.cpuMaxPercent = CPU_MAX_PERCENT_DISABLED;
 			caps.cpuWeight = RESGROUP_DEFAULT_CPU_WEIGHT;
 			break;
-		case RESGROUP_LIMIT_TYPE_MEMORY_LIMIT:
-			caps.memory_limit = value;
+		case RESGROUP_LIMIT_TYPE_MEMORY_QUOTA:
+			caps.memory_quota = value;
 			break;
 		case RESGROUP_LIMIT_TYPE_MIN_COST:
 			caps.min_cost = value;
@@ -640,9 +640,9 @@ GetResGroupCapabilities(Relation rel, Oid groupId, ResGroupCaps *resgroupCaps)
 			case RESGROUP_LIMIT_TYPE_CPUSET:
 				StrNCpy(resgroupCaps->cpuset, value, sizeof(resgroupCaps->cpuset));
 				break;
-			case RESGROUP_LIMIT_TYPE_MEMORY_LIMIT:
-				resgroupCaps->memory_limit = str2Int(value,
-													getResgroupOptionName(type));
+			case RESGROUP_LIMIT_TYPE_MEMORY_QUOTA:
+				resgroupCaps->memory_quota = str2Int(value,
+													 getResgroupOptionName(type));
 				break;
 			case RESGROUP_LIMIT_TYPE_MIN_COST:
 				resgroupCaps->min_cost = str2Int(value,
@@ -859,8 +859,8 @@ getResgroupOptionType(const char* defname)
 		return RESGROUP_LIMIT_TYPE_CPUSET;
 	else if (strcmp(defname, "cpu_weight") == 0)
 		return RESGROUP_LIMIT_TYPE_CPU_SHARES;
-	else if (strcmp(defname, "memory_limit") == 0)
-		return RESGROUP_LIMIT_TYPE_MEMORY_LIMIT;
+	else if (strcmp(defname, "memory_quota") == 0)
+		return RESGROUP_LIMIT_TYPE_MEMORY_QUOTA;
 	else if (strcmp(defname, "min_cost") == 0)
 		return RESGROUP_LIMIT_TYPE_MIN_COST;
 	else if (strcmp(defname, "io_limit") == 0)
@@ -906,8 +906,8 @@ getResgroupOptionName(ResGroupLimitType type)
 			return "cpuset";
 		case RESGROUP_LIMIT_TYPE_CPU_SHARES:
 			return "cpu_weight";
-		case RESGROUP_LIMIT_TYPE_MEMORY_LIMIT:
-			return "memory_limit";
+		case RESGROUP_LIMIT_TYPE_MEMORY_QUOTA:
+			return "memory_quota";
 		case RESGROUP_LIMIT_TYPE_MIN_COST:
 			return "min_cost";
 		default:
@@ -951,12 +951,12 @@ checkResgroupCapLimit(ResGroupLimitType type, int value)
 										   RESGROUP_MIN_CPU_WEIGHT, RESGROUP_MAX_CPU_WEIGHT)));
 				break;
 
-			case RESGROUP_LIMIT_TYPE_MEMORY_LIMIT:
-				if (value < RESGROUP_MIN_MEMORY_LIMIT && value != RESGROUP_DEFAULT_MEMORY_LIMIT)
+			case RESGROUP_LIMIT_TYPE_MEMORY_QUOTA:
+				if (value < RESGROUP_MIN_MEMORY_QUOTA && value != RESGROUP_DEFAULT_MEMORY_QUOTA)
 					ereport(ERROR,
 							(errcode(ERRCODE_INVALID_PARAMETER_VALUE),
-							 errmsg("memory_limit range is [%d, INT_MAX] or equals to %d",
-								    RESGROUP_MIN_MEMORY_LIMIT, RESGROUP_DEFAULT_MEMORY_LIMIT)));
+							 errmsg("memory_quota range is [%d, INT_MAX] or equals to %d",
+									RESGROUP_MIN_MEMORY_QUOTA, RESGROUP_DEFAULT_MEMORY_QUOTA)));
 				break;
 
 			case RESGROUP_LIMIT_TYPE_MIN_COST:
@@ -1044,8 +1044,8 @@ parseStmtOptions(CreateResourceGroupStmt *stmt, ResGroupCaps *caps)
 				case RESGROUP_LIMIT_TYPE_CPU_SHARES:
 					caps->cpuWeight = value;
 					break;
-				case RESGROUP_LIMIT_TYPE_MEMORY_LIMIT:
-					caps->memory_limit = value;
+				case RESGROUP_LIMIT_TYPE_MEMORY_QUOTA:
+					caps->memory_quota = value;
 					break;
 				case RESGROUP_LIMIT_TYPE_MIN_COST:
 					caps->min_cost = value;
@@ -1074,8 +1074,8 @@ parseStmtOptions(CreateResourceGroupStmt *stmt, ResGroupCaps *caps)
 	if (!(mask & (1 << RESGROUP_LIMIT_TYPE_CONCURRENCY)))
 		caps->concurrency = RESGROUP_DEFAULT_CONCURRENCY;
 
-	if (!(mask & (1 << RESGROUP_LIMIT_TYPE_MEMORY_LIMIT)))
-		caps->memory_limit = -1;
+	if (!(mask & (1 << RESGROUP_LIMIT_TYPE_MEMORY_QUOTA)))
+		caps->memory_quota = -1;
 
 	if (!(mask & (1 << RESGROUP_LIMIT_TYPE_MIN_COST)))
 		caps->min_cost = 0;
@@ -1178,9 +1178,9 @@ insertResgroupCapabilities(Relation rel, Oid groupId, ResGroupCaps *caps)
 	insertResgroupCapabilityEntry(rel, groupId,
 								  RESGROUP_LIMIT_TYPE_CPUSET, caps->cpuset);
 
-	snprintf(value, sizeof(value), "%d", caps->memory_limit);
+	snprintf(value, sizeof(value), "%d", caps->memory_quota);
 	insertResgroupCapabilityEntry(rel, groupId,
-								  RESGROUP_LIMIT_TYPE_MEMORY_LIMIT, value);
+								  RESGROUP_LIMIT_TYPE_MEMORY_QUOTA, value);
 
 	snprintf(value, sizeof(value), "%d", caps->min_cost);
 	insertResgroupCapabilityEntry(rel, groupId,

@@ -278,17 +278,17 @@ The `gp_toolkit.gp_resgroup_config` view allows administrators to see the curren
 
 > **Note** The `gp_resgroup_config` view is valid only when resource group-based resource management is active.
 
-|column|type|references|description|
-|------|----|----------|-----------|
-|`groupid`|oid|pg\_resgroup.oid|The ID of the resource group.|
-|`groupname`|name|pg\_resgroup.rsgname|The name of the resource group.|
-|`concurrency`|text|pg\_resgroupcapability.value for pg\_resgroupcapability.reslimittype = 1|The concurrency \(`CONCURRENCY`\) value specified for the resource group.|
-|`cpu_max_percent`|text|pg\_resgroupcapability.value for pg\_resgroupcapability.reslimittype = 2|The CPU limit \(`CPU_MAX_PERCENT`\) value specified for the resource group, or -1.|
-|`cpu_weight`|text|pg\_resgroupcapability.value for pg\_resgroupcapability.reslimittype = 3|The scheduling priority of the resource group (CPU_WEIGHT).|
-|`cpuset`|text|pg\_resgroupcapability.value for pg\_resgroupcapability.reslimittype = 4|The CPU cores reserved for the resource group (CPUSET), or -1.|
-|`memory_limit`|text|pg\_resgroupcapability.value for pg\_resgroupcapability.reslimittype = 5|The memory limit \(`MEMORY_LIMIT`\) value specified for the resource group.|
-|`min_cost`|text|pg\_resgroupcapability.value for pg\_resgroupcapability.reslimittype = 6|The minimum cost of a query plan to be included in the resource group (MIN_COST).|
-|`io_limit`|text|pg\_resgroupcapability.value for pg\_resgroupcapability.reslimittype = 7|The maximum read/write sequential disk I/O throughput, and the maximum read/write I/O operations per second for the queries assigned to a specific tablespace (shown as the tablespace oid) and resource group (IO_LIMIT).|
+| column            |type|references| description                                                                                                                                                                                                                |
+|-------------------|----|----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `groupid`         |oid|pg\_resgroup.oid| The ID of the resource group.                                                                                                                                                                                              |
+| `groupname`       |name|pg\_resgroup.rsgname| The name of the resource group.                                                                                                                                                                                            |
+| `concurrency`     |text|pg\_resgroupcapability.value for pg\_resgroupcapability.reslimittype = 1| The concurrency \(`CONCURRENCY`\) value specified for the resource group.                                                                                                                                                  |
+| `cpu_max_percent` |text|pg\_resgroupcapability.value for pg\_resgroupcapability.reslimittype = 2| The CPU limit \(`CPU_MAX_PERCENT`\) value specified for the resource group, or -1.                                                                                                                                         |
+| `cpu_weight`      |text|pg\_resgroupcapability.value for pg\_resgroupcapability.reslimittype = 3| The scheduling priority of the resource group (CPU_WEIGHT).                                                                                                                                                                |
+| `cpuset`          |text|pg\_resgroupcapability.value for pg\_resgroupcapability.reslimittype = 4| The CPU cores reserved for the resource group (CPUSET), or -1.                                                                                                                                                             |
+| `memory_quota`    |text|pg\_resgroupcapability.value for pg\_resgroupcapability.reslimittype = 5| The memory limit \(`MEMORY_QUOTA`\) value specified for the resource group.                                                                                                                                          |
+| `min_cost`        |text|pg\_resgroupcapability.value for pg\_resgroupcapability.reslimittype = 6| The minimum cost of a query plan to be included in the resource group (MIN_COST).                                                                                                                                          |
+| `io_limit`        |text|pg\_resgroupcapability.value for pg\_resgroupcapability.reslimittype = 7| The maximum read/write sequential disk I/O throughput, and the maximum read/write I/O operations per second for the queries assigned to a specific tablespace (shown as the tablespace oid) and resource group (IO_LIMIT). |
 
 ## <a id="gp_resgroup_iostats_per_host"></a>gp_resgroup_iostats_per_host
 

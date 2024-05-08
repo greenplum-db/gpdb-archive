@@ -1735,7 +1735,7 @@ CREATE VIEW gp_toolkit.gp_resgroup_config AS
          , T2.value    AS cpu_max_percent
          , T3.value    AS cpu_weight
          , T4.value    AS cpuset
-         , T5.value    AS memory_limit
+         , T5.value    AS memory_quota
          , T6.value    AS min_cost
          , T7.value    AS io_limit
     FROM pg_resgroup G

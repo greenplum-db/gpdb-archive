@@ -26,13 +26,13 @@ END; /*in func*/
 $$ /*in func*/
 LANGUAGE plpgsql;
 
--- memory_limit range is [0, INT_MAX] or equals to -1
-CREATE RESOURCE GROUP rg_memory_range WITH(memory_limit=-100, cpu_max_percent=20, concurrency=2);
-CREATE RESOURCE GROUP rg_memory_range WITH(memory_limit=-1, cpu_max_percent=20, concurrency=2);
+-- memory_quota range is [0, INT_MAX] or equals to -1
+CREATE RESOURCE GROUP rg_memory_range WITH(memory_quota=-100, cpu_max_percent=20, concurrency=2);
+CREATE RESOURCE GROUP rg_memory_range WITH(memory_quota=-1, cpu_max_percent=20, concurrency=2);
 DROP RESOURCE GROUP rg_memory_range;
 
 -- create a resource group with memory limit 100 Mb
-CREATE RESOURCE GROUP rg_memory_test WITH(memory_limit=100, cpu_max_percent=20, concurrency=2);
+CREATE RESOURCE GROUP rg_memory_test WITH(memory_quota=100, cpu_max_percent=20, concurrency=2);
 CREATE ROLE role_memory_test RESOURCE GROUP rg_memory_test;
 
 -- session1: explain memory used by query
@@ -43,8 +43,8 @@ CREATE ROLE role_memory_test RESOURCE GROUP rg_memory_test;
 1: SHOW statement_mem;
 1: SELECT func_memory_test('SELECT * FROM t_memory_limit');
 
--- session2: test alter resource group's memory limit
-2: ALTER RESOURCE GROUP rg_memory_test SET memory_limit 1000;
+-- session2: test alter resource group's memory quota
+2: ALTER RESOURCE GROUP rg_memory_test SET memory_quota 1000;
 
 -- memory used will grow up to 500 Mb
 1: SELECT func_memory_test('SELECT * FROM t_memory_limit');
@@ -65,3 +65,4 @@ DROP FUNCTION func_memory_test(text);
 DROP TABLE t_memory_limit;
 DROP ROLE IF EXISTS role_memory_test;
 DROP RESOURCE GROUP rg_memory_test;
+
