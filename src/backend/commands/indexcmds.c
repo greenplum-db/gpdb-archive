@@ -730,6 +730,8 @@ DefineIndex(Oid relationId,
 				 errmsg("cannot use more than %d columns in an index",
 						INDEX_MAX_KEYS)));
 
+	SIMPLE_FAULT_INJECTOR("defineindex_before_acquire_lock");
+
 	/*
 	 * Only SELECT ... FOR UPDATE/SHARE are allowed while doing a standard
 	 * index build; but for concurrent builds we allow INSERT/UPDATE/DELETE
@@ -1351,9 +1353,10 @@ DefineIndex(Oid relationId,
 
 	/*
 	 * Create block directory if this is an appendoptimized
-	 * relation
+	 * relation and one not present currently
 	 */
-	AlterTableCreateAoBlkdirTable(RelationGetRelid(rel));
+	if (!OidIsValid(blkdirrelid))
+		AlterTableCreateAoBlkdirTable(RelationGetRelid(rel));
 
 	/*
 	 * Make the catalog entries for the index, including constraints. This
