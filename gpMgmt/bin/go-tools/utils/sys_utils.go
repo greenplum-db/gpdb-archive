@@ -145,7 +145,7 @@ Adds 0.0.0 and "::" to the list
 IPV6 addresses are appended with %interface-name to make them routable
 */
 func GetAllAddresses() (ipList []string, err error) {
-	ipList = []string{"0.0.0.0", "::"}
+	ipList = []string{"", "0.0.0.0", "::"}
 	// Get a list of network interfaces and their addresses
 	ifaces, err := net.Interfaces()
 	if err != nil {
@@ -182,6 +182,16 @@ func GetAllAddresses() (ipList []string, err error) {
 CheckIfPortFree returns error if port is not available otherwise returns nil
 */
 func CheckIfPortFree(ip string, port string) (bool, error) {
+	if ip == "" {
+		// to detect if socket created without specifying hostname
+		// listen fails to detect when the netcat ran without hostname
+		_, err := net.Dial("tcp", net.JoinHostPort(ip, port))
+		if err != nil {
+			return true, nil
+		} else {
+			return false, fmt.Errorf("able to dial on port: %s, port is already open", port)
+		}
+	}
 	listener, err := net.Listen("tcp", net.JoinHostPort(ip, port))
 	if err != nil {
 		return false, err
