@@ -174,13 +174,7 @@ typedef struct
 
 static void create_two_stage_paths(PlannerInfo *root, cdb_agg_planning_context *ctx,
 								   RelOptInfo *input_rel, RelOptInfo *output_rel, GroupPathExtraData *extra);
-static List *get_common_group_tles(PathTarget *target,
-								   List *groupClause,
-								   List *rollups);
 static List *get_all_rollup_groupclauses(List *rollups);
-static CdbPathLocus choose_grouping_locus(PlannerInfo *root, Path *path,
-										  List *group_tles,
-										  bool *need_redistribute_p);
 
 static Index add_gsetid_tlist(List *tlist);
 
@@ -2074,7 +2068,7 @@ add_multi_mixed_dqas_hash_agg_path(PlannerInfo *root,
  *
  * the common cols are b and c.
  */
-static List *
+List *
 get_common_group_tles(PathTarget *target,
 					  List *groupClause,
 					  List *rollups)
@@ -2183,7 +2177,7 @@ get_all_rollup_groupclauses(List *rollups)
  * multple grouping sets. Use get_common_group_tles() to build that
  * list.
  */
-static CdbPathLocus
+CdbPathLocus
 choose_grouping_locus(PlannerInfo *root, Path *path,
 					  List *group_tles,
 					  bool *need_redistribute_p)

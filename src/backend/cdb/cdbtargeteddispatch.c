@@ -531,6 +531,8 @@ DirectDispatchUpdateContentIdsFromPlan(PlannerInfo *root, Plan *plan)
 			break;
 		case T_SplitUpdate:
 			break;
+		case T_CustomScan:
+			break;
 		default:
 			elog(ERROR, "unknown plan node %d", nodeTag(plan));
 			break;
