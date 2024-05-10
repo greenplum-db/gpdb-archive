@@ -49,6 +49,8 @@ cdbgang_createGang_async(List *segments, SegmentType segmentType)
 	PostgresPollingStatusType	*pollingStatus = NULL;
 	SegmentDatabaseDescriptor	*segdbDesc = NULL;
 	struct timeval	startTS;
+	char	   	*options = NULL;
+	char	   	*diff_options = NULL;
 	Gang	*newGangDefinition;
 	int		create_gang_retry_counter = 0;
 	int		in_recovery_mode_count = 0;
@@ -70,6 +72,8 @@ cdbgang_createGang_async(List *segments, SegmentType segmentType)
 
 	ELOG_DISPATCHER_DEBUG("createGang size = %d, segment type = %d", size, segmentType);
 	Assert(CurrentGangCreating == NULL);
+
+	makeOptions(&options, &diff_options);
 
 	/* If we're in a retry, we may need to reset our initial state, a bit */
 	newGangDefinition = NULL;
@@ -126,8 +130,6 @@ create_gang_retry:
 		{
 			bool		ret;
 			char		gpqeid[100];
-			char	   *options = NULL;
-			char	   *diff_options = NULL;
 
 			/*
 			 * Create the connection requests.	If we find a segment without a
@@ -161,8 +163,6 @@ create_gang_retry:
 				ereport(ERROR,
 						(errcode(ERRCODE_GP_INTERCONNECTION_ERROR),
 						 errmsg("failed to construct connectionstring")));
-
-			makeOptions(&options, &diff_options);
 
 			/* start connection in asynchronous way */
 			cdbconn_doConnectStart(segdbDesc, gpqeid, options, diff_options);
