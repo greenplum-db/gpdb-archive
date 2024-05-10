@@ -45,7 +45,6 @@
 		"data_directory_mode",
 		"data_sync_retry",
 		"db_user_namespace",
-		"deadlock_timeout",
 		"debug_abort_after_distributed_prepared",
 		"debug_assertions",
 		"debug_basebackup",
