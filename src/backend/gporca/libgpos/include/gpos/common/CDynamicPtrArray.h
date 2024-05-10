@@ -234,6 +234,11 @@ public:
 	void
 	Sort(CompareFn compare_func)
 	{
+		if (m_size == 0)
+		{
+			return;
+		}
+
 		clib::Qsort(m_elems, m_size, sizeof(T *), compare_func);
 	}
 
