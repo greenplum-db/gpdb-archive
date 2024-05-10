@@ -367,6 +367,7 @@ populate_joinrel_with_paths(PlannerInfo *root, RelOptInfo *rel1,
 			}
 			break;
 		case JOIN_ANTI:
+		case JOIN_LASJ_NOTIN:
 			if (is_dummy_rel(rel1) ||
 				restriction_is_constant_false(restrictlist, joinrel, true))
 			{
