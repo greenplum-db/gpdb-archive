@@ -3708,6 +3708,11 @@ select distinct v2 from srf_attnum();
 drop user ruser;
 drop table foo, bar;
 
+-- ensure shared scan producer returns 0 rows
+create table cte_test(a int);
+insert into cte_test select i from generate_series(1,10)i;
+analyze cte_test;
+explain (analyze, costs off, summary off, timing off) with cte as (select * from cte_test) select * from cte union all select * from cte;
 -- start_ignore
 DROP SCHEMA orca CASCADE;
 -- end_ignore

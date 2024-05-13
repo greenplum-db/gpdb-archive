@@ -1221,6 +1221,7 @@ _copyShareInputScan(const ShareInputScan *from)
 	COPY_SCALAR_FIELD(producer_slice_id);
 	COPY_SCALAR_FIELD(this_slice_id);
 	COPY_SCALAR_FIELD(nconsumers);
+	COPY_SCALAR_FIELD(discard_output);
 
 	return newnode;
 }

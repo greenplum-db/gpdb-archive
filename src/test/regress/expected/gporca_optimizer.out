@@ -15027,3 +15027,22 @@ select distinct v2 from srf_attnum();
 
 drop user ruser;
 drop table foo, bar;
+-- ensure shared scan producer returns 0 rows
+create table cte_test(a int);
+NOTICE:  Table doesn't have 'DISTRIBUTED BY' clause -- Using column named 'a' as the Greenplum Database data distribution key for this table.
+HINT:  The 'DISTRIBUTED BY' clause determines the distribution of data. Make sure column(s) chosen are the optimal data distribution key to minimize skew.
+insert into cte_test select i from generate_series(1,10)i;
+analyze cte_test;
+explain (analyze, costs off, summary off, timing off) with cte as (select * from cte_test) select * from cte union all select * from cte;
+                                 QUERY PLAN                                 
+----------------------------------------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3) (actual rows=20 loops=1)
+   ->  Sequence (actual rows=10 loops=1)
+         ->  Shared Scan (share slice:id 1:0) (actual rows=0 loops=1)
+               ->  Seq Scan on cte_test (actual rows=5 loops=1)
+         ->  Append (actual rows=10 loops=1)
+               ->  Shared Scan (share slice:id 1:0) (actual rows=5 loops=1)
+               ->  Shared Scan (share slice:id 1:0) (actual rows=5 loops=1)
+ Optimizer: GPORCA
+(8 rows)
+
