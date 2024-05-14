@@ -128,6 +128,7 @@ The following table lists the modules that are provided in the Data Science Pack
 | python-docx | Create and update Microsoft Word .docx files |
 | PyTorch | Tensors and Dynamic neural networks in Python with strong GPU acceleration |
 | pytz | World timezone definitions, modern and historical |
+| PyXB-X | To generate Python code for classes that correspond to data structures defined by XMLSchema |
 | regex | Alternative regular expression module, to replace re |
 | requests | HTTP library |
 | requests-oauthlib | OAuthlib authentication support for Requests |
