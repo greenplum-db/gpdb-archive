@@ -66,13 +66,35 @@ EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table 
 -- 1. [JOIN] Specific explicit scan type and implicit/explicit index
 --
 --------------------------------------------------------------------
+SET client_min_messages TO log;
+SET pg_hint_plan.debug_print TO ON;
+LOG:  statement: SET pg_hint_plan.debug_print TO ON;
+-- Replace timestamp while logging with static string
+-- start_matchsubs
+-- m/[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}:[0-9]{6} [A-Z]{3}/
+-- s/[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}:[0-9]{6} [A-Z]{3}/YYYY-MM-DD HH:MM:SS:MSMSMS TMZ/
+-- end_matchsubs
 /*+
     SeqScan(t1)
     SeqScan(t2)
     SeqScan(t3)
  */
 EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
-                          QUERY PLAN                           
+LOG:  statement: /*+
+    SeqScan(t1)
+    SeqScan(t2)
+    SeqScan(t3)
+ */
+EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
+LOG:  pg_hint_plan:
+used hint:
+SeqScan(t1)
+SeqScan(t2)
+SeqScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                          QUERY PLAN
 ---------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -105,7 +127,24 @@ EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table 
     IndexScan(t3 our_amazing_index)
  */
 EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
-                                            QUERY PLAN                                             
+LOG:  statement: /*+
+    IndexScan(t1 my_incredible_index)
+    IndexScan(t3 our_amazing_index)
+ */
+EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
+LOG:  available indexes for IndexScan(t1): my_incredible_index
+LOG:  available indexes for IndexScan(our_table_1_prt_p1_1): our_table_1_prt_p1_1_a_idx2 our_table_1_prt_p1_1_a_idx1 our_table_1_prt_p1_1_a_idx
+LOG:  available indexes for IndexScan(our_table_1_prt_p1_2): our_table_1_prt_p1_2_a_idx2 our_table_1_prt_p1_2_a_idx1 our_table_1_prt_p1_2_a_idx
+LOG:  available indexes for IndexScan(our_table_1_prt_p1_3): our_table_1_prt_p1_3_a_idx2 our_table_1_prt_p1_3_a_idx1 our_table_1_prt_p1_3_a_idx
+LOG:  available indexes for IndexScan(our_table_1_prt_p1_4): our_table_1_prt_p1_4_a_idx2 our_table_1_prt_p1_4_a_idx1 our_table_1_prt_p1_4_a_idx
+LOG:  pg_hint_plan:
+used hint:
+IndexScan(t1 my_incredible_index)
+IndexScan(t3 our_amazing_index)
+not used hint:
+duplication hint:
+error hint:
+                                            QUERY PLAN
 ---------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -139,7 +178,19 @@ EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table 
     IndexScan(t3)
  */
 EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
-                                            QUERY PLAN                                             
+LOG:  statement: /*+
+    IndexScan(t1)
+    IndexScan(t3)
+ */
+EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
+LOG:  pg_hint_plan:
+used hint:
+IndexScan(t1)
+IndexScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                                            QUERY PLAN
 ---------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -172,7 +223,27 @@ EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table 
     IndexOnlyScan(t3 our_amazing_index)
  */
 EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
-                                               QUERY PLAN                                               
+LOG:  statement: /*+
+    IndexOnlyScan(t1 my_incredible_index)
+    IndexOnlyScan(t2 your_amazing_index)
+    IndexOnlyScan(t3 our_amazing_index)
+ */
+EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
+LOG:  available indexes for IndexOnlyScan(t1): my_incredible_index
+LOG:  available indexes for IndexOnlyScan(t2): your_amazing_index
+LOG:  available indexes for IndexOnlyScan(our_table_1_prt_p1_1): our_table_1_prt_p1_1_a_idx2 our_table_1_prt_p1_1_a_idx1 our_table_1_prt_p1_1_a_idx
+LOG:  available indexes for IndexOnlyScan(our_table_1_prt_p1_2): our_table_1_prt_p1_2_a_idx2 our_table_1_prt_p1_2_a_idx1 our_table_1_prt_p1_2_a_idx
+LOG:  available indexes for IndexOnlyScan(our_table_1_prt_p1_3): our_table_1_prt_p1_3_a_idx2 our_table_1_prt_p1_3_a_idx1 our_table_1_prt_p1_3_a_idx
+LOG:  available indexes for IndexOnlyScan(our_table_1_prt_p1_4): our_table_1_prt_p1_4_a_idx2 our_table_1_prt_p1_4_a_idx1 our_table_1_prt_p1_4_a_idx
+LOG:  pg_hint_plan:
+used hint:
+IndexOnlyScan(t1 my_incredible_index)
+IndexOnlyScan(t2 your_amazing_index)
+IndexOnlyScan(t3 our_amazing_index)
+not used hint:
+duplication hint:
+error hint:
+                                               QUERY PLAN
 --------------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -205,7 +276,21 @@ EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table 
     IndexOnlyScan(t3)
  */
 EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
-                                            QUERY PLAN                                             
+LOG:  statement: /*+
+    IndexOnlyScan(t1)
+    IndexOnlyScan(t2)
+    IndexOnlyScan(t3)
+ */
+EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
+LOG:  pg_hint_plan:
+used hint:
+IndexOnlyScan(t1)
+IndexOnlyScan(t2)
+IndexOnlyScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                                            QUERY PLAN
 ---------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -238,7 +323,27 @@ EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table 
     BitmapScan(t3 our_bitmap_index)
  */
 EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
-                                   QUERY PLAN                                   
+LOG:  statement: /*+
+    BitmapScan(t1 my_bitmap_index)
+    BitmapScan(t2 your_bitmap_index)
+    BitmapScan(t3 our_bitmap_index)
+ */
+EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
+LOG:  available indexes for BitmapScan(t1): my_bitmap_index
+LOG:  available indexes for BitmapScan(t2): your_bitmap_index
+LOG:  available indexes for BitmapScan(our_table_1_prt_p1_1): our_table_1_prt_p1_1_a_idx3
+LOG:  available indexes for BitmapScan(our_table_1_prt_p1_2): our_table_1_prt_p1_2_a_idx3
+LOG:  available indexes for BitmapScan(our_table_1_prt_p1_3): our_table_1_prt_p1_3_a_idx3
+LOG:  available indexes for BitmapScan(our_table_1_prt_p1_4): our_table_1_prt_p1_4_a_idx3
+LOG:  pg_hint_plan:
+used hint:
+BitmapScan(t1 my_bitmap_index)
+BitmapScan(t2 your_bitmap_index)
+BitmapScan(t3 our_bitmap_index)
+not used hint:
+duplication hint:
+error hint:
+                                   QUERY PLAN
 --------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -283,7 +388,21 @@ EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table 
     BitmapScan(t3)
  */
 EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
-                                   QUERY PLAN                                   
+LOG:  statement: /*+
+    BitmapScan(t1)
+    BitmapScan(t2)
+    BitmapScan(t3)
+ */
+EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
+LOG:  pg_hint_plan:
+used hint:
+BitmapScan(t1)
+BitmapScan(t2)
+BitmapScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                                   QUERY PLAN
 --------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -331,7 +450,17 @@ EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table 
     SeqScan(t1)
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
-                QUERY PLAN                
+LOG:  statement: /*+
+    SeqScan(t1)
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  pg_hint_plan:
+used hint:
+SeqScan(t1)
+not used hint:
+duplication hint:
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on my_table t1
@@ -343,7 +472,17 @@ EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
     SeqScan(t2)
  */
 EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
-                QUERY PLAN                
+LOG:  statement: /*+
+    SeqScan(t2)
+ */
+EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
+LOG:  pg_hint_plan:
+used hint:
+SeqScan(t2)
+not used hint:
+duplication hint:
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on your_table t2
@@ -355,7 +494,17 @@ EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
     SeqScan(t3)
  */
 EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
-                    QUERY PLAN                     
+LOG:  statement: /*+
+    SeqScan(t3)
+ */
+EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
+LOG:  pg_hint_plan:
+used hint:
+SeqScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                    QUERY PLAN
 ---------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Append
@@ -374,7 +523,18 @@ EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
     IndexScan(t1 my_incredible_index)
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
-                        QUERY PLAN                         
+LOG:  statement: /*+
+    IndexScan(t1 my_incredible_index)
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  available indexes for IndexScan(t1): my_incredible_index
+LOG:  pg_hint_plan:
+used hint:
+IndexScan(t1 my_incredible_index)
+not used hint:
+duplication hint:
+error hint:
+                        QUERY PLAN
 -----------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Index Scan using my_incredible_index on my_table t1
@@ -386,7 +546,17 @@ EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
     IndexScan(t1)
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
-                      QUERY PLAN                       
+LOG:  statement: /*+
+    IndexScan(t1)
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  pg_hint_plan:
+used hint:
+IndexScan(t1)
+not used hint:
+duplication hint:
+error hint:
+                      QUERY PLAN
 -------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Index Scan using my_bitmap_index on my_table t1
@@ -410,7 +580,21 @@ EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
     IndexScan(t3 our_amazing_index)
  */
 EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
-                                      QUERY PLAN                                       
+LOG:  statement: /*+
+    IndexScan(t3 our_amazing_index)
+ */
+EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
+LOG:  available indexes for IndexScan(our_table_1_prt_p1_1): our_table_1_prt_p1_1_a_idx2 our_table_1_prt_p1_1_a_idx1 our_table_1_prt_p1_1_a_idx
+LOG:  available indexes for IndexScan(our_table_1_prt_p1_2): our_table_1_prt_p1_2_a_idx2 our_table_1_prt_p1_2_a_idx1 our_table_1_prt_p1_2_a_idx
+LOG:  available indexes for IndexScan(our_table_1_prt_p1_3): our_table_1_prt_p1_3_a_idx2 our_table_1_prt_p1_3_a_idx1 our_table_1_prt_p1_3_a_idx
+LOG:  available indexes for IndexScan(our_table_1_prt_p1_4): our_table_1_prt_p1_4_a_idx2 our_table_1_prt_p1_4_a_idx1 our_table_1_prt_p1_4_a_idx
+LOG:  pg_hint_plan:
+used hint:
+IndexScan(t3 our_amazing_index)
+not used hint:
+duplication hint:
+error hint:
+                                      QUERY PLAN
 ---------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Append
@@ -429,7 +613,17 @@ EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
     IndexScan(t3)
  */
 EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
-                                      QUERY PLAN                                       
+LOG:  statement: /*+
+    IndexScan(t3)
+ */
+EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
+LOG:  pg_hint_plan:
+used hint:
+IndexScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                                      QUERY PLAN
 ---------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Append
@@ -448,7 +642,18 @@ EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
     IndexOnlyScan(t1 my_incredible_index)
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
-                           QUERY PLAN                           
+LOG:  statement: /*+
+    IndexOnlyScan(t1 my_incredible_index)
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  available indexes for IndexOnlyScan(t1): my_incredible_index
+LOG:  pg_hint_plan:
+used hint:
+IndexOnlyScan(t1 my_incredible_index)
+not used hint:
+duplication hint:
+error hint:
+                           QUERY PLAN
 ----------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Index Only Scan using my_incredible_index on my_table t1
@@ -460,7 +665,17 @@ EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
     IndexOnlyScan(t1)
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
-                      QUERY PLAN                       
+LOG:  statement: /*+
+    IndexOnlyScan(t1)
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  pg_hint_plan:
+used hint:
+IndexOnlyScan(t1)
+not used hint:
+duplication hint:
+error hint:
+                      QUERY PLAN
 -------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Index Scan using my_bitmap_index on my_table t1
@@ -472,7 +687,18 @@ EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
     IndexOnlyScan(t2 your_amazing_index)
  */
 EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
-                           QUERY PLAN                            
+LOG:  statement: /*+
+    IndexOnlyScan(t2 your_amazing_index)
+ */
+EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
+LOG:  available indexes for IndexOnlyScan(t2): your_amazing_index
+LOG:  pg_hint_plan:
+used hint:
+IndexOnlyScan(t2 your_amazing_index)
+not used hint:
+duplication hint:
+error hint:
+                           QUERY PLAN
 -----------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Index Only Scan using your_amazing_index on your_table t2
@@ -484,7 +710,17 @@ EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
     IndexOnlyScan(t2)
  */
 EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
-                        QUERY PLAN                         
+LOG:  statement: /*+
+    IndexOnlyScan(t2)
+ */
+EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
+LOG:  pg_hint_plan:
+used hint:
+IndexOnlyScan(t2)
+not used hint:
+duplication hint:
+error hint:
+                             QUERY PLAN
 --------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Index Only Scan using your_incredible_index on your_table t2
@@ -496,7 +732,21 @@ EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
     IndexOnlyScan(t3 our_amazing_index)
  */
 EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
-                                         QUERY PLAN                                         
+LOG:  statement: /*+
+    IndexOnlyScan(t3 our_amazing_index)
+ */
+EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
+LOG:  available indexes for IndexOnlyScan(our_table_1_prt_p1_1): our_table_1_prt_p1_1_a_idx2 our_table_1_prt_p1_1_a_idx1 our_table_1_prt_p1_1_a_idx
+LOG:  available indexes for IndexOnlyScan(our_table_1_prt_p1_2): our_table_1_prt_p1_2_a_idx2 our_table_1_prt_p1_2_a_idx1 our_table_1_prt_p1_2_a_idx
+LOG:  available indexes for IndexOnlyScan(our_table_1_prt_p1_3): our_table_1_prt_p1_3_a_idx2 our_table_1_prt_p1_3_a_idx1 our_table_1_prt_p1_3_a_idx
+LOG:  available indexes for IndexOnlyScan(our_table_1_prt_p1_4): our_table_1_prt_p1_4_a_idx2 our_table_1_prt_p1_4_a_idx1 our_table_1_prt_p1_4_a_idx
+LOG:  pg_hint_plan:
+used hint:
+IndexOnlyScan(t3 our_amazing_index)
+not used hint:
+duplication hint:
+error hint:
+                                         QUERY PLAN
 --------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Append
@@ -515,7 +765,17 @@ EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
     IndexOnlyScan(t3)
  */
 EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
-                                      QUERY PLAN                                       
+LOG:  statement: /*+
+    IndexOnlyScan(t3)
+ */
+EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
+LOG:  pg_hint_plan:
+used hint:
+IndexOnlyScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                                      QUERY PLAN
 ---------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Append
@@ -534,7 +794,18 @@ EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
     BitmapScan(t1 my_bitmap_index)
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
-                    QUERY PLAN                    
+LOG:  statement: /*+
+    BitmapScan(t1 my_bitmap_index)
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  available indexes for BitmapScan(t1): my_bitmap_index
+LOG:  pg_hint_plan:
+used hint:
+BitmapScan(t1 my_bitmap_index)
+not used hint:
+duplication hint:
+error hint:
+                    QUERY PLAN
 --------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Bitmap Heap Scan on my_table t1
@@ -548,7 +819,17 @@ EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
     BitmapScan(t1)
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
-                    QUERY PLAN                    
+LOG:  statement: /*+
+    BitmapScan(t1)
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  pg_hint_plan:
+used hint:
+BitmapScan(t1)
+not used hint:
+duplication hint:
+error hint:
+                    QUERY PLAN
 --------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Bitmap Heap Scan on my_table t1
@@ -562,7 +843,18 @@ EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
     BitmapScan(t2 your_bitmap_index)
  */
 EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
-                     QUERY PLAN                     
+LOG:  statement: /*+
+    BitmapScan(t2 your_bitmap_index)
+ */
+EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
+LOG:  available indexes for BitmapScan(t2): your_bitmap_index
+LOG:  pg_hint_plan:
+used hint:
+BitmapScan(t2 your_bitmap_index)
+not used hint:
+duplication hint:
+error hint:
+                     QUERY PLAN
 ----------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Bitmap Heap Scan on your_table t2
@@ -576,7 +868,17 @@ EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
     BitmapScan(t2)
  */
 EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
-                     QUERY PLAN                     
+LOG:  statement: /*+
+    BitmapScan(t2)
+ */
+EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
+LOG:  pg_hint_plan:
+used hint:
+BitmapScan(t2)
+not used hint:
+duplication hint:
+error hint:
+                     QUERY PLAN
 ----------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Bitmap Heap Scan on your_table t2
@@ -590,7 +892,21 @@ EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
     BitmapScan(t3 our_bitmap_index)
  */
 EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
-                             QUERY PLAN                             
+LOG:  statement: /*+
+    BitmapScan(t3 our_bitmap_index)
+ */
+EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
+LOG:  available indexes for BitmapScan(our_table_1_prt_p1_1): our_table_1_prt_p1_1_a_idx3
+LOG:  available indexes for BitmapScan(our_table_1_prt_p1_2): our_table_1_prt_p1_2_a_idx3
+LOG:  available indexes for BitmapScan(our_table_1_prt_p1_3): our_table_1_prt_p1_3_a_idx3
+LOG:  available indexes for BitmapScan(our_table_1_prt_p1_4): our_table_1_prt_p1_4_a_idx3
+LOG:  pg_hint_plan:
+used hint:
+BitmapScan(t3 our_bitmap_index)
+not used hint:
+duplication hint:
+error hint:
+                             QUERY PLAN
 --------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Append
@@ -617,7 +933,17 @@ EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
     BitmapScan(t3)
  */
 EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
-                             QUERY PLAN                             
+LOG:  statement: /*+
+    BitmapScan(t3)
+ */
+EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
+LOG:  pg_hint_plan:
+used hint:
+BitmapScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                             QUERY PLAN
 --------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Append
@@ -651,7 +977,21 @@ EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
     NoSeqScan(t3)
  */
 EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
-                                            QUERY PLAN                                             
+LOG:  statement: /*+
+    NoSeqScan(t1)
+    NoSeqScan(t2)
+    NoSeqScan(t3)
+ */
+EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
+LOG:  pg_hint_plan:
+used hint:
+NoSeqScan(t1)
+NoSeqScan(t2)
+NoSeqScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                                            QUERY PLAN
 ---------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -686,7 +1026,21 @@ EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table 
     NoIndexScan(t3)
  */
 EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
-                          QUERY PLAN                           
+LOG:  statement: /*+
+    NoIndexScan(t1)
+    NoIndexScan(t2)
+    NoIndexScan(t3)
+ */
+EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
+LOG:  pg_hint_plan:
+used hint:
+NoIndexScan(t1)
+NoIndexScan(t2)
+NoIndexScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                          QUERY PLAN
 ---------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -719,7 +1073,21 @@ EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table 
     NoIndexOnlyScan(t3)
  */
 EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
-                          QUERY PLAN                           
+LOG:  statement: /*+
+    NoIndexOnlyScan(t1)
+    NoIndexOnlyScan(t2)
+    NoIndexOnlyScan(t3)
+ */
+EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
+LOG:  pg_hint_plan:
+used hint:
+NoIndexOnlyScan(t1)
+NoIndexOnlyScan(t2)
+NoIndexOnlyScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                          QUERY PLAN
 ---------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -752,7 +1120,21 @@ EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table 
     NoBitmapScan(t3)
  */
 EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
-                          QUERY PLAN                           
+LOG:  statement: /*+
+    NoBitmapScan(t1)
+    NoBitmapScan(t2)
+    NoBitmapScan(t3)
+ */
+EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
+LOG:  pg_hint_plan:
+used hint:
+NoBitmapScan(t1)
+NoBitmapScan(t2)
+NoBitmapScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                          QUERY PLAN
 ---------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -796,6 +1178,12 @@ EXPLAIN (costs off) SELECT t1.a, t2.a, t3.a FROM my_table AS t1 JOIN your_table 
     NoBitmapScan(t1)
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  statement: /*+
+    NoIndexScan(t1)
+    NoIndexOnlyScan(t1)
+    NoBitmapScan(t1)
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
 INFO:  pg_hint_plan: hint syntax error at or near "NoIndexScan(t1)
     NoIndexOnlyScan(t1)
     NoBitmapScan(t1)
@@ -805,7 +1193,15 @@ INFO:  pg_hint_plan: hint syntax error at or near "NoIndexOnlyScan(t1)
     NoBitmapScan(t1)
  "
 DETAIL:  Conflict scan method hint.
-                QUERY PLAN                
+LOG:  pg_hint_plan:
+used hint:
+NoBitmapScan(t1)
+not used hint:
+duplication hint:
+NoIndexScan(t1)
+NoIndexOnlyScan(t1)
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on my_table t1
@@ -814,6 +1210,12 @@ DETAIL:  Conflict scan method hint.
 (4 rows)
 
 /*+
+    NoIndexScan(t2)
+    NoIndexOnlyScan(t2)
+    NoBitmapScan(t2)
+ */
+EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
+LOG:  statement: /*+
     NoIndexScan(t2)
     NoIndexOnlyScan(t2)
     NoBitmapScan(t2)
@@ -828,7 +1230,15 @@ INFO:  pg_hint_plan: hint syntax error at or near "NoIndexOnlyScan(t2)
     NoBitmapScan(t2)
  "
 DETAIL:  Conflict scan method hint.
-                QUERY PLAN                
+LOG:  pg_hint_plan:
+used hint:
+NoBitmapScan(t2)
+not used hint:
+duplication hint:
+NoIndexScan(t2)
+NoIndexOnlyScan(t2)
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on your_table t2
@@ -837,6 +1247,12 @@ DETAIL:  Conflict scan method hint.
 (4 rows)
 
 /*+
+    NoIndexScan(t3)
+    NoIndexOnlyScan(t3)
+    NoBitmapScan(t3)
+ */
+EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
+LOG:  statement: /*+
     NoIndexScan(t3)
     NoIndexOnlyScan(t3)
     NoBitmapScan(t3)
@@ -851,7 +1267,15 @@ INFO:  pg_hint_plan: hint syntax error at or near "NoIndexOnlyScan(t3)
     NoBitmapScan(t3)
  "
 DETAIL:  Conflict scan method hint.
-                    QUERY PLAN                     
+LOG:  pg_hint_plan:
+used hint:
+NoBitmapScan(t3)
+not used hint:
+duplication hint:
+NoIndexScan(t3)
+NoIndexOnlyScan(t3)
+error hint:
+                    QUERY PLAN
 ---------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Append
@@ -875,6 +1299,12 @@ DETAIL:  Conflict scan method hint.
     NoBitmapScan(t1)
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  statement: /*+
+    NoSeqScan(t1)
+    NoIndexOnlyScan(t1)
+    NoBitmapScan(t1)
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
 INFO:  pg_hint_plan: hint syntax error at or near "NoSeqScan(t1)
     NoIndexOnlyScan(t1)
     NoBitmapScan(t1)
@@ -884,7 +1314,15 @@ INFO:  pg_hint_plan: hint syntax error at or near "NoIndexOnlyScan(t1)
     NoBitmapScan(t1)
  "
 DETAIL:  Conflict scan method hint.
-                QUERY PLAN                
+LOG:  pg_hint_plan:
+used hint:
+NoBitmapScan(t1)
+not used hint:
+duplication hint:
+NoSeqScan(t1)
+NoIndexOnlyScan(t1)
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on my_table t1
@@ -893,6 +1331,12 @@ DETAIL:  Conflict scan method hint.
 (4 rows)
 
 /*+
+    NoSeqScan(t2)
+    NoIndexOnlyScan(t2)
+    NoBitmapScan(t2)
+ */
+EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
+LOG:  statement: /*+
     NoSeqScan(t2)
     NoIndexOnlyScan(t2)
     NoBitmapScan(t2)
@@ -907,7 +1351,15 @@ INFO:  pg_hint_plan: hint syntax error at or near "NoIndexOnlyScan(t2)
     NoBitmapScan(t2)
  "
 DETAIL:  Conflict scan method hint.
-                QUERY PLAN                
+LOG:  pg_hint_plan:
+used hint:
+NoBitmapScan(t2)
+not used hint:
+duplication hint:
+NoSeqScan(t2)
+NoIndexOnlyScan(t2)
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on your_table t2
@@ -916,6 +1368,12 @@ DETAIL:  Conflict scan method hint.
 (4 rows)
 
 /*+
+    NoSeqScan(t3)
+    NoIndexOnlyScan(t3)
+    NoBitmapScan(t3)
+ */
+EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
+LOG:  statement: /*+
     NoSeqScan(t3)
     NoIndexOnlyScan(t3)
     NoBitmapScan(t3)
@@ -930,7 +1388,15 @@ INFO:  pg_hint_plan: hint syntax error at or near "NoIndexOnlyScan(t3)
     NoBitmapScan(t3)
  "
 DETAIL:  Conflict scan method hint.
-                    QUERY PLAN                     
+LOG:  pg_hint_plan:
+used hint:
+NoBitmapScan(t3)
+not used hint:
+duplication hint:
+NoSeqScan(t3)
+NoIndexOnlyScan(t3)
+error hint:
+                    QUERY PLAN
 ---------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Append
@@ -954,6 +1420,12 @@ DETAIL:  Conflict scan method hint.
     NoBitmapScan(t1)
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  statement: /*+
+    NoSeqScan(t1)
+    NoIndexScan(t1)
+    NoBitmapScan(t1)
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
 INFO:  pg_hint_plan: hint syntax error at or near "NoSeqScan(t1)
     NoIndexScan(t1)
     NoBitmapScan(t1)
@@ -963,7 +1435,15 @@ INFO:  pg_hint_plan: hint syntax error at or near "NoIndexScan(t1)
     NoBitmapScan(t1)
  "
 DETAIL:  Conflict scan method hint.
-                QUERY PLAN                
+LOG:  pg_hint_plan:
+used hint:
+NoBitmapScan(t1)
+not used hint:
+duplication hint:
+NoSeqScan(t1)
+NoIndexScan(t1)
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on my_table t1
@@ -972,6 +1452,12 @@ DETAIL:  Conflict scan method hint.
 (4 rows)
 
 /*+
+    NoSeqScan(t2)
+    NoIndexScan(t2)
+    NoBitmapScan(t2)
+ */
+EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
+LOG:  statement: /*+
     NoSeqScan(t2)
     NoIndexScan(t2)
     NoBitmapScan(t2)
@@ -986,7 +1472,15 @@ INFO:  pg_hint_plan: hint syntax error at or near "NoIndexScan(t2)
     NoBitmapScan(t2)
  "
 DETAIL:  Conflict scan method hint.
-                QUERY PLAN                
+LOG:  pg_hint_plan:
+used hint:
+NoBitmapScan(t2)
+not used hint:
+duplication hint:
+NoSeqScan(t2)
+NoIndexScan(t2)
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on your_table t2
@@ -995,6 +1489,12 @@ DETAIL:  Conflict scan method hint.
 (4 rows)
 
 /*+
+    NoSeqScan(t3)
+    NoIndexScan(t3)
+    NoBitmapScan(t3)
+ */
+EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
+LOG:  statement: /*+
     NoSeqScan(t3)
     NoIndexScan(t3)
     NoBitmapScan(t3)
@@ -1009,7 +1509,15 @@ INFO:  pg_hint_plan: hint syntax error at or near "NoIndexScan(t3)
     NoBitmapScan(t3)
  "
 DETAIL:  Conflict scan method hint.
-                    QUERY PLAN                     
+LOG:  pg_hint_plan:
+used hint:
+NoBitmapScan(t3)
+not used hint:
+duplication hint:
+NoSeqScan(t3)
+NoIndexScan(t3)
+error hint:
+                    QUERY PLAN
 ---------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Append
@@ -1033,6 +1541,12 @@ DETAIL:  Conflict scan method hint.
     NoIndexOnlyScan(t1)
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  statement: /*+
+    NoSeqScan(t1)
+    NoIndexScan(t1)
+    NoIndexOnlyScan(t1)
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
 INFO:  pg_hint_plan: hint syntax error at or near "NoSeqScan(t1)
     NoIndexScan(t1)
     NoIndexOnlyScan(t1)
@@ -1042,7 +1556,15 @@ INFO:  pg_hint_plan: hint syntax error at or near "NoIndexScan(t1)
     NoIndexOnlyScan(t1)
  "
 DETAIL:  Conflict scan method hint.
-                QUERY PLAN                
+LOG:  pg_hint_plan:
+used hint:
+NoIndexOnlyScan(t1)
+not used hint:
+duplication hint:
+NoSeqScan(t1)
+NoIndexScan(t1)
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on my_table t1
@@ -1051,6 +1573,12 @@ DETAIL:  Conflict scan method hint.
 (4 rows)
 
 /*+
+    NoSeqScan(t2)
+    NoIndexScan(t2)
+    NoIndexOnlyScan(t2)
+ */
+EXPLAIN (costs off) SELECT t2.a FROM your_table AS t2 WHERE t2.a<42;
+LOG:  statement: /*+
     NoSeqScan(t2)
     NoIndexScan(t2)
     NoIndexOnlyScan(t2)
@@ -1065,7 +1593,15 @@ INFO:  pg_hint_plan: hint syntax error at or near "NoIndexScan(t2)
     NoIndexOnlyScan(t2)
  "
 DETAIL:  Conflict scan method hint.
-                QUERY PLAN                
+LOG:  pg_hint_plan:
+used hint:
+NoIndexOnlyScan(t2)
+not used hint:
+duplication hint:
+NoSeqScan(t2)
+NoIndexScan(t2)
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on your_table t2
@@ -1074,6 +1610,12 @@ DETAIL:  Conflict scan method hint.
 (4 rows)
 
 /*+
+    NoSeqScan(t3)
+    NoIndexScan(t3)
+    NoIndexOnlyScan(t3)
+ */
+EXPLAIN (costs off) SELECT t3.a FROM our_table AS t3 WHERE t3.a<42;
+LOG:  statement: /*+
     NoSeqScan(t3)
     NoIndexScan(t3)
     NoIndexOnlyScan(t3)
@@ -1088,7 +1630,15 @@ INFO:  pg_hint_plan: hint syntax error at or near "NoIndexScan(t3)
     NoIndexOnlyScan(t3)
  "
 DETAIL:  Conflict scan method hint.
-                    QUERY PLAN                     
+LOG:  pg_hint_plan:
+used hint:
+NoIndexOnlyScan(t3)
+not used hint:
+duplication hint:
+NoSeqScan(t3)
+NoIndexScan(t3)
+error hint:
+                    QUERY PLAN
 ---------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Append
@@ -1109,13 +1659,28 @@ DETAIL:  Conflict scan method hint.
 --
 --------------------------------------------------------------------
 CREATE VIEW everybody_view AS SELECT t1.a AS a1, t2.a AS a2, t3.a AS a3 FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
+LOG:  statement: CREATE VIEW everybody_view AS SELECT t1.a AS a1, t2.a AS a2, t3.a AS a3 FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a WHERE t1.a<42;
 /*+
     SeqScan(t1)
     SeqScan(t2)
     SeqScan(t3)
  */
 EXPLAIN (costs off) SELECT * FROM everybody_view;
-                          QUERY PLAN                           
+LOG:  statement: /*+
+    SeqScan(t1)
+    SeqScan(t2)
+    SeqScan(t3)
+ */
+EXPLAIN (costs off) SELECT * FROM everybody_view;
+LOG:  pg_hint_plan:
+used hint:
+SeqScan(t1)
+SeqScan(t2)
+SeqScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                          QUERY PLAN
 ---------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -1149,7 +1714,24 @@ EXPLAIN (costs off) SELECT * FROM everybody_view;
     IndexScan(t3 our_amazing_index)
  */
 EXPLAIN (costs off) SELECT * FROM everybody_view;
-                                            QUERY PLAN                                             
+LOG:  statement: /*+
+    IndexScan(t1 my_incredible_index)
+    IndexScan(t3 our_amazing_index)
+ */
+EXPLAIN (costs off) SELECT * FROM everybody_view;
+LOG:  available indexes for IndexScan(t1): my_incredible_index
+LOG:  available indexes for IndexScan(our_table_1_prt_p1_1): our_table_1_prt_p1_1_a_idx2 our_table_1_prt_p1_1_a_idx1 our_table_1_prt_p1_1_a_idx
+LOG:  available indexes for IndexScan(our_table_1_prt_p1_2): our_table_1_prt_p1_2_a_idx2 our_table_1_prt_p1_2_a_idx1 our_table_1_prt_p1_2_a_idx
+LOG:  available indexes for IndexScan(our_table_1_prt_p1_3): our_table_1_prt_p1_3_a_idx2 our_table_1_prt_p1_3_a_idx1 our_table_1_prt_p1_3_a_idx
+LOG:  available indexes for IndexScan(our_table_1_prt_p1_4): our_table_1_prt_p1_4_a_idx2 our_table_1_prt_p1_4_a_idx1 our_table_1_prt_p1_4_a_idx
+LOG:  pg_hint_plan:
+used hint:
+IndexScan(t1 my_incredible_index)
+IndexScan(t3 our_amazing_index)
+not used hint:
+duplication hint:
+error hint:
+                                            QUERY PLAN
 ---------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -1183,7 +1765,19 @@ EXPLAIN (costs off) SELECT * FROM everybody_view;
     IndexScan(t3)
  */
 EXPLAIN (costs off) SELECT * FROM everybody_view;
-                                            QUERY PLAN                                             
+LOG:  statement: /*+
+    IndexScan(t1)
+    IndexScan(t3)
+ */
+EXPLAIN (costs off) SELECT * FROM everybody_view;
+LOG:  pg_hint_plan:
+used hint:
+IndexScan(t1)
+IndexScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                                            QUERY PLAN
 ---------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -1216,7 +1810,27 @@ EXPLAIN (costs off) SELECT * FROM everybody_view;
     IndexOnlyScan(t3 our_amazing_index)
  */
 EXPLAIN (costs off) SELECT * FROM everybody_view;
-                                               QUERY PLAN                                               
+LOG:  statement: /*+
+    IndexOnlyScan(t1 my_incredible_index)
+    IndexOnlyScan(t2 your_amazing_index)
+    IndexOnlyScan(t3 our_amazing_index)
+ */
+EXPLAIN (costs off) SELECT * FROM everybody_view;
+LOG:  available indexes for IndexOnlyScan(t1): my_incredible_index
+LOG:  available indexes for IndexOnlyScan(t2): your_amazing_index
+LOG:  available indexes for IndexOnlyScan(our_table_1_prt_p1_1): our_table_1_prt_p1_1_a_idx2 our_table_1_prt_p1_1_a_idx1 our_table_1_prt_p1_1_a_idx
+LOG:  available indexes for IndexOnlyScan(our_table_1_prt_p1_2): our_table_1_prt_p1_2_a_idx2 our_table_1_prt_p1_2_a_idx1 our_table_1_prt_p1_2_a_idx
+LOG:  available indexes for IndexOnlyScan(our_table_1_prt_p1_3): our_table_1_prt_p1_3_a_idx2 our_table_1_prt_p1_3_a_idx1 our_table_1_prt_p1_3_a_idx
+LOG:  available indexes for IndexOnlyScan(our_table_1_prt_p1_4): our_table_1_prt_p1_4_a_idx2 our_table_1_prt_p1_4_a_idx1 our_table_1_prt_p1_4_a_idx
+LOG:  pg_hint_plan:
+used hint:
+IndexOnlyScan(t1 my_incredible_index)
+IndexOnlyScan(t2 your_amazing_index)
+IndexOnlyScan(t3 our_amazing_index)
+not used hint:
+duplication hint:
+error hint:
+                                               QUERY PLAN
 --------------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -1249,7 +1863,21 @@ EXPLAIN (costs off) SELECT * FROM everybody_view;
     IndexOnlyScan(t3)
  */
 EXPLAIN (costs off) SELECT * FROM everybody_view;
-                                            QUERY PLAN                                             
+LOG:  statement: /*+
+    IndexOnlyScan(t1)
+    IndexOnlyScan(t2)
+    IndexOnlyScan(t3)
+ */
+EXPLAIN (costs off) SELECT * FROM everybody_view;
+LOG:  pg_hint_plan:
+used hint:
+IndexOnlyScan(t1)
+IndexOnlyScan(t2)
+IndexOnlyScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                                            QUERY PLAN
 ---------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -1282,7 +1910,27 @@ EXPLAIN (costs off) SELECT * FROM everybody_view;
     BitmapScan(t3 our_bitmap_index)
  */
 EXPLAIN (costs off) SELECT * FROM everybody_view;
-                                   QUERY PLAN                                   
+LOG:  statement: /*+
+    BitmapScan(t1 my_bitmap_index)
+    BitmapScan(t2 your_bitmap_index)
+    BitmapScan(t3 our_bitmap_index)
+ */
+EXPLAIN (costs off) SELECT * FROM everybody_view;
+LOG:  available indexes for BitmapScan(t1): my_bitmap_index
+LOG:  available indexes for BitmapScan(t2): your_bitmap_index
+LOG:  available indexes for BitmapScan(our_table_1_prt_p1_1): our_table_1_prt_p1_1_a_idx3
+LOG:  available indexes for BitmapScan(our_table_1_prt_p1_2): our_table_1_prt_p1_2_a_idx3
+LOG:  available indexes for BitmapScan(our_table_1_prt_p1_3): our_table_1_prt_p1_3_a_idx3
+LOG:  available indexes for BitmapScan(our_table_1_prt_p1_4): our_table_1_prt_p1_4_a_idx3
+LOG:  pg_hint_plan:
+used hint:
+BitmapScan(t1 my_bitmap_index)
+BitmapScan(t2 your_bitmap_index)
+BitmapScan(t3 our_bitmap_index)
+not used hint:
+duplication hint:
+error hint:
+                                   QUERY PLAN
 --------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -1327,7 +1975,21 @@ EXPLAIN (costs off) SELECT * FROM everybody_view;
     BitmapScan(t3)
  */
 EXPLAIN (costs off) SELECT * FROM everybody_view;
-                                   QUERY PLAN                                   
+LOG:  statement: /*+
+    BitmapScan(t1)
+    BitmapScan(t2)
+    BitmapScan(t3)
+ */
+EXPLAIN (costs off) SELECT * FROM everybody_view;
+LOG:  pg_hint_plan:
+used hint:
+BitmapScan(t1)
+BitmapScan(t2)
+BitmapScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                                   QUERY PLAN
 --------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -1381,7 +2043,25 @@ EXPLAIN (costs off) WITH cte AS
     SELECT t1.a AS a1, t2.a AS a2, t3.a AS a3 FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a
 )
 SELECT a1, a2, a3 FROM cte WHERE a1<42;
-                          QUERY PLAN                           
+LOG:  statement: /*+
+    SeqScan(t1)
+    SeqScan(t2)
+    SeqScan(t3)
+ */
+EXPLAIN (costs off) WITH cte AS
+(
+    SELECT t1.a AS a1, t2.a AS a2, t3.a AS a3 FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a
+)
+SELECT a1, a2, a3 FROM cte WHERE a1<42;
+LOG:  pg_hint_plan:
+used hint:
+SeqScan(t1)
+SeqScan(t2)
+SeqScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                          QUERY PLAN
 ---------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -1419,7 +2099,28 @@ EXPLAIN (costs off) WITH cte AS
     SELECT t1.a AS a1, t2.a AS a2, t3.a AS a3 FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a
 )
 SELECT a1, a2, a3 FROM cte WHERE a1<42;
-                                            QUERY PLAN                                             
+LOG:  statement: /*+
+    IndexScan(t1 my_incredible_index)
+    IndexScan(t3 our_amazing_index)
+ */
+EXPLAIN (costs off) WITH cte AS
+(
+    SELECT t1.a AS a1, t2.a AS a2, t3.a AS a3 FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a
+)
+SELECT a1, a2, a3 FROM cte WHERE a1<42;
+LOG:  available indexes for IndexScan(t1): my_incredible_index
+LOG:  available indexes for IndexScan(our_table_1_prt_p1_1): our_table_1_prt_p1_1_a_idx2 our_table_1_prt_p1_1_a_idx1 our_table_1_prt_p1_1_a_idx
+LOG:  available indexes for IndexScan(our_table_1_prt_p1_2): our_table_1_prt_p1_2_a_idx2 our_table_1_prt_p1_2_a_idx1 our_table_1_prt_p1_2_a_idx
+LOG:  available indexes for IndexScan(our_table_1_prt_p1_3): our_table_1_prt_p1_3_a_idx2 our_table_1_prt_p1_3_a_idx1 our_table_1_prt_p1_3_a_idx
+LOG:  available indexes for IndexScan(our_table_1_prt_p1_4): our_table_1_prt_p1_4_a_idx2 our_table_1_prt_p1_4_a_idx1 our_table_1_prt_p1_4_a_idx
+LOG:  pg_hint_plan:
+used hint:
+IndexScan(t1 my_incredible_index)
+IndexScan(t3 our_amazing_index)
+not used hint:
+duplication hint:
+error hint:
+                                            QUERY PLAN
 ---------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -1457,7 +2158,23 @@ EXPLAIN (costs off) WITH cte AS
     SELECT t1.a AS a1, t2.a AS a2, t3.a AS a3 FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a
 )
 SELECT a1, a2, a3 FROM cte WHERE a1<42;
-                                            QUERY PLAN                                             
+LOG:  statement: /*+
+    IndexScan(t1)
+    IndexScan(t3)
+ */
+EXPLAIN (costs off) WITH cte AS
+(
+    SELECT t1.a AS a1, t2.a AS a2, t3.a AS a3 FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a
+)
+SELECT a1, a2, a3 FROM cte WHERE a1<42;
+LOG:  pg_hint_plan:
+used hint:
+IndexScan(t1)
+IndexScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                                            QUERY PLAN
 ---------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -1494,7 +2211,31 @@ EXPLAIN (costs off) WITH cte AS
     SELECT t1.a AS a1, t2.a AS a2, t3.a AS a3 FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a
 )
 SELECT a1, a2, a3 FROM cte WHERE a1<42;
-                                               QUERY PLAN                                               
+LOG:  statement: /*+
+    IndexOnlyScan(t1 my_incredible_index)
+    IndexOnlyScan(t2 your_amazing_index)
+    IndexOnlyScan(t3 our_amazing_index)
+ */
+EXPLAIN (costs off) WITH cte AS
+(
+    SELECT t1.a AS a1, t2.a AS a2, t3.a AS a3 FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a
+)
+SELECT a1, a2, a3 FROM cte WHERE a1<42;
+LOG:  available indexes for IndexOnlyScan(t1): my_incredible_index
+LOG:  available indexes for IndexOnlyScan(t2): your_amazing_index
+LOG:  available indexes for IndexOnlyScan(our_table_1_prt_p1_1): our_table_1_prt_p1_1_a_idx2 our_table_1_prt_p1_1_a_idx1 our_table_1_prt_p1_1_a_idx
+LOG:  available indexes for IndexOnlyScan(our_table_1_prt_p1_2): our_table_1_prt_p1_2_a_idx2 our_table_1_prt_p1_2_a_idx1 our_table_1_prt_p1_2_a_idx
+LOG:  available indexes for IndexOnlyScan(our_table_1_prt_p1_3): our_table_1_prt_p1_3_a_idx2 our_table_1_prt_p1_3_a_idx1 our_table_1_prt_p1_3_a_idx
+LOG:  available indexes for IndexOnlyScan(our_table_1_prt_p1_4): our_table_1_prt_p1_4_a_idx2 our_table_1_prt_p1_4_a_idx1 our_table_1_prt_p1_4_a_idx
+LOG:  pg_hint_plan:
+used hint:
+IndexOnlyScan(t1 my_incredible_index)
+IndexOnlyScan(t2 your_amazing_index)
+IndexOnlyScan(t3 our_amazing_index)
+not used hint:
+duplication hint:
+error hint:
+                                               QUERY PLAN
 --------------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -1531,7 +2272,25 @@ EXPLAIN (costs off) WITH cte AS
     SELECT t1.a AS a1, t2.a AS a2, t3.a AS a3 FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a
 )
 SELECT a1, a2, a3 FROM cte WHERE a1<42;
-                                            QUERY PLAN                                             
+LOG:  statement: /*+
+    IndexOnlyScan(t1)
+    IndexOnlyScan(t2)
+    IndexOnlyScan(t3)
+ */
+EXPLAIN (costs off) WITH cte AS
+(
+    SELECT t1.a AS a1, t2.a AS a2, t3.a AS a3 FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a
+)
+SELECT a1, a2, a3 FROM cte WHERE a1<42;
+LOG:  pg_hint_plan:
+used hint:
+IndexOnlyScan(t1)
+IndexOnlyScan(t2)
+IndexOnlyScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                                            QUERY PLAN
 ---------------------------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -1568,7 +2327,31 @@ EXPLAIN (costs off) WITH cte AS
     SELECT t1.a AS a1, t2.a AS a2, t3.a AS a3 FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a
 )
 SELECT a1, a2, a3 FROM cte WHERE a1<42;
-                                   QUERY PLAN                                   
+LOG:  statement: /*+
+    BitmapScan(t1 my_bitmap_index)
+    BitmapScan(t2 your_bitmap_index)
+    BitmapScan(t3 our_bitmap_index)
+ */
+EXPLAIN (costs off) WITH cte AS
+(
+    SELECT t1.a AS a1, t2.a AS a2, t3.a AS a3 FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a
+)
+SELECT a1, a2, a3 FROM cte WHERE a1<42;
+LOG:  available indexes for BitmapScan(t1): my_bitmap_index
+LOG:  available indexes for BitmapScan(t2): your_bitmap_index
+LOG:  available indexes for BitmapScan(our_table_1_prt_p1_1): our_table_1_prt_p1_1_a_idx3
+LOG:  available indexes for BitmapScan(our_table_1_prt_p1_2): our_table_1_prt_p1_2_a_idx3
+LOG:  available indexes for BitmapScan(our_table_1_prt_p1_3): our_table_1_prt_p1_3_a_idx3
+LOG:  available indexes for BitmapScan(our_table_1_prt_p1_4): our_table_1_prt_p1_4_a_idx3
+LOG:  pg_hint_plan:
+used hint:
+BitmapScan(t1 my_bitmap_index)
+BitmapScan(t2 your_bitmap_index)
+BitmapScan(t3 our_bitmap_index)
+not used hint:
+duplication hint:
+error hint:
+                                   QUERY PLAN
 --------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -1617,7 +2400,25 @@ EXPLAIN (costs off) WITH cte AS
     SELECT t1.a AS a1, t2.a AS a2, t3.a AS a3 FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a
 )
 SELECT a1, a2, a3 FROM cte WHERE a1<42;
-                                   QUERY PLAN                                   
+LOG:  statement: /*+
+    BitmapScan(t1)
+    BitmapScan(t2)
+    BitmapScan(t3)
+ */
+EXPLAIN (costs off) WITH cte AS
+(
+    SELECT t1.a AS a1, t2.a AS a2, t3.a AS a3 FROM my_table AS t1 JOIN your_table AS t2 ON t1.a=t2.a JOIN our_table AS t3 ON t3.a=t2.a
+)
+SELECT a1, a2, a3 FROM cte WHERE a1<42;
+LOG:  pg_hint_plan:
+used hint:
+BitmapScan(t1)
+BitmapScan(t2)
+BitmapScan(t3)
+not used hint:
+duplication hint:
+error hint:
+                                   QUERY PLAN
 --------------------------------------------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Hash Join
@@ -1665,9 +2466,19 @@ SELECT a1, a2, a3 FROM cte WHERE a1<42;
     TidScan(t1)
  */
 EXPLAIN (costs off) SELECT t1.ctid FROM my_table AS t1 WHERE ctid = '(0,1)';
+LOG:  statement: /*+
+    TidScan(t1)
+ */
+EXPLAIN (costs off) SELECT t1.ctid FROM my_table AS t1 WHERE ctid = '(0,1)';
 NOTICE:  SELECT uses system-defined column "t1.ctid" without the necessary companion column "t1.gp_segment_id"
 HINT:  To uniquely identify a row within a distributed table, use the "gp_segment_id" column together with the "ctid" column.
-                QUERY PLAN                
+LOG:  pg_hint_plan:
+used hint:
+TidScan(t1)
+not used hint:
+duplication hint:
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Tid Scan on my_table t1
@@ -1679,9 +2490,19 @@ HINT:  To uniquely identify a row within a distributed table, use the "gp_segmen
     NoTidScan(t1)
  */
 EXPLAIN (costs off) SELECT t1.ctid FROM my_table AS t1 WHERE  ctid >= '(0,1)';
+LOG:  statement: /*+
+    NoTidScan(t1)
+ */
+EXPLAIN (costs off) SELECT t1.ctid FROM my_table AS t1 WHERE  ctid >= '(0,1)';
 NOTICE:  SELECT uses system-defined column "t1.ctid" without the necessary companion column "t1.gp_segment_id"
 HINT:  To uniquely identify a row within a distributed table, use the "gp_segment_id" column together with the "ctid" column.
-                QUERY PLAN                
+LOG:  pg_hint_plan:
+used hint:
+NoTidScan(t1)
+not used hint:
+duplication hint:
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on my_table t1
@@ -1693,7 +2514,18 @@ HINT:  To uniquely identify a row within a distributed table, use the "gp_segmen
     IndexScanRegexp(t1 '*awesome*')
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
-                QUERY PLAN                
+LOG:  statement: /*+
+    IndexScanRegexp(t1 '*awesome*')
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  available indexes for IndexScanRegexp(t1):
+LOG:  pg_hint_plan:
+used hint:
+IndexScanRegexp(t1 '*awesome*')
+not used hint:
+duplication hint:
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on my_table t1
@@ -1705,7 +2537,18 @@ EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
     IndexOnlyScanRegexp(t1 '*awesome*')
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
-                QUERY PLAN                
+LOG:  statement: /*+
+    IndexOnlyScanRegexp(t1 '*awesome*')
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  available indexes for IndexOnlyScanRegexp(t1):
+LOG:  pg_hint_plan:
+used hint:
+IndexOnlyScanRegexp(t1 '*awesome*')
+not used hint:
+duplication hint:
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on my_table t1
@@ -1717,7 +2560,18 @@ EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
     BitmapScanRegexp(t1 '*awesome*')
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
-                QUERY PLAN                
+LOG:  statement: /*+
+    BitmapScanRegexp(t1 '*awesome*')
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  available indexes for BitmapScanRegexp(t1):
+LOG:  pg_hint_plan:
+used hint:
+BitmapScanRegexp(t1 '*awesome*')
+not used hint:
+duplication hint:
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on my_table t1
@@ -1735,10 +2589,20 @@ EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
     SeqScan()
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  statement: /*+
+    SeqScan()
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
 INFO:  pg_hint_plan: hint syntax error at or near "
  "
 DETAIL:  SeqScan hint requires a relation.
-                QUERY PLAN                
+LOG:  pg_hint_plan:
+used hint:
+not used hint:
+duplication hint:
+error hint:
+SeqScan()
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on my_table t1
@@ -1751,10 +2615,21 @@ DETAIL:  SeqScan hint requires a relation.
     SeqScan(t1) NoIndexScan(t1)
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  statement: /*+
+    SeqScan(t1) NoIndexScan(t1)
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
 INFO:  pg_hint_plan: hint syntax error at or near "SeqScan(t1) NoIndexScan(t1)
  "
 DETAIL:  Conflict scan method hint.
-                QUERY PLAN                
+LOG:  pg_hint_plan:
+used hint:
+NoIndexScan(t1)
+not used hint:
+duplication hint:
+SeqScan(t1)
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on my_table t1
@@ -1766,10 +2641,21 @@ DETAIL:  Conflict scan method hint.
     NoIndexScan(t1) SeqScan(t1)
  */
 EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  statement: /*+
+    NoIndexScan(t1) SeqScan(t1)
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
 INFO:  pg_hint_plan: hint syntax error at or near "NoIndexScan(t1) SeqScan(t1)
  "
 DETAIL:  Conflict scan method hint.
-                QUERY PLAN                
+LOG:  pg_hint_plan:
+used hint:
+SeqScan(t1)
+not used hint:
+duplication hint:
+NoIndexScan(t1)
+error hint:
+                QUERY PLAN
 ------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
    ->  Seq Scan on my_table t1
@@ -1782,6 +2668,17 @@ DETAIL:  Conflict scan method hint.
     SeqScan(t2) SeqScan(t1)
  */
 EXPLAIN (costs off) SELECT t1.a, t1.b FROM my_table AS t1 WHERE EXISTS (SELECT 1 FROM your_table AS t2 WHERE t1.a = t2.a);
+LOG:  statement: /*+
+    SeqScan(t2) SeqScan(t1)
+ */
+EXPLAIN (costs off) SELECT t1.a, t1.b FROM my_table AS t1 WHERE EXISTS (SELECT 1 FROM your_table AS t2 WHERE t1.a = t2.a);
+LOG:  pg_hint_plan:
+used hint:
+SeqScan(t1)
+SeqScan(t2)
+not used hint:
+duplication hint:
+error hint:
                  QUERY PLAN
 ---------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -1797,6 +2694,17 @@ EXPLAIN (costs off) SELECT t1.a, t1.b FROM my_table AS t1 WHERE EXISTS (SELECT 1
     SeqScan(t2) SeqScan(t1)
  */
 EXPLAIN (costs off) SELECT t1.a, t1.b FROM my_table AS t1 WHERE NOT EXISTS (SELECT 1 FROM your_table AS t2 WHERE t1.a = t2.a);
+LOG:  statement: /*+
+    SeqScan(t2) SeqScan(t1)
+ */
+EXPLAIN (costs off) SELECT t1.a, t1.b FROM my_table AS t1 WHERE NOT EXISTS (SELECT 1 FROM your_table AS t2 WHERE t1.a = t2.a);
+LOG:  pg_hint_plan:
+used hint:
+SeqScan(t1)
+SeqScan(t2)
+not used hint:
+duplication hint:
+error hint:
                  QUERY PLAN
 ---------------------------------------------
  Gather Motion 3:1  (slice1; segments: 3)
@@ -1808,3 +2716,50 @@ EXPLAIN (costs off) SELECT t1.a, t1.b FROM my_table AS t1 WHERE NOT EXISTS (SELE
  Optimizer: Postgres-based planner
 (7 rows)
 
+-- Missing alias in query to test Un-used Hint logging
+/*+
+    NoIndexScan(z) SeqScan(y)
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  statement: /*+
+    NoIndexScan(z) SeqScan(y)
+ */
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  pg_hint_plan:
+used hint:
+not used hint:
+SeqScan(y)
+NoIndexScan(z)
+duplication hint:
+error hint:
+                QUERY PLAN
+------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Seq Scan on my_table t1
+         Filter: (a < 42)
+ Optimizer: Postgres-based planner
+(4 rows)
+
+-- Invalid Scan type to test Hint logging behavior
+/*+
+ NoBitmap(t1)
+*/
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+LOG:  statement: /*+
+ NoBitmap(t1)
+*/
+EXPLAIN (costs off) SELECT t1.a FROM my_table AS t1 WHERE t1.a<42;
+INFO:  pg_hint_plan: hint syntax error at or near "NoBitmap(t1)
+"
+DETAIL:  Unrecognized hint keyword "NoBitmap".
+                QUERY PLAN
+------------------------------------------
+ Gather Motion 3:1  (slice1; segments: 3)
+   ->  Seq Scan on my_table t1
+         Filter: (a < 42)
+ Optimizer: Postgres-based planner
+(4 rows)
+
+RESET client_min_messages;
+LOG:  statement: RESET client_min_messages;
+RESET pg_hint_plan.debug_print;
