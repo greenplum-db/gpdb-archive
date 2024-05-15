@@ -273,4 +273,88 @@ func TestEnvValidation(t *testing.T) {
 			t.Fatalf("unexpected error: %v", err)
 		}
 	})
+
+	t.Run("when the mirror data directory is not empty", func(t *testing.T) {
+		var ok bool
+		configFile := testutils.GetTempFile(t, "config.json")
+		config := GetDefaultConfig(t)
+
+		err := config.WriteConfigAs(configFile)
+		if err != nil {
+			t.Fatalf("unexpected error: %#v", err)
+		}
+
+		primarySegs := config.Get("segment-array")
+		valueSegPair, ok := primarySegs.([]cli.SegmentPair)
+
+		if !ok {
+			t.Fatalf("unexpected data type for segment-array %T", primarySegs)
+		}
+
+		MirrorHostName := valueSegPair[0].Mirror.Hostname
+		cmdStr := fmt.Sprintf("mkdir -p %s && chmod 700 %s && touch %s/abc.txt", valueSegPair[0].Mirror.DataDirectory, valueSegPair[0].Mirror.DataDirectory, valueSegPair[0].Mirror.DataDirectory)
+
+		cmdObj := exec.Command("ssh", MirrorHostName, cmdStr)
+		_, errSeg := cmdObj.Output()
+		if errSeg != nil {
+			t.Fatalf("unexpected error : %v", errSeg)
+		}
+
+		result, err := testutils.RunInitCluster(configFile)
+		if e, ok := err.(*exec.ExitError); !ok || e.ExitCode() != 1 {
+			t.Fatalf("got %v, want exit status 1", err)
+		}
+
+		expectedOut := fmt.Sprintf("[ERROR]:-host: %s, executing pg_basebackup: pg_basebackup: error: directory \"%s\" exists but is not empty\n", MirrorHostName, valueSegPair[0].Mirror.DataDirectory)
+		if !strings.Contains(result.OutputMsg, expectedOut) {
+			t.Fatalf("got %q, want %q", result.OutputMsg, expectedOut)
+		}
+
+		_, err = testutils.DeleteCluster()
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+	})
+
+	//FIXME: Validation needs to be added for when mirror port is in use
+	// t.Run("when the port is already in use for mirror segment", func(t *testing.T) {
+	// 	var ok bool
+
+	// 	configFile := testutils.GetTempFile(t, "config.json")
+	// 	config := GetDefaultConfig(t)
+
+	// 	err := config.WriteConfigAs(configFile)
+	// 	if err != nil {
+	// 		t.Fatalf("unexpected error: %#v", err)
+	// 	}
+
+	// 	primarySegs := config.Get("segment-array")
+	// 	valueSegPair, ok := primarySegs.([]cli.SegmentPair)
+
+	// 	if !ok {
+	// 		t.Fatalf("unexpected data type for segment-array %T", primarySegs)
+	// 	}
+
+	// 	MirrorHostName := valueSegPair[0].Mirror.Hostname
+	// 	MirrorPort := valueSegPair[0].Mirror.Port
+	// 	MirrorAddress := valueSegPair[0].Mirror.Address
+
+	// 	cmd := exec.Command("ssh", MirrorHostName, "nc", "-l", MirrorAddress, strconv.Itoa(MirrorPort))
+	// 	cmd_err := cmd.Start()
+	// 	if cmd_err != nil {
+	// 		t.Fatalf("failed to start listening on mirror host: %v", err)
+	// 	}
+
+	// 	result, err := testutils.RunInitCluster(configFile)
+	// 	if e, ok := err.(*exec.ExitError); !ok || e.ExitCode() != 1 {
+	// 		t.Fatalf("got %v, want exit status 1", err)
+	// 	}
+
+	// 	expectedOut := fmt.Sprintf("[ERROR]:-validating hosts: host: %s, ports already in use: [%d], check if cluster already running", valueSegPair[0].Primary.Hostname, valueSegPair[0].Primary.Port)
+	// 	if !strings.Contains(result.OutputMsg, expectedOut) {
+	// 		t.Fatalf("got %q, want %q", result.OutputMsg, expectedOut)
+	// 	}
+
+	// })
+
 }

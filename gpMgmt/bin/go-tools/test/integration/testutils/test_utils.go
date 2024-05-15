@@ -116,7 +116,7 @@ func RunGpStatus(params ...string) (CmdResult, error) {
 	allParams := append([]string{"gpstate"}, params...)
 
 	genCmd := Command{
-		cmdStr: allParams[0],  
+		cmdStr: allParams[0],
 		args:   allParams[1:],
 	}
 
@@ -143,6 +143,28 @@ func RunGpStop(params ...string) (CmdResult, error) {
 	}
 
 	return runCmd(genCmd)
+}
+
+func RunGpRecoverSeg(params ...string) (CmdResult, error) {
+	allParams := append([]string{"gprecoverseg", "-a"}, params...)
+
+	genCmd := Command{
+		cmdStr: allParams[0],
+		args:   allParams[1:],
+	}
+
+	return runCmd(genCmd)
+}
+
+func RunGpStopSegment(dataDir, hostname string) error {
+	cmdStr := fmt.Sprintf("source %s/greenplum_path.sh && pg_ctl stop -m fast -D %s -w -t 120", os.Getenv("GPHOME"), dataDir)
+	cmd := exec.Command("ssh", hostname, cmdStr)
+
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("failed to stop segment via SSH: %v", err)
+	}
+	return nil
 }
 
 func RunGpStart(params ...string) (CmdResult, error) {

@@ -37,7 +37,7 @@ func GetRandomLocale(t *testing.T) string {
 	var locales []string
 	lines := strings.Fields(string(out))
 	for _, line := range lines {
-		if strings.Contains(strings.ToLower(line), "utf") {
+		if strings.HasSuffix(strings.ToLower(line), "utf8") || strings.HasSuffix(strings.ToLower(line), "utf-8") {
 			locales = append(locales, line)
 		}
 	}

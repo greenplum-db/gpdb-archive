@@ -3,6 +3,7 @@ package testutils
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/greenplum-db/gp-common-go-libs/dbconn"
 	"github.com/jmoiron/sqlx"
@@ -97,5 +98,36 @@ func AssertPgConfig(t *testing.T, config string, value string, contentId ...int)
 
 	if result[0] != value {
 		t.Fatalf("pg config %q: got %q, want %q", config, result[0], value)
+	}
+}
+
+func WaitForDesiredQueryResult(t *testing.T, dbname, query string, desiredResult string) {
+	attempt := 0
+	numRetries := 600
+	var actualResult string
+
+	if dbname == "" {
+		dbname = "postgres"
+	}
+	conn := dbconn.NewDBConnFromEnvironment(dbname)
+	err := conn.Connect(1)
+	if err != nil {
+		t.Fatalf("unexpected error connecting to database: %v", err)
+	}
+	defer conn.Close()
+
+	for attempt < numRetries && actualResult != desiredResult {
+		attempt++
+		time.Sleep(1 * time.Second)
+		actualResult, err = dbconn.SelectString(conn, query)
+		if err != nil {
+			t.Fatalf("unexpected error retrieving result: %v", err)
+		}
+		if actualResult == "d" {
+			break
+		}
+	}
+	if attempt == numRetries {
+		t.Fatalf("Timed out after %d retries\n", numRetries)
 	}
 }
