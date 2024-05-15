@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	hostList []string
-	hostfile = flag.String("hostfile", "", "file containing list of hosts")
+	hostList           []string
+	hostfile           = flag.String("hostfile", "", "file containing list of hosts")
 	coordinatorDatadir = testutils.DEFAULT_COORDINATOR_DATADIR
 )
 
@@ -29,7 +29,13 @@ func TestMain(m *testing.M) {
 		}
 
 		*hostfile = file.Name()
-		err = os.WriteFile(*hostfile, []byte("localhost"), 0777)
+		hostname, err := os.Hostname()
+		if err != nil {
+			fmt.Printf("could not get hostname: %v", err)
+			os.Exit(1)
+		}
+
+		err = os.WriteFile(*hostfile, []byte(hostname), 0777)
 		if err != nil {
 			fmt.Printf("could not create hostfile: %v, and no hostfile provided", err)
 			os.Exit(1)
