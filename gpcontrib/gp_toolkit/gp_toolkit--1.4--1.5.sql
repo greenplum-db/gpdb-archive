@@ -1,7 +1,7 @@
 /* gpcontrib/gp_toolkit/gp_toolkit--1.4--1.5.sql */
 
 -- complain if script is sourced in psql, rather than via ALTER EXTENSION
-\echo Use "ALTER EXTENSION gp_toolkit UPDATE TO '1.5" to load this file. \quit
+\echo Use "ALTER EXTENSION gp_toolkit UPDATE TO '1.5'" to load this file. \quit
 
 -- Function to check orphaned files.
 -- Compared to the previous version, adjust the SELECT ... FROM __check_orphaned_files since we added new column to it.
