@@ -28,8 +28,6 @@ You may configure four new resource group attributes using the `CREATE RESOURCE 
 - `MIN_COST`, which configures the minimum amount a query's query plan cost for the query to remain in the resource group.
 - `IO_LIMIT`, which configures device I/O usage at the resource group level to manage the maximum throughput of read/write operations, and the maximum read/write operations per second. 
 
-In addition, the limit `MEMORY_LIMIT` is now an integer (in MB), instead of a percentage.
-
 The following resource group attributes have been removed:
 - `CPU_RATE_LIMIT`
 - `MEMORY_AUDITOR`

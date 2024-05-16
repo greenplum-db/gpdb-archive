@@ -1,4 +1,4 @@
--- test memory limit
+-- test memory quota
 -- start_ignore
 DROP TABLE IF EXISTS t_memory_limit;
 DROP ROLE IF EXISTS role_memory_test;
@@ -31,12 +31,12 @@ CREATE RESOURCE GROUP rg_memory_range WITH(memory_quota=-100, cpu_max_percent=20
 CREATE RESOURCE GROUP rg_memory_range WITH(memory_quota=-1, cpu_max_percent=20, concurrency=2);
 DROP RESOURCE GROUP rg_memory_range;
 
--- create a resource group with memory limit 100 Mb
+-- create a resource group with memory quota 100 Mb
 CREATE RESOURCE GROUP rg_memory_test WITH(memory_quota=100, cpu_max_percent=20, concurrency=2);
 CREATE ROLE role_memory_test RESOURCE GROUP rg_memory_test;
 
 -- session1: explain memory used by query
--- user requests less than statement_mem, set query's memory limit to statement_mem
+-- user requests less than statement_mem, set query's memory quota to statement_mem
 1: SET ROLE TO role_memory_test;
 1: CREATE TABLE t_memory_limit(a int);
 1: BEGIN;

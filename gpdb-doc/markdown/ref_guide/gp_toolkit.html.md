@@ -554,7 +554,7 @@ This view is accessible to all users.
 |groupname|The name of the resource group.|
 |concurrency|The concurrency \(`CONCURRENCY`\) value specified for the resource group.|
 |cpu\_rate\_limit|The CPU limit \(`CPU_MAX_PERCENT`\) value specified for the resource group, or -1.|
-|memory\_limit|The memory limit \(`MEMORY_LIMIT`\) value specified for the resource group.|
+|memory\_quota|The memory quota \(`MEMORY_QUOTA`\) value specified for the resource group.|
 |memory\_shared\_quota|The shared memory quota \(`MEMORY_SHARED_QUOTA`\) value specified for the resource group.|
 |memory\_auditor|The memory auditor for the resource group.|
 |cpuset|The CPU cores reserved for the resource group on the coordinator host and segment hosts, or -1.|
