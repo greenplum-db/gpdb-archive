@@ -25,6 +25,8 @@
 #include "getopt_long.h"
 #include "rmgrdesc.h"
 
+static XLogSegNo LastValidWalSegment(TimeLineID currentTLI, char *directory);
+
 
 static const char *progname;
 
@@ -811,6 +813,7 @@ usage(void)
 	printf(_("  -s, --start=RECPTR     start reading at WAL location RECPTR\n"));
 	printf(_("  -t, --timeline=TLI     timeline from which to read log records\n"
 			 "                         (default: 1 or the value used in STARTSEG)\n"));
+	printf(_("  --last-valid-walname   output last valid wal segment for given timeline\n"));
 	printf(_("  -V, --version          output version information, then exit\n"));
 	printf(_("  -x, --xid=XID          only show records with transaction ID XID\n"));
 	printf(_("  -z, --stats[=record]   show statistics instead of records\n"
@@ -818,6 +821,97 @@ usage(void)
 	printf(_("  -?, --help             show this help, then exit\n"));
 	printf(_("\nReport bugs to <pgsql-bugs@lists.postgresql.org>.\n"));
 }
+
+
+/*
+ * Get the last valid wal segment from the specified directory, for the
+ * given timeline.
+ */
+static XLogSegNo
+LastValidWalSegment(TimeLineID currentTLI, char *directory)
+{
+    DIR		   *dir;
+    struct dirent *de;
+    XLogSegNo	startsegno = -1;
+    XLogSegNo	endsegno = -1;
+
+    /* Find the latest and earliest WAL segments in specified WAL directory */
+	dir = opendir(directory);
+	if (dir == NULL)
+		fatal_error("could not open directory \"%s\": %s", directory, strerror(errno));
+	
+    while ((de = readdir(dir)) != NULL)
+    {
+        /* Does it look like a WAL segment? */
+        if (IsXLogFileName(de->d_name))
+        {
+            XLogSegNo			logSegNo;
+            TimeLineID			tli;
+
+            XLogFromFileName(de->d_name, &tli, &logSegNo, WalSegSz);
+            if (tli != currentTLI)
+            {
+                /*
+                 * We only want wal segment for given timeline.
+                 */
+                continue;
+            }
+            startsegno = (startsegno == -1) ? logSegNo : Min(startsegno, logSegNo);
+            endsegno = (endsegno == -1) ? logSegNo : Max(endsegno, logSegNo);
+        }
+    }
+    closedir(dir);
+	
+	if (startsegno == -1 && endsegno == -1)
+	{
+		/* No valid wal segment found for given timeline. */
+		fatal_error("could not find valid WAL segment for timeline \"%d\"", currentTLI);
+	}
+
+    /* Find the last valid WAL segment */
+    while (endsegno >= startsegno)
+    {
+        XLogReaderState *state;
+        XLogRecPtr	startptr;
+        XLogDumpPrivate private;
+
+		XLogSegNoOffsetToRecPtr(endsegno, /* offset */ 0, WalSegSz, startptr);
+
+        memset(&private, 0, sizeof(XLogDumpPrivate));
+        private.timeline = currentTLI;
+        private.startptr = startptr;
+        private.endptr = InvalidXLogRecPtr;
+        private.endptr_reached = false;
+		private.inpath = directory;
+
+        state = XLogReaderAllocate(WalSegSz, XLogDumpReadPage, &private);
+
+        if (!state)
+			fatal_error("out of memory");
+
+        state->EndRecPtr = startptr;
+		state->private_data = &private;
+
+		/*
+         * Read the first page of the current WAL segment and validate it by
+         * inspecting the page header.
+         */
+        XLogDumpReadPage(state, startptr, XLOG_BLCKSZ, InvalidXLogRecPtr, state->readBuf, &currentTLI);
+
+        /* Validate the PageHeader, if valid then our search for last valid wal file ends here. */
+        if (XLogReaderValidatePageHeader(state, startptr, state->readBuf))
+        {
+            XLogReaderFree(state);
+            return endsegno;
+        }
+
+        XLogReaderFree(state);
+        endsegno--;
+    }
+	/* No valid wal file found for given timeline. */ 
+	fatal_error("could not find valid WAL segment for timeline \"%d\"", currentTLI);
+}
+
 
 int
 main(int argc, char **argv)
@@ -842,6 +936,7 @@ main(int argc, char **argv)
 		{"rmgr", required_argument, NULL, 'r'},
 		{"start", required_argument, NULL, 's'},
 		{"timeline", required_argument, NULL, 't'},
+		{"last-valid-walname", no_argument, NULL, 131},
 		{"xid", required_argument, NULL, 'x'},
 		{"version", no_argument, NULL, 'V'},
 		{"stats", optional_argument, NULL, 'z'},
@@ -888,6 +983,10 @@ main(int argc, char **argv)
 	config.stats = false;
 	config.stats_per_record = false;
 
+	bool last_valid_walname = false;
+	bool path_specified = false;
+	bool timeline_specified = false;
+
 	if (argc <= 1)
 	{
 		pg_log_error("no arguments specified");
@@ -923,6 +1022,7 @@ main(int argc, char **argv)
 				break;
 			case 'p':
 				private.inpath = pg_strdup(optarg);
+				path_specified = true;
 				break;
 			case 'r':
 				{
@@ -967,6 +1067,10 @@ main(int argc, char **argv)
 					pg_log_error("could not parse timeline \"%s\"", optarg);
 					goto bad_argument;
 				}
+				timeline_specified = true;
+				break;
+			case 131:
+				last_valid_walname = true;
 				break;
 			case 'x':
 				if (sscanf(optarg, "%u", &config.filter_by_xid) != 1)
@@ -1013,6 +1117,34 @@ main(int argc, char **argv)
 						 private.inpath, strerror(errno));
 			goto bad_argument;
 		}
+	}
+
+	/* 
+	* GPDB: If --last-valid-walname was specified, we try to find the
+	* last valid WAL file name and exit without dumping the contents.
+	*/
+	if (last_valid_walname)
+	{
+		XLogSegNo last_valid_walsegment;
+		char		xlogfname[MAXFNAMELEN];
+		if (!timeline_specified)
+		{
+			pg_log_error("timeline not specified.", strerror(errno));
+			goto bad_argument;
+		}
+
+		if (!path_specified)
+		{
+			pg_log_error("path not specified.", strerror(errno));
+			goto bad_argument;
+		}
+
+		identify_target_directory(&private, private.inpath, NULL);
+
+		last_valid_walsegment = LastValidWalSegment(private.timeline, private.inpath);
+		XLogFileName(xlogfname, private.timeline, last_valid_walsegment, WalSegSz);
+		printf("%s\n", xlogfname);
+		return EXIT_SUCCESS;
 	}
 
 	/* parse files as start/end boundaries, extract path if not specified */
