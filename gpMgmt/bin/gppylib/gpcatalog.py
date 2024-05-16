@@ -21,18 +21,27 @@ logger = gplog.get_default_logger()
 class GPCatalogException(Exception):
     pass
 
-# Hard coded since "coordinator only" is not defined in the catalog
-COORDINATOR_ONLY_TABLES = [
+
+# The following lists capture "coordinator only" tables. They are hard-coded
+# since there is no notion of "coordinator only" defined in the catalog.
+# Depending on whether a relation is mapped or not, we have 2 sub-lists.
+# See RelationIsMapped().
+COORDINATOR_ONLY_TABLES_MAPPED = [
     'gp_configuration_history',
     'gp_segment_configuration',
+    'pg_stat_last_shoperation'
+]
+
+COORDINATOR_ONLY_TABLES_NON_MAPPED = [
     'pg_stat_last_operation',
-    'pg_stat_last_shoperation',
     'pg_statistic',
     'pg_statistic_ext',
     'pg_statistic_ext_data',
     'gp_partition_template',
-	'pg_event_trigger'
-    ]
+    'pg_event_trigger'
+]
+
+COORDINATOR_ONLY_TABLES = COORDINATOR_ONLY_TABLES_MAPPED + COORDINATOR_ONLY_TABLES_NON_MAPPED
 
 # Hard coded tables that have different values on every segment
 SEGMENT_LOCAL_TABLES = [
