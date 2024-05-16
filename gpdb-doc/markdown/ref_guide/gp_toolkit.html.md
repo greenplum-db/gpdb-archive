@@ -553,11 +553,12 @@ This view is accessible to all users.
 |groupid|The ID of the resource group.|
 |groupname|The name of the resource group.|
 |concurrency|The concurrency \(`CONCURRENCY`\) value specified for the resource group.|
-|cpu\_rate\_limit|The CPU limit \(`CPU_MAX_PERCENT`\) value specified for the resource group, or -1.|
+|cpu\_max\_percent|The CPU limit \(`CPU_MAX_PERCENT`\) value specified for the resource group, or -1.|
+|cpu\_weight|The scheduling priority of the resource group (CPU_WEIGHT).|
+|cpuset|The CPU cores reserved for the resource group (CPUSET), or -1.|
 |memory\_quota|The memory quota \(`MEMORY_QUOTA`\) value specified for the resource group.|
-|memory\_shared\_quota|The shared memory quota \(`MEMORY_SHARED_QUOTA`\) value specified for the resource group.|
-|memory\_auditor|The memory auditor for the resource group.|
-|cpuset|The CPU cores reserved for the resource group on the coordinator host and segment hosts, or -1.|
+|min\_cost|The minimum cost of a query plan to be included in the resource group (MIN_COST).|
+|io\_limit|The maximum read/write sequential disk I/O throughput, and the maximum read/write I/O operations per second for the queries assigned to a specific tablespace (shown as the tablespace oid) and resource group (IO_LIMIT).|
 
 ### <a id="role"></a>gp\_resgroup\_role
 
