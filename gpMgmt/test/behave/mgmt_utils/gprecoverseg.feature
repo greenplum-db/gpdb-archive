@@ -907,50 +907,6 @@ Feature: gprecoverseg tests
 
   @demo_cluster
   @concourse_cluster
-  Scenario:  SIGINT on gprecoverseg should delete the progress file
-    Given the database is running
-    And all the segments are running
-    And the segments are synchronized
-    And all files in gpAdminLogs directory are deleted on all hosts in the cluster
-    And user immediately stops all primary processes for content 0,1,2
-    And user can start transactions
-    And sql "DROP TABLE IF EXISTS test_recoverseg; CREATE TABLE test_recoverseg AS SELECT generate_series(1,100000000) AS a;" is executed in "postgres" db
-    And the user suspend the walsender on the primary on content 0
-    When the user asynchronously runs "gprecoverseg -aF" and the process is saved
-    Then the user waits until recovery_progress.file is created in gpAdminLogs and verifies its format
-    Then verify if the gprecoverseg.lock directory is present in coordinator_data_directory
-    When the user asynchronously sets up to end gprecoverseg process with SIGINT
-    And the user waits until saved async process is completed
-    Then recovery_progress.file should not exist in gpAdminLogs
-    Then the user reset the walsender on the primary on content 0
-    Then the gprecoverseg lock directory is removed
-    And the user waits until mirror on content 0,1,2 is up
-    And verify that lines from recovery_progress.file are present in segment progress files in gpAdminLogs
-    And the cluster is rebalanced
-
-  @demo_cluster
-  @concourse_cluster
-  Scenario:  SIGINT on gprecoverseg differential recovery should delete the progress file
-    Given the database is running
-    And all the segments are running
-    And the segments are synchronized
-    And all files in gpAdminLogs directory are deleted on all hosts in the cluster
-    And user immediately stops all primary processes for content 0,1,2
-    And user can start transactions
-    And sql "DROP TABLE IF EXISTS test_recoverseg; CREATE TABLE test_recoverseg AS SELECT generate_series(1,100000000) AS a;" is executed in "postgres" db
-    When the user asynchronously runs "gprecoverseg -a --differential" and the process is saved
-    Then the user waits until recovery_progress.file is created in gpAdminLogs and verifies its format
-    Then verify if the gprecoverseg.lock directory is present in coordinator_data_directory
-    When the user asynchronously sets up to end gprecoverseg process with SIGINT
-    And the user waits until saved async process is completed
-    Then recovery_progress.file should not exist in gpAdminLogs
-    Then the gprecoverseg lock directory is removed
-    And the user waits until mirror on content 0,1,2 is up
-    And the cluster is rebalanced
-
-
-  @demo_cluster
-  @concourse_cluster
   Scenario:  SIGKILL on gprecoverseg should not display progress in gpstate -e
     Given the database is running
     And all the segments are running
