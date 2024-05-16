@@ -346,3 +346,13 @@ DETAIL:  Falling back to Postgres-based planner because GPORCA does not support 
 (1 row)
 
 reset optimizer_enable_orderedagg;
+-- Orca should fallback if a function in 'from' clause uses 'WITH ORDINALITY'
+SELECT * FROM jsonb_array_elements('["b", "a"]'::jsonb) WITH ORDINALITY;
+INFO:  GPORCA failed to produce a plan, falling back to Postgres-based planner
+DETAIL:  Falling back to Postgres-based planner because GPORCA does not support the following feature: WITH ORDINALITY
+ value | ordinality 
+-------+------------
+ "b"   |          1
+ "a"   |          2
+(2 rows)
+

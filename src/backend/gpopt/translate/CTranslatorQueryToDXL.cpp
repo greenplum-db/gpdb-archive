@@ -3344,6 +3344,12 @@ CTranslatorQueryToDXL::TranslateFromClauseToDXL(Node *node)
 					   GPOS_WSZ_LIT("LATERAL"));
 		}
 
+		if (rte->funcordinality)
+		{
+			GPOS_RAISE(gpdxl::ExmaDXL, gpdxl::ExmiQuery2DXLUnsupportedFeature,
+					   GPOS_WSZ_LIT("WITH ORDINALITY"));
+		}
+
 		switch (rte->rtekind)
 		{
 			default:

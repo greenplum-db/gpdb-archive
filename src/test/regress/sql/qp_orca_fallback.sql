@@ -128,3 +128,6 @@ set optimizer_enable_orderedagg=off;
 select array_agg(a order by b)
   from (values (1,4),(2,3),(3,1),(4,2)) v(a,b);
 reset optimizer_enable_orderedagg;
+
+-- Orca should fallback if a function in 'from' clause uses 'WITH ORDINALITY'
+SELECT * FROM jsonb_array_elements('["b", "a"]'::jsonb) WITH ORDINALITY;
