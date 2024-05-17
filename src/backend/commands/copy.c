@@ -3970,15 +3970,8 @@ CopyFrom(CopyState cstate)
 		 cstate->rel->rd_newRelfilenodeSubid != InvalidSubTransactionId))
 	{
 		ti_options |= TABLE_INSERT_SKIP_FSM;
-		/*
-		 * The optimization to skip WAL has been disabled in GPDB. wal_level
-		 * is hardcoded to 'archive' in GPDB, so it wouldn't have any effect
-		 * anyway.
-		 */
-#if 0
 		if (!XLogIsNeeded())
 			ti_options |= TABLE_INSERT_SKIP_WAL;
-#endif
 	}
 
 	/*
