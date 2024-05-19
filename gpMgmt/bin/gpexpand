@@ -2013,12 +2013,22 @@ class gpexpand:
         """
 
         # get GUC value
-        sql = "show gp_interconnect_proxy_addresses;"
         conn = dbconn.connect(_gp_expand.dburl, encoding='UTF8')
-        icproxy_addresses_string = dbconn.queryRow(conn, sql)[0].strip()
-        sql = "show gp_interconnect_type;"
-        ic_type = dbconn.queryRow(conn, sql)[0].strip()
-        conn.close()
+        try:
+            sql = "show gp_interconnect_proxy_addresses;"
+            icproxy_addresses_string = dbconn.queryRow(conn, sql)[0].strip()
+            sql = "show gp_interconnect_type;"
+            ic_type = dbconn.queryRow(conn, sql)[0].strip()
+        except DatabaseError as e:
+            if re.search('unrecognized configuration parameter', str(e)):
+                # no gp_interconnect_proxy_addresses in a distribution without `ENABLE_IC_PROXY`
+                # it means no need to check the proxy addresses, let's return directly
+                return
+            raise Exception("failed to query in validate_icproxy_addr, database error: %s" % str(e))
+        except Exception as e:
+            raise Exception("failed to query in validate_icproxy_addr, exception: %s" % str(e))
+        finally:
+            conn.close()
 
         # check if newly added dbid exists in gp_interconnect_proxy_addresses
         need_prompt = False
