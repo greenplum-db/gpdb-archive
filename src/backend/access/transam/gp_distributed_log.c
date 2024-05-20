@@ -113,7 +113,7 @@ gp_distributed_log(PG_FUNCTION_ARGS)
 
 			values[0] = Int16GetDatum((int16)GpIdentity.segindex);
 			values[1] = Int16GetDatum((int16)GpIdentity.dbid);
-			values[2] = TransactionIdGetDatum(distribXid);
+			values[2] = UInt64GetDatum(distribXid);
 
 			/*
 			 * For now, we only log committed distributed transactions.

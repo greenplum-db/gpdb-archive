@@ -899,10 +899,10 @@ CreateQueue(CreateQueueStmt *stmt)
 		DirectFunctionCall1(namein, CStringGetDatum(stmt->queue));
 
 	new_record[Anum_pg_resqueue_rsqcountlimit - 1] = 
-		Float4GetDatum(activelimit);
+		Float8GetDatum(activelimit);
 
 	new_record[Anum_pg_resqueue_rsqcostlimit - 1] = 
-		Float4GetDatum(costlimit);
+		Float8GetDatum(costlimit);
 
 	new_record[Anum_pg_resqueue_rsqovercommit - 1] = 
 		BoolGetDatum(overcommit);
@@ -912,7 +912,7 @@ CreateQueue(CreateQueueStmt *stmt)
 
 	queueid = GetNewOidForResQueue(pg_resqueue_rel, ResQueueOidIndexId, Anum_pg_resqueue_oid,
 								   stmt->queue);
-	new_record[Anum_pg_resqueue_oid - 1] = queueid;
+	new_record[Anum_pg_resqueue_oid - 1] = ObjectIdGetDatum(queueid);
 
 	tuple = heap_form_tuple(pg_resqueue_dsc, new_record, new_record_nulls);
 
@@ -1276,7 +1276,7 @@ AlterQueue(AlterQueueStmt *stmt)
 	if (dactivelimit)
 	{
 		new_record[Anum_pg_resqueue_rsqcountlimit - 1] = 
-			Float4GetDatum(activelimit);
+			Float8GetDatum(activelimit);
 		new_record_repl[Anum_pg_resqueue_rsqcountlimit - 1] = true;
 
 		thresholds[RES_COUNT_LIMIT] = activelimit;
@@ -1286,7 +1286,7 @@ AlterQueue(AlterQueueStmt *stmt)
 	if (dcostlimit)
 	{
 		new_record[Anum_pg_resqueue_rsqcostlimit - 1] = 
-			Float4GetDatum(costlimit);
+			Float8GetDatum(costlimit);
 		new_record_repl[Anum_pg_resqueue_rsqcostlimit - 1] = true;
 
 		thresholds[RES_COST_LIMIT] = costlimit;
