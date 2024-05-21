@@ -23,6 +23,7 @@ These features are unsupported when GPORCA is enabled \(the default\):
 
 -   SP-GiST indexing method. GPORCA supports only B-tree, bitmap, GIN, and GiST indexes. GPORCA ignores indexes created with unsupported methods.
 -   The `SELECT` command's `TABLESAMPLE` clause.
+-   The optional `WITH ORDINALITY` clause of a function call inside the `FROM` clause of a `SELECT` command.
 -   Multi-level partitioned tables.
 -   Non-uniform partitioned tables.
 -   SortMergeJoin \(SMJ\).
