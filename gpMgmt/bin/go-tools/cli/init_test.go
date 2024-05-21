@@ -1427,7 +1427,8 @@ func TestInitClusterService(t *testing.T) {
 		}
 	})
 	t.Run("returns error if stream receiver returns error", func(t *testing.T) {
-		testStr := "test-error"
+		_, _, logfile := testhelper.SetupTestLogger()
+		testStr := "Cluster creation failed"
 		defer resetCLIVars()
 		defer utils.ResetSystemFunctions()
 
@@ -1449,10 +1450,13 @@ func TestInitClusterService(t *testing.T) {
 			return fmt.Errorf(testStr)
 		}
 		err := cli.InitClusterService("/tmp/invalid_file", false, false)
-		if err == nil || !strings.Contains(err.Error(), testStr) {
-			t.Fatalf("got %v, want %v", err, testStr)
+		if err != nil {
+			t.Fatalf("unexpected error")
 		}
+		testutils.AssertLogMessage(t, logfile, testStr)
+
 	})
+
 }
 
 func resetConfHostnames() {
@@ -1969,6 +1973,67 @@ func TestIsGpServicesEnabledFn(t *testing.T) {
 		err := cli.IsGpServicesEnabled(&idl.MakeClusterRequest{GpArray: &gparray})
 		if err == nil || !strings.Contains(err.Error(), expectedError) {
 			t.Fatalf("got %v, want %v", err, expectedError)
+		}
+	})
+}
+
+func TestInitCleanFn(t *testing.T) {
+
+	t.Run("ConnectToHub Fails ", func(t *testing.T) {
+
+		defer resetCLIVars()
+
+		expectedErr := errors.New("test error")
+		cli.ConnectToHub = func(conf *hub.Config) (idl.HubClient, error) {
+			return nil, expectedErr
+		}
+
+		err := cli.InitCleanFn(false)
+		if !errors.Is(err, expectedErr) {
+			t.Fatalf("got %#v, want %#v", err, expectedErr)
+		}
+	})
+
+	t.Run("CleanInitCluster RPC succeeds", func(t *testing.T) {
+		setupTest(t)
+		defer teardownTest()
+		defer resetCLIVars()
+
+		_, _, logfile := testhelper.SetupTestLogger()
+
+		cli.ConnectToHub = func(conf *hub.Config) (idl.HubClient, error) {
+			hubClient := mock_idl.NewMockHubClient(ctrl)
+			hubClient.EXPECT().CleanInitCluster(gomock.Any(), gomock.Any())
+			return hubClient, nil
+		}
+
+		err := cli.InitCleanFn(false)
+
+		if err != nil {
+			t.Fatalf("unexpected error: err %v", err)
+		}
+		testutils.AssertLogMessage(t, logfile, "clean cluster command successful")
+	})
+
+	t.Run("CleanInitCluster RPC fails", func(t *testing.T) {
+		setupTest(t)
+		defer teardownTest()
+
+		expectedErr := errors.New("clean cluster command failed: test_err")
+		cli.ConnectToHub = func(conf *hub.Config) (idl.HubClient, error) {
+			hubClient := mock_idl.NewMockHubClient(ctrl)
+			hubClient.EXPECT().CleanInitCluster(gomock.Any(), gomock.Any()).Return(nil, expectedErr)
+			return hubClient, nil
+		}
+
+		err := cli.InitCleanFn(false)
+		if !errors.Is(err, expectedErr) {
+			t.Fatalf("got %#v, want %#v", err, expectedErr)
+		}
+
+		expectedErrPrefix := "clean cluster command failed"
+		if !strings.HasPrefix(err.Error(), expectedErrPrefix) {
+			t.Fatalf("got %#v, want %#v", err, expectedErr)
 		}
 	})
 }

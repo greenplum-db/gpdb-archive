@@ -89,6 +89,17 @@ func (cmd *PgCtlReload) BuildExecCommand(gpHome string) *exec.Cmd {
 	return utils.System.ExecCommand(utility, args...)
 }
 
+type PgCtlStatus struct {
+	PgData string `flag:"--pgdata"`
+}
+
+func (cmd *PgCtlStatus) BuildExecCommand(gpHome string) *exec.Cmd {
+	utility := utils.GetGpUtilityPath(gpHome, pgCtlUtility)
+	args := append([]string{"status"}, utils.GenerateArgs(cmd)...)
+
+	return utils.System.ExecCommand(utility, args...)
+}
+
 type Postgres struct {
 	GpVersion bool `flag:"--gp-version"`
 }

@@ -16,6 +16,11 @@ import (
 	"github.com/greenplum-db/gpdb/gp/utils"
 )
 
+var (
+	dummyDir    = "/tmp/xyz"
+	nonExistent = "/path/to/nonexistent/directory"
+)
+
 func TestCheckIfPortFree(t *testing.T) {
 	testhelper.SetupTestLogger()
 	t.Run("returns no error when port not in use", func(t *testing.T) {
@@ -179,8 +184,55 @@ func TestAppendLinesToFile(t *testing.T) {
 			t.Fatalf("got %#v, want %#v", err, expectedErr)
 		}
 	})
+}
+func TestCreateAppendLinesToFile(t *testing.T) {
+
+	t.Run("Successfully creates file if it does not exist", func(t *testing.T) {
+		filename := "/tmp/xyz.txt"
+
+		newLines := []string{"line4", "line5", "line6"}
+
+		err := utils.CreateAppendLinesToFile(filename, newLines)
+		if err != nil {
+			t.Fatalf("unexpected error: %#v", err)
+		}
+
+		err = utils.System.RemoveAll(filename)
+		if err != nil {
+			t.Fatalf("unexpected error: %#v", err)
+		}
+
+	})
+	t.Run("succesfully appends to the file", func(t *testing.T) {
+
+		file, err := os.CreateTemp("", "")
+		if err != nil {
+			t.Fatalf("unexpected error: %#v", err)
+		}
+		defer os.Remove(file.Name())
+
+		existingLines := []string{"line1", "line2", "line3"}
+		_, err = file.WriteString(strings.Join(existingLines, "\n"))
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		_, err = file.WriteString("\n")
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+
+		newLines := []string{"line4", "line5", "line6"}
+		err = utils.CreateAppendLinesToFile(file.Name(), newLines)
+		if err != nil {
+			t.Fatalf("unexpected error: %#v", err)
+		}
+
+		expected := strings.Join(append(existingLines, newLines...), "\n")
+		testutils.AssertFileContents(t, file.Name(), expected)
+	})
 
 	t.Run("errors out when not able to write to the file", func(t *testing.T) {
+
 		utils.System.OpenFile = func(name string, flag int, perm os.FileMode) (*os.File, error) {
 			_, writer, _ := os.Pipe()
 			writer.Close()
@@ -189,11 +241,11 @@ func TestAppendLinesToFile(t *testing.T) {
 		}
 		defer utils.ResetSystemFunctions()
 
-		err := utils.AppendLinesToFile("", []string{})
+		err := utils.CreateAppendLinesToFile("", []string{})
 
-		expectedErr := os.ErrClosed
-		if !errors.Is(err, expectedErr) {
-			t.Fatalf("got %#v, want %#v", err, expectedErr)
+		expectedErrPrefix := "open : no such file or directory"
+		if !strings.HasPrefix(err.Error(), expectedErrPrefix) {
+			t.Fatalf("got %s, want %s", err.Error(), expectedErrPrefix)
 		}
 	})
 }
@@ -234,4 +286,157 @@ func TestGetHostAddrsNoLoopback(t *testing.T) {
 			t.Fatalf("got %#v, want %#v", err, expectedErr)
 		}
 	})
+}
+
+func TestReadEntriesFromFile(t *testing.T) {
+	// Create a temporary test file
+	tempFile, err := os.CreateTemp("", "testfile.txt")
+	if err != nil {
+		t.Fatalf("error creating temporary file: %v", err)
+	}
+	defer os.Remove(tempFile.Name())
+
+	// Write some content to the temporary file
+	content := "line 1\nline 2\nline 3"
+	_, err = tempFile.WriteString(content)
+	if err != nil {
+		t.Fatalf("error writing to temporary file: %v", err)
+	}
+	tempFile.Close()
+
+	// Test case 1: file exists and contains entries
+	t.Run("file exists and contains entries", func(t *testing.T) {
+		entries, err := utils.ReadEntriesFromFile(tempFile.Name())
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+		expectedEntries := []string{"line 1", "line 2", "line 3"}
+		if !reflect.DeepEqual(entries, expectedEntries) {
+			t.Fatalf("expected entries %v, got %v", expectedEntries, entries)
+		}
+
+	})
+
+	// Test case 2: file exists but is empty
+	t.Run("file exists but is empty", func(t *testing.T) {
+		emptyFile, err := os.CreateTemp("", "emptyfile.txt")
+		if err != nil {
+			t.Fatalf("error creating temporary file: %v", err)
+		}
+		defer os.Remove(emptyFile.Name())
+		emptyFile.Close()
+
+		emptyEntries, err := utils.ReadEntriesFromFile(emptyFile.Name())
+		if err != nil {
+			t.Fatalf("expected no error, got %v", err)
+		}
+		if len(emptyEntries) != 0 {
+			t.Fatalf("expected empty entries, got %v", emptyEntries)
+		}
+	})
+
+	// Test case 3: file doesn't exist
+	t.Run("file doesnt exist", func(t *testing.T) {
+		_, err = utils.ReadEntriesFromFile("nonexistentfile.txt")
+		if err == nil {
+			t.Fatalf("expected an error, got none")
+		}
+
+		// Test case 4: error while reading file
+		_, err = utils.ReadEntriesFromFile("/root/forbidden.txt")
+		if err == nil {
+			t.Fatalf("expected an error, got none")
+		}
+	})
+}
+
+func TestRemoveDirContents(t *testing.T) {
+
+	// Test case 1: Directory does not exist
+	t.Run("Directory does not exist", func(t *testing.T) {
+
+		expectedErr := "open /path/to/nonexistent/directory: no such file or directory"
+		err := utils.RemoveDirContents(nonExistent)
+		if err != nil {
+			if !strings.HasPrefix(err.Error(), expectedErr) {
+				t.Fatalf("got %s, want %s", err.Error(), expectedErr)
+			}
+		}
+
+	})
+
+	//Test case 2: Directory is empty
+	t.Run("Empty directory", func(t *testing.T) {
+
+		tempDir := t.TempDir()
+
+		err := utils.RemoveDirContents(tempDir)
+		if err != nil {
+			t.Fatalf("function should succeed if directory is empty: %v", err)
+		}
+	})
+
+	//Test case 3: Successfully removes all files in directory
+	t.Run("Successfully removed files", func(t *testing.T) {
+
+		//Create file if it doesnt exist
+
+		if err := os.MkdirAll(dummyDir, 0777); err != nil {
+			err = os.Chmod(dummyDir, 0777)
+			t.Fatalf("unable to create dummy directory: %v", err)
+		}
+		defer os.RemoveAll(dummyDir)
+
+		//Create dummy files
+		_, err := os.Create(filepath.Join(dummyDir, "file1"))
+		if err != nil {
+			t.Fatalf("unable to create files in dummy directory: %v", err)
+		}
+
+		_, err = os.Create(filepath.Join(dummyDir, "file2"))
+		if err != nil {
+			t.Fatalf("unable to create files in dummy directory: %v", err)
+		}
+
+		err = utils.RemoveDirContents(dummyDir)
+		if err != nil {
+			t.Fatalf("unable to remove contents of dummpDir err: %v", err)
+		}
+
+	})
+
+	//Test case 4: Successfully removes file but not directory
+	t.Run("Successfully removed files but not directory", func(t *testing.T) {
+
+		//Create file if it doesnt exist
+
+		if err := os.MkdirAll(dummyDir, 0777); err != nil {
+			err = os.Chmod(dummyDir, 0777)
+			t.Fatalf("unable to create dummy directory: %v", err)
+		}
+		defer os.RemoveAll(dummyDir)
+
+		//Create dummy files
+		_, err := os.Create(filepath.Join(dummyDir, "file1"))
+		if err != nil {
+			t.Fatalf("unable to create files in dummy directory: %v", err)
+		}
+
+		_, err = os.Create(filepath.Join(dummyDir, "file2"))
+		if err != nil {
+			t.Fatalf("unable to create files in dummy directory: %v", err)
+		}
+
+		err = utils.RemoveDirContents(dummyDir)
+		if err != nil {
+			t.Fatalf("unable to remove contents of dummpDir err: %v", err)
+		}
+
+		_, err = utils.System.Stat(dummyDir)
+		if err != nil {
+			t.Fatalf("unexpected err: %v", err)
+		}
+
+	})
+
 }

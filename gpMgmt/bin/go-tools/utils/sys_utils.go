@@ -1,12 +1,15 @@
 package utils
 
 import (
+	"bufio"
 	"fmt"
+	"io"
 	"io/fs"
 	"net"
 	"os"
 	"os/exec"
 	"os/user"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -83,6 +86,41 @@ func AppendLinesToFile(filename string, lines []string) error {
 	defer file.Close()
 
 	_, err = file.WriteString("\n" + strings.Join(lines, "\n"))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/*
+ * Create file if it does not exists.
+ * If file exists then append the lines to the existing file.
+ */
+func CreateAppendLinesToFile(filename string, lines []string) error {
+	_, err := System.Stat(filename)
+
+	//Create file if it doesnt exist
+	if err != nil {
+		_, err := System.Create(filename)
+		if err != nil {
+			return err
+		}
+	}
+
+	file, err := System.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	_, err = file.WriteString(strings.Join(lines, "\n"))
+	if err != nil {
+		return err
+	}
+
+	// Add /n to the end of the file
+	_, err = file.WriteString("\n")
 	if err != nil {
 		return err
 	}
@@ -198,4 +236,51 @@ func CheckIfPortFree(ip string, port string) (bool, error) {
 	}
 	defer listener.Close()
 	return true, nil
+}
+
+/* Function to read entries from a givem file and return the list of strings
+ */
+func ReadEntriesFromFile(filename string) ([]string, error) {
+	// Open the file for reading
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var entries []string
+
+	// Read the file line by line
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		entries = append(entries, line)
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+	return entries, nil
+}
+
+/*
+ * Remove the contents of the directory
+ */
+func RemoveDirContents(dir string) error {
+	d, err := os.Open(dir)
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+	names, err := d.Readdirnames(-1)
+	if err != nil && err != io.EOF {
+		return err
+	}
+	for _, name := range names {
+		err = os.RemoveAll(filepath.Join(dir, name))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

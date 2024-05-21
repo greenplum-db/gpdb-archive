@@ -116,6 +116,26 @@ func (mr *MockAgentClientMockRecorder) PgBasebackup(ctx, in interface{}, opts ..
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PgBasebackup", reflect.TypeOf((*MockAgentClient)(nil).PgBasebackup), varargs...)
 }
 
+// RemoveDirectory mocks base method.
+func (m *MockAgentClient) RemoveDirectory(ctx context.Context, in *idl.RemoveDirectoryRequest, opts ...grpc.CallOption) (*idl.RemoveDirectoryReply, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{ctx, in}
+	for _, a := range opts {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "RemoveDirectory", varargs...)
+	ret0, _ := ret[0].(*idl.RemoveDirectoryReply)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RemoveDirectory indicates an expected call of RemoveDirectory.
+func (mr *MockAgentClientMockRecorder) RemoveDirectory(ctx, in interface{}, opts ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{ctx, in}, opts...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveDirectory", reflect.TypeOf((*MockAgentClient)(nil).RemoveDirectory), varargs...)
+}
+
 // StartSegment mocks base method.
 func (m *MockAgentClient) StartSegment(ctx context.Context, in *idl.StartSegmentRequest, opts ...grpc.CallOption) (*idl.StartSegmentReply, error) {
 	m.ctrl.T.Helper()
@@ -317,6 +337,21 @@ func (m *MockAgentServer) PgBasebackup(arg0 context.Context, arg1 *idl.PgBasebac
 func (mr *MockAgentServerMockRecorder) PgBasebackup(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PgBasebackup", reflect.TypeOf((*MockAgentServer)(nil).PgBasebackup), arg0, arg1)
+}
+
+// RemoveDirectory mocks base method.
+func (m *MockAgentServer) RemoveDirectory(arg0 context.Context, arg1 *idl.RemoveDirectoryRequest) (*idl.RemoveDirectoryReply, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveDirectory", arg0, arg1)
+	ret0, _ := ret[0].(*idl.RemoveDirectoryReply)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RemoveDirectory indicates an expected call of RemoveDirectory.
+func (mr *MockAgentServerMockRecorder) RemoveDirectory(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveDirectory", reflect.TypeOf((*MockAgentServer)(nil).RemoveDirectory), arg0, arg1)
 }
 
 // StartSegment mocks base method.

@@ -56,6 +56,26 @@ func (mr *MockHubClientMockRecorder) AddMirrors(arg0, arg1 interface{}, arg2 ...
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddMirrors", reflect.TypeOf((*MockHubClient)(nil).AddMirrors), varargs...)
 }
 
+// CleanInitCluster mocks base method.
+func (m *MockHubClient) CleanInitCluster(arg0 context.Context, arg1 *idl.CleanInitClusterRequest, arg2 ...grpc.CallOption) (*idl.CleanInitClusterReply, error) {
+	m.ctrl.T.Helper()
+	varargs := []interface{}{arg0, arg1}
+	for _, a := range arg2 {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "CleanInitCluster", varargs...)
+	ret0, _ := ret[0].(*idl.CleanInitClusterReply)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CleanInitCluster indicates an expected call of CleanInitCluster.
+func (mr *MockHubClientMockRecorder) CleanInitCluster(arg0, arg1 interface{}, arg2 ...interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	varargs := append([]interface{}{arg0, arg1}, arg2...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CleanInitCluster", reflect.TypeOf((*MockHubClient)(nil).CleanInitCluster), varargs...)
+}
+
 // GetAllHostNames mocks base method.
 func (m *MockHubClient) GetAllHostNames(arg0 context.Context, arg1 *idl.GetAllHostNamesRequest, arg2 ...grpc.CallOption) (*idl.GetAllHostNamesReply, error) {
 	m.ctrl.T.Helper()
@@ -211,6 +231,21 @@ func (m *MockHubServer) AddMirrors(arg0 *idl.AddMirrorsRequest, arg1 idl.Hub_Add
 func (mr *MockHubServerMockRecorder) AddMirrors(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddMirrors", reflect.TypeOf((*MockHubServer)(nil).AddMirrors), arg0, arg1)
+}
+
+// CleanInitCluster mocks base method.
+func (m *MockHubServer) CleanInitCluster(arg0 context.Context, arg1 *idl.CleanInitClusterRequest) (*idl.CleanInitClusterReply, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CleanInitCluster", arg0, arg1)
+	ret0, _ := ret[0].(*idl.CleanInitClusterReply)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CleanInitCluster indicates an expected call of CleanInitCluster.
+func (mr *MockHubServerMockRecorder) CleanInitCluster(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CleanInitCluster", reflect.TypeOf((*MockHubServer)(nil).CleanInitCluster), arg0, arg1)
 }
 
 // GetAllHostNames mocks base method.

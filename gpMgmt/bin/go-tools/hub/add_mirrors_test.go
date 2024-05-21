@@ -3,6 +3,7 @@ package hub_test
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"reflect"
 	"strconv"
@@ -414,6 +415,9 @@ func TestAddMirrors(t *testing.T) {
 		})
 		defer hub.ResetEnsureConnectionsAreReady()
 
+		utils.System.Stat = func(name string) (os.FileInfo, error) {
+			return nil, nil
+		}
 		utils.System.Open = func(name string) (*os.File, error) {
 			reader, writer, _ := os.Pipe()
 			defer writer.Close()
@@ -425,6 +429,12 @@ func TestAddMirrors(t *testing.T) {
 
 			return reader, nil
 		}
+		utils.System.OpenFile = func(name string, flag int, perm fs.FileMode) (*os.File, error) {
+			_, writer, _ := os.Pipe()
+			return writer, nil
+
+		}
+
 		defer utils.ResetSystemFunctions()
 
 		var called bool
@@ -575,6 +585,10 @@ func TestAddMirrors(t *testing.T) {
 			})
 			defer hub.ResetEnsureConnectionsAreReady()
 
+			utils.System.Stat = func(name string) (os.FileInfo, error) {
+				return nil, nil
+			}
+
 			utils.System.Open = func(name string) (*os.File, error) {
 				reader, writer, _ := os.Pipe()
 				defer writer.Close()
@@ -585,6 +599,11 @@ func TestAddMirrors(t *testing.T) {
 				}
 
 				return reader, nil
+			}
+			utils.System.OpenFile = func(name string, flag int, perm fs.FileMode) (*os.File, error) {
+				_, writer, _ := os.Pipe()
+				return writer, nil
+
 			}
 			defer utils.ResetSystemFunctions()
 

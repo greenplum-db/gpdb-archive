@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 
 	"golang.org/x/exp/maps"
@@ -37,6 +39,13 @@ func (s *Server) MakeCluster(request *idl.MakeClusterRequest, stream idl.Hub_Mak
 		}
 	}()
 
+	// Check if entries.txt file exists and if it exists give user a message to clean the previous run.
+	filename := filepath.Join(s.LogDir, constants.CleanFileName)
+	_, err = utils.System.Stat(filename)
+	if err == nil {
+		return utils.LogAndReturnError(fmt.Errorf("gpinitsystem has failed previously. Run gp init cluster --clean before creating cluster again"))
+	}
+
 	err = s.DialAllAgents()
 	if err != nil {
 		return utils.LogAndReturnError(err)
@@ -46,6 +55,18 @@ func (s *Server) MakeCluster(request *idl.MakeClusterRequest, stream idl.Hub_Mak
 	err = s.ValidateEnvironment(&hubStream, request)
 	if err != nil {
 		return utils.LogAndReturnError(fmt.Errorf("validating hosts: %w", err))
+	}
+
+	seg := greenplum.Segment{}
+	seg.Hostname = request.GpArray.Coordinator.HostName
+	seg.DataDir = request.GpArray.Coordinator.DataDirectory
+
+	var segArray []greenplum.Segment
+	segArray = append(segArray, seg)
+
+	err = WriteSegmentCleanupFile(segArray, filename)
+	if err != nil {
+		return utils.LogAndReturnError(err)
 	}
 
 	hubStream.StreamLogMsg("Creating coordinator segment")
@@ -95,6 +116,10 @@ func (s *Server) MakeCluster(request *idl.MakeClusterRequest, stream idl.Hub_Mak
 		coordinatorAddrs = append(coordinatorAddrs, addrs...)
 	}
 
+	err = WriteSegmentCleanupFile(primarySegs, filename)
+	if err != nil {
+		return utils.LogAndReturnError(err)
+	}
 	hubStream.StreamLogMsg("Creating primary segments")
 	err = s.CreateSegments(&hubStream, primarySegs, request.ClusterParams, coordinatorAddrs)
 	if err != nil {
@@ -164,6 +189,9 @@ func (s *Server) MakeCluster(request *idl.MakeClusterRequest, stream idl.Hub_Mak
 			return err
 		}
 	}
+
+	// If we reach till here cluster is created successfully. So remove the entries file
+	os.Remove(filename)
 
 	return nil
 }
@@ -491,4 +519,24 @@ func getSegmentContentId(gparray *greenplum.GpArray, seg *idl.Segment) (int32, e
 	}
 
 	return 0, fmt.Errorf("did not find any primary segment with configuration %+v", *seg)
+}
+
+/*Add segment details to cleanup file*/
+
+func WriteSegmentCleanupFile(segs []greenplum.Segment, filename string) error {
+
+	lines := []string{}
+	var entries string
+	for _, seg := range segs {
+		entries = fmt.Sprintf("%s %s",
+			seg.Hostname,
+			seg.DataDir)
+		lines = append(lines, entries)
+	}
+
+	err := utils.CreateAppendLinesToFile(filename, lines)
+	if err != nil {
+		return err
+	}
+	return nil
 }

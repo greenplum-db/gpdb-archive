@@ -219,3 +219,20 @@ func getMockDBConn(t *testing.T, utility bool, errs ...error) (*dbconn.DBConn, s
 
 	return connection, mock
 }
+
+// createDirectoryWithRemoveFail creates a directory where the removal operation will fail
+func CreateDirectoryWithRemoveFail(dirPath string) error {
+	// Create the directory
+	if err := os.MkdirAll(dirPath, 0777); err != nil {
+		err = os.Chmod(dirPath, 0777)
+		return err
+
+	}
+
+	// Change permissions of the directory to read-only
+	if err := os.Chmod(dirPath, 0400); err != nil {
+		return err
+	}
+
+	return nil
+}
