@@ -2376,20 +2376,6 @@ You can set this parameter only in the `postgresql.conf` file or on the server c
 |-----------|-------|-------------------|
 |2 - `MAX_KILOBYTES` (integer) |1024|local, system, reload|
 
-## <a id="memory_spill_ratio"></a>memory\_spill\_ratio 
-
-> **Note** The `memory_spill_ratio` server configuration parameter is enforced only when resource group-based resource management is active.
-
-Sets the memory usage threshold percentage for memory-intensive operators in a transaction. When a transaction reaches this threshold, it spills to disk.
-
-The default `memory_spill_ratio` percentage is the value defined for the resource group assigned to the currently active role. You can set `memory_spill_ratio` at the session level to selectively set this limit on a per-query basis. For example, if you have a specific query that spills to disk and requires more memory, you may choose to set a larger `memory_spill_ratio` to increase the initial memory allocation.
-
-You can specify an integer percentage value from 0 to 100 inclusive. If you specify a value of 0, Greenplum Database uses the [`statement_mem`](#statement_mem) server configuration parameter value to control the initial query operator memory amount.
-
-|Value Range|Default|Set Classifications|
-|-----------|-------|-------------------|
-|0 - 100|20|coordinator, session, reload|
-
 ## <a id="min_wal_size"></a>min\_wal\_size
 
 Sets the minimum size to which to shrink the WAL. As long as WAL disk usage stays below this setting, Greenplum Database always recycles old WAL files for future use at a checkpoint, rather than remove them. You can use this parameter to ensure that enough WAL space is reserved to handle spikes in WAL usage, for example when running large batch jobs.

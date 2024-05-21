@@ -433,7 +433,6 @@ The following parameters configure the Greenplum Database resource group workloa
 - [gp_vmem_idle_resource_timeout](guc-list.html#gp_vmem_idle_resource_timeout)
 - [gp_vmem_protect_segworker_cache_limit](guc-list.html#gp_vmem_protect_segworker_cache_limit)
 - [max_statement_mem](guc-list.html#max_statement_mem)
-- [memory_spill_ratio](guc-list.html#memory_spill_ratio)
 - [runaway_detector_activation_percent](guc-list.html#runaway_detector_activation_percent)
 - [statement_mem](guc-list.html#statement_mem)
 - [vmem_process_interrupt](guc-list.html#vmem_process_interrupt)

@@ -78,7 +78,8 @@ InitResManager(void)
 		gp_resmanager_memory_policy = (ResManagerMemoryPolicy *) &gp_resgroup_memory_policy;
 		gp_log_resmanager_memory = &gp_log_resgroup_memory;
 		gp_resmanager_memory_policy_auto_fixed_mem = &gp_resgroup_memory_policy_auto_fixed_mem;
-		gp_resmanager_print_operator_memory_limits = &gp_resgroup_print_operator_memory_limits;
+		/* resource group has no corresponding setting, use the resource manager's default value */
+		gp_resmanager_print_operator_memory_limits = &gp_resmanager_print_operator_memory_limits_default;
 
 		InitResGroups();
 

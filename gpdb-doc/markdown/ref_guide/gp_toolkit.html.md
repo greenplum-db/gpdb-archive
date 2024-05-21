@@ -556,7 +556,6 @@ This view is accessible to all users.
 |cpu\_rate\_limit|The CPU limit \(`CPU_MAX_PERCENT`\) value specified for the resource group, or -1.|
 |memory\_limit|The memory limit \(`MEMORY_LIMIT`\) value specified for the resource group.|
 |memory\_shared\_quota|The shared memory quota \(`MEMORY_SHARED_QUOTA`\) value specified for the resource group.|
-|memory\_spill\_ratio|The memory spill ratio \(`MEMORY_SPILL_RATIO`\) value specified for the resource group.|
 |memory\_auditor|The memory auditor for the resource group.|
 |cpuset|The CPU cores reserved for the resource group on the coordinator host and segment hosts, or -1.|
 

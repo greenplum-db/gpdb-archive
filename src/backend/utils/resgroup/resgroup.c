@@ -73,7 +73,6 @@ int							gp_resgroup_memory_policy = RESMANAGER_MEMORY_POLICY_NONE;
 bool						gp_log_resgroup_memory = false;
 int							gp_resgroup_memory_query_fixed_mem;
 int							gp_resgroup_memory_policy_auto_fixed_mem;
-bool						gp_resgroup_print_operator_memory_limits = false;
 
 bool						gp_resgroup_debug_wait_queue = true;
 int							gp_resource_group_queuing_timeout = 0;
