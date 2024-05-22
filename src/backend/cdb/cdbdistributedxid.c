@@ -21,5 +21,6 @@ gp_distributed_xid(PG_FUNCTION_ARGS pg_attribute_unused())
 {
 	DistributedTransactionId xid = getDistributedTransactionId();
 
-	PG_RETURN_UINT64(xid);
+	PG_RETURN_XID(xid);
+
 }

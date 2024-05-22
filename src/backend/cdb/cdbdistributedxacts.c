@@ -87,11 +87,11 @@ gp_distributed_xacts__(PG_FUNCTION_ARGS)
 		MemSet(values, 0, sizeof(values));
 		MemSet(nulls, false, sizeof(nulls));
 
-		values[0] = UInt64GetDatum(distributedXactStatus->gxid);
+		values[0] = TransactionIdGetDatum(distributedXactStatus->gxid);
 		values[1] = CStringGetTextDatum(DtxStateToString(distributedXactStatus->state));
 
 		values[2] = UInt32GetDatum(distributedXactStatus->sessionId);
-		values[3] = UInt64GetDatum(distributedXactStatus->xminDistributedSnapshot);
+		values[3] = TransactionIdGetDatum(distributedXactStatus->xminDistributedSnapshot);
 
 		tuple = heap_form_tuple(funcctx->tuple_desc, values, nulls);
 		result = HeapTupleGetDatum(tuple);
