@@ -223,6 +223,7 @@ aggregate_leaf_partition_MCVs(Oid relationOid,
 												  ndistinct, sumReltuples);
 	if (*result == NULL)
 	{
+		hash_destroy(datumHash);
 		*num_mcv = 0;
 		return mcvpairArray;
 	}

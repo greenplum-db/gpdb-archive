@@ -961,3 +961,6 @@ alter table hll_part_def set (analyze_hll_non_part_table=true);
 select reloptions from pg_class where relname='hll_part_def';
 select reloptions from pg_class where relname='hll_part_def_1_prt_2';
 
+-- Sanity check to ensure that we don't leak the DatumHashTable memory context
+-- The following should be empty.
+select * from gp_backend_memory_contexts where name = 'DatumHashTable';
