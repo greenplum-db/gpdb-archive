@@ -1129,13 +1129,13 @@ main(int argc, char **argv)
 		char		xlogfname[MAXFNAMELEN];
 		if (!timeline_specified)
 		{
-			pg_log_error("timeline not specified.", strerror(errno));
+			pg_log_error("timeline not specified");
 			goto bad_argument;
 		}
 
 		if (!path_specified)
 		{
-			pg_log_error("path not specified.", strerror(errno));
+			pg_log_error("path not specified");
 			goto bad_argument;
 		}
 

@@ -21,7 +21,7 @@ $node->command_ok(['pg_waldump', '-p', "$pgdata/pg_wal/", '-t', '1', '--last-val
 $node->command_checks_all(['pg_waldump', '-p', "$pgdata/pg_wal/", '--last-valid-walname'],
     1,
     [qr{^$}],
-    [qr/pg_waldump: error: timeline not specified.\nTry "pg_waldump --help" for more information./],
+    [qr/pg_waldump: error: timeline not specified\nTry "pg_waldump --help" for more information./],
 	'pg_waldump fails if timeline not provided');
 
 $node->command_checks_all(['pg_waldump', '-p', "$pgdata/pg_wal/", '-t', 'st', '--last-valid-walname'],
@@ -33,7 +33,7 @@ $node->command_checks_all(['pg_waldump', '-p', "$pgdata/pg_wal/", '-t', 'st', '-
 $node->command_checks_all(['pg_waldump', '-t', '1', '--last-valid-walname'],
     1,
     [qr{^$}],
-    [qr/pg_waldump: error: path not specified.\nTry "pg_waldump --help" for more information./],
+    [qr/pg_waldump: error: path not specified\nTry "pg_waldump --help" for more information./],
     'pg_waldump fails if pg_wal path not provided using -p');
 
 $node->command_checks_all(['pg_waldump', '-p', "/tmp/pg_wal/", '-t', '1', '--last-valid-walname'],
