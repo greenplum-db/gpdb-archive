@@ -449,6 +449,7 @@ createDatumHashTable(unsigned int nEntries)
 	hash_ctl.entrysize = sizeof(MCVFreqEntry);
 	hash_ctl.hash = datumHashTableHash;
 	hash_ctl.match = datumHashTableMatch;
+	hash_ctl.hcxt = CurrentMemoryContext; /* VacAttrStats->anl_context */
 
 	return hash_create("DatumHashTable", nEntries, &hash_ctl,
 					   HASH_ELEM | HASH_FUNCTION | HASH_COMPARE);
